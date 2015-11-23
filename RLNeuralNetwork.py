@@ -136,7 +136,8 @@ class RLNeuralNetwork(object):
         h2 = rectify(T.dot(h, w_h2) + b_h2)
     
         h2 = dropout(h2, p_drop_hidden)
-        q_val_x = T.nnet.sigmoid(T.dot(h2, w_o) + b_o)
+        q_val_x = T.tanh(T.dot(h2, w_o) + b_o)
+        # q_val_x = T.nnet.sigmoid(T.dot(h2, w_o) + b_o)
         return q_val_x
     
     def updateTargetModel(self):
