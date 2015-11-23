@@ -23,7 +23,7 @@ class Map(object):
     def __init__(self, map):
         self._map = map
         self._agent = np.array([7,7])
-        self._target = np.array([3,2])
+        self._target = np.array([13,12])
         # self._map[self._target[0]][self._target[1]] = 1
         
         self._bounds = np.array([[0,0], [15,15]])
@@ -56,14 +56,25 @@ class Map(object):
             return self.reward() + -5
         if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
-            return self.reward() + -5
+            return self.reward() +-5
         self._agent = loc
         return self.reward()
     
     def reward(self):
+        # More like a cost function for distance away from target
         a=(self._agent - self._target)
         d = np.sqrt((a*a).sum(axis=0))
+        if d < 0.3:
+            return 16.0
         return -d
+    
+    def reward2(self):
+        # 1 for reaching target
+        a=(self._agent - self._target)
+        d = np.sqrt((a*a).sum(axis=0))
+        if d < 0.3:
+            return 1.0
+        return 0.0
     
     def getState(self):
         return self._agent

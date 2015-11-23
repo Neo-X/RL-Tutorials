@@ -6,7 +6,9 @@ def floatX(State):
     return np.asarray(State, dtype=theano.config.floatX)
 
 def init_weights(shape):
+    # return theano.shared(floatX(np.zeros(shape)))
     return theano.shared(floatX(np.random.randn(*shape) * 0.1))
+
 
 class RLLogisticRegression(object):
     """Reinforcement Learning based Logistic regression model
@@ -42,7 +44,7 @@ class RLLogisticRegression(object):
         self._b_old = init_weights((n_out,))
         
         # learning rate for gradient descent updates.
-        self._learning_rate = 0.01
+        self._learning_rate = 0.005
         # future discount 
         self._discount_factor= 0.8
         self._weight_update_steps=2000
@@ -62,6 +64,7 @@ class RLLogisticRegression(object):
         
         # bellman error, delta error
         delta = ((Reward + (self._discount_factor * T.max(self.targetModel(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
+        # delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
         # total bellman cost 
         # Squaring is important so error do not cancel each other out.
         # mean is used instead of sum as it is more independent of parameter scale
@@ -90,10 +93,12 @@ class RLLogisticRegression(object):
     def model(self, State):
         # return self._model(State)
         return T.nnet.sigmoid(T.dot(State, self._w) + self._b)
+        # return T.dot(State, self._w) + self._b
         # return (T.dot(State, self._w) + self._b.reshape((1, -1)))
         
     def targetModel(self, State):
         # return self._model(State)
+        # return T.dot(State, self._w) + self._b
         return T.nnet.sigmoid(T.dot(State, self._w_old) + self._b_old)
         # return (T.dot(State, self._w) + self._b.reshape((1, -1)))
     

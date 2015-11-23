@@ -1,12 +1,18 @@
 import theano
 from theano import tensor as T
 import numpy as np
+from theano.sandbox.rng_mrg import MRG_RandomStreams as RandomStreams
+
+srng = RandomStreams()
 
 def floatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
 
 def init_weights(shape):
     return theano.shared(floatX(np.random.randn(*shape) * 0.01))
+
+def init_b_weights(shape):
+    return theano.shared(floatX(np.random.randn(*shape) * 0.0 + 0.1))
 
 def init_tanh(n_in, n_out):
     rng = np.random.RandomState(1234)
@@ -26,29 +32,49 @@ def sgd(cost, params, lr=0.05):
         updates.append([p, p + (-g * lr)])
     return updates
 
-class NeuralNet(object):
+def rectify(X):
+    return T.maximum(X, 0.)
+
+def RMSprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
+    grads = T.grad(cost=cost, wrt=params)
+    updates = []
+    for p, g in zip(params, grads):
+        acc = theano.shared(p.get_value() * 0.)
+        acc_new = rho * acc + (1 - rho) * g ** 2
+        gradient_scaling = T.sqrt(acc_new + epsilon)
+        g = g / gradient_scaling
+        updates.append((acc, acc_new))
+        updates.append((p, p - lr * g))
+    return updates
+
+def dropout(X, p=0.):
+    if p > 0:
+        retain_prob = 1 - p
+        X *= srng.binomial(X.shape, p=retain_prob, dtype=theano.config.floatX)
+        X /= retain_prob
+    return X
+
+class RLNeuralNetwork(object):
     
     def __init__(self, input, n_in, n_out):
 
         hidden_size=36
-        self._w_h = init_tanh(n_in, hidden_size)
-        self._b_h = theano.shared(np.zeros((hidden_size,), dtype=theano.config.floatX) + 0.1)
+        self._w_h = init_weights((n_in, hidden_size))
+        self._b_h = init_b_weights((hidden_size,))
+        self._w_h2 = init_weights((hidden_size, hidden_size))
+        self._b_h2 = init_b_weights((hidden_size,))
         self._w_o = init_weights((hidden_size, n_out))
-        self._b_o = theano.shared(np.zeros((n_out,), dtype=theano.config.floatX) + 0.1)
+        self._b_o = init_b_weights((n_out,))
         
         self.updateTargetModel()
-        """
-        self._w_h_old = init_tanh(n_in, hidden_size)
-        self._b_h_old = theano.shared(np.zeros((hidden_size,), dtype=theano.config.floatX))
-        self._w_o_old = theano.shared(np.zeros(
-                (hidden_size, n_out),
-                dtype=theano.config.floatX
-            ))
-        self._b_o_old = theano.shared(np.zeros((n_out,), dtype=theano.config.floatX))
-        """
+        self._w_h = init_weights((n_in, hidden_size))
+        self._w_h2 = init_weights((hidden_size, hidden_size))
+        self._w_o = init_weights((hidden_size, n_out))
+
+        
         # print "Initial W " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.04
+        self._learning_rate = 0.0005
         self._discount_factor= 0.8
         
         self._weight_update_steps=3000
@@ -62,19 +88,23 @@ class NeuralNet(object):
         
         # model = T.nnet.sigmoid(T.dot(State, self._w) + self._b.reshape((1, -1)))
         # self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
-        py_x = self.model(State)
+        py_x = self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.0, 0.0)
         y_pred = T.argmax(py_x, axis=1)
-        q_val = py_x
+        # q_val = py_x
+        # noisey_q_val = self.model(ResultState, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5)
         
         # cost = T.mean(T.nnet.categorical_crossentropy(py_x, Y))
         # delta = ((Reward.reshape((-1, 1)) + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - self.model(State))
-        delta = ((Reward + (self._discount_factor * T.max(self.targetModel(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
+        delta = ((Reward + (self._discount_factor * 
+                            T.max(self.model(ResultState, self._w_h_old, self._b_h_old, self._w_h2_old, self._b_h2_old, self._w_o_old, self._b_o_old, 0.2, 0.5), axis=1, keepdims=True)) ) - 
+                            T.max(self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5), axis=1,  keepdims=True))
         bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
         # bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + (T.sum(self._w_h**2) + T.sum(self._b_h ** 2) + 
-          #                                              T.sum(self._w_o**2) + T.sum(self._b_o ** 2))
+        #                                              T.sum(self._w_o**2) + T.sum(self._b_o ** 2))
 
-        params = [self._w_h, self._b_h, self._w_o, self._b_o]
-        updates = sgd(bellman_cost, params, lr=self._learning_rate)
+        params = [self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o]
+        # updates = sgd(bellman_cost, params, lr=self._learning_rate)
+        updates = RMSprop(bellman_cost, params, lr=self._learning_rate)
         
         self._train = theano.function(inputs=[State, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)
         self._predict = theano.function(inputs=[State], outputs=y_pred, allow_input_downcast=True)
@@ -82,20 +112,23 @@ class NeuralNet(object):
         self._bellman_error = theano.function(inputs=[State, Reward, ResultState], outputs=delta, allow_input_downcast=True)
         
         
-    def model(self, State):
-        h = T.tanh(T.dot(State, self._w_h) + self._b_h)
-        qyx = T.nnet.sigmoid(T.dot(h, self._w_o) + self._b_o)
-        return qyx
+    def model(self, State, w_h, b_h, w_h2, b_h2, w_o, b_o, p_drop_input, p_drop_hidden):
+        State = dropout(State, p_drop_input)
+        h = rectify(T.dot(State, w_h) + b_h)
     
-    def targetModel(self, State):
-        h = T.tanh(T.dot(State, self._w_h_old) + self._b_h_old)
-        qyx = T.nnet.sigmoid(T.dot(h, self._w_o_old) + self._b_o_old)
-        return qyx
+        h = dropout(h, p_drop_hidden)
+        h2 = rectify(T.dot(h, w_h2) + b_h2)
+    
+        h2 = dropout(h2, p_drop_hidden)
+        q_val_x = T.nnet.sigmoid(T.dot(h2, w_o) + b_o)
+        return q_val_x
     
     def updateTargetModel(self):
         print "Updating target Model"
         self._w_h_old = self._w_h 
         self._b_h_old = self._b_h 
+        self._w_h2_old = self._w_h2
+        self._b_h2_old = self._b_h2
         self._w_o_old = self._w_o 
         self._b_o_old = self._b_o 
     
