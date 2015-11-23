@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib import mpl
 import numpy as np
 import matplotlib.animation as animation
+import random
 
 def loadMap():
     dataset="map.json"
@@ -23,13 +24,13 @@ class Map(object):
     def __init__(self, map):
         self._map = map
         self._agent = np.array([7,7])
-        self._target = np.array([13,12])
+        self._target = np.array([7,7])
         # self._map[self._target[0]][self._target[1]] = 1
         
         self._bounds = np.array([[0,0], [15,15]])
         
     def reset(self):
-        self._agent = np.array([7,7])
+        self._agent = np.array([random.randint(0,15),random.randint(0,15)])
         
     def move(self, action):
         """
