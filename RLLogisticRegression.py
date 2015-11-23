@@ -62,11 +62,12 @@ class RLLogisticRegression(object):
         model = T.nnet.sigmoid(T.dot(State, self._w) + self._b.reshape((1, -1)))
         self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
         
-        q_val = self.model(State)
+        q_val = self.model(State, self._w, self._b)
         action_pred = T.argmax(q_val, axis=1)
         
         # bellman error, delta error
-        delta = ((Reward + (self._discount_factor * T.max(self.targetModel(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
+        delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState, self._w_old, self._b_old), axis=1, keepdims=True)) ) -
+                  T.max(self.model(State, self._w, self._b), axis=1,  keepdims=True))
         # delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
         
         self._L2_reg= 0.01
@@ -100,18 +101,16 @@ class RLLogisticRegression(object):
         self._bellman_error = theano.function(inputs=[State, Reward, ResultState], outputs=delta, allow_input_downcast=True)
         
 
-    def model(self, State):
+    def model(self, State, w, b):
+        """
+        Beter to have only one model function
+        """
         # return self._model(State)
-        return T.nnet.sigmoid(T.dot(State, self._w) + self._b)
+        return T.tanh(T.dot(State, w) + b)
+        # return T.nnet.sigmoid(T.dot(State, self._w) + self._b)
         # return T.dot(State, self._w) + self._b
         # return (T.dot(State, self._w) + self._b.reshape((1, -1)))
         
-    def targetModel(self, State):
-        # return self._model(State)
-        # return T.dot(State, self._w) + self._b
-        return T.nnet.sigmoid(T.dot(State, self._w_old) + self._b_old)
-        # return (T.dot(State, self._w) + self._b.reshape((1, -1)))
-    
     def updateTargetModel(self):
         print "Updating target Model"
         self._w_old = self._w 
