@@ -9,6 +9,9 @@ def init_weights(shape):
     # return theano.shared(floatX(np.zeros(shape)))
     return theano.shared(floatX(np.random.randn(*shape) * 0.1))
 
+def init_b_weights(shape):
+    return theano.shared(floatX(np.random.randn(*shape) * 0.0))
+
 
 class RLLogisticRegression(object):
     """Reinforcement Learning based Logistic regression model
@@ -37,11 +40,11 @@ class RLLogisticRegression(object):
         """
         
         self._w = init_weights((n_in, n_out))
-        self._w_old = init_weights((n_in, n_out))
+        self._w_old = init_b_weights((n_in, n_out))
         print "Initial W " + str(self._w.get_value()) 
         # (n_out,) ,) used so that it can be added as row or column
         self._b = init_weights((n_out,))
-        self._b_old = init_weights((n_out,))
+        self._b_old = init_b_weights((n_out,))
         
         # learning rate for gradient descent updates.
         self._learning_rate = 0.005
@@ -65,10 +68,17 @@ class RLLogisticRegression(object):
         # bellman error, delta error
         delta = ((Reward + (self._discount_factor * T.max(self.targetModel(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
         # delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
+        
+        self._L2_reg= 0.01
+        # L2 norm ; one regularization option is to enforce
+        # L2 norm to be small
+        self._L2 = (
+            (self._w** 2).sum()
+        )
         # total bellman cost 
-        # Squaring is important so error do not cancel each other out.
+        # Squaring is important so errors do not cancel each other out.
         # mean is used instead of sum as it is more independent of parameter scale
-        bellman_cost = T.mean(0.5 *  ((delta) ** 2 ) )
+        bellman_cost = T.mean(0.5 *  ((delta) ** 2 ) ) + (self._L2 * self._L2_reg)
         
         # Compute gradients w.r.t. model parameters
         gradient = T.grad(cost=bellman_cost, wrt=self._w)

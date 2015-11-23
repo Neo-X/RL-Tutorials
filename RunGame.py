@@ -90,7 +90,7 @@ def get_policy_visual_data(model_, max_state, game):
         t_v = []
         for j in range(16):
             state = np.array([X[i][j],Y[i][j]])
-            pa = model_.predict([(state-max_state)/max_state])[0]
+            pa = model_.predict([norm_state(state,max_state)])[0]
             move = game.move(pa)
             t_u.append(move[0])
             t_v.append(move[1])
@@ -100,6 +100,9 @@ def get_policy_visual_data(model_, max_state, game):
     U = np.array(U)*2.0
     V = np.array(V)*2.0
     return (U,V)
+
+def norm_state(state, max_state):
+    return (state-max_state)/max_state
     
     
 if __name__ == "__main__":
@@ -128,9 +131,9 @@ if __name__ == "__main__":
     print action_selection
     i=0
     states = np.array([[0,0]])
-    # model = RLLogisticRegression(states, n_in=2, n_out=8)
+    model = RLLogisticRegression(states, n_in=2, n_out=8)
     # model = NeuralNet(states, n_in=2, n_out=8)
-    model = RLNeuralNetwork(states, n_in=2, n_out=8)
+    # model = RLNeuralNetwork(states, n_in=2, n_out=8)
     best_error=10000000.0
     U,V = get_policy_visual_data(model, max_state, game)
     game.init(U,V)    
@@ -143,14 +146,14 @@ if __name__ == "__main__":
         while not game.reachedTarget():
             state = game.getState()
             action = random.choice(action_selection)
-            pa = model.predict([state/max_state])[0]
-            # print "policy action: " + str(pa)
+            pa = model.predict([norm_state(state, max_state)])[0]
+            # print "policy action: " + str(pa) + " Q-values: " + str(model._q_values([(state-max_state)/max_state]))
             action = eGreedy(pa, action, epsilon * p)
             reward = game.act(action)
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
             # Everything should be normalized to be between -1 and 1
-            tup = ExperienceTuple((state-max_state)/max_state, [action], (resultState-max_state)/max_state, [reward/max_reward])
+            tup = ExperienceTuple(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward/max_reward])
             experience.append(tup)
             # Update agent on screen
             # game.update()
@@ -182,7 +185,7 @@ if __name__ == "__main__":
         error = model.bellman_error(states, rewards, result_states)
         error = np.mean(np.fabs(error))
         print "Round: " + str(round) + " Iteration: " + str(i) + " Bellman Error: " + str(error) + " Expereince: " + str(len(experience))
-        print model.q_values(states)[:1]
+        print model.q_values(states)[:10]
         # print experience[:10]
     
     # print "Experience: " + str(experience)

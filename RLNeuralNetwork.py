@@ -93,14 +93,30 @@ class RLNeuralNetwork(object):
         # q_val = py_x
         # noisey_q_val = self.model(ResultState, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5)
         
+        # L1 norm ; one regularization option is to enforce L1 norm to
+        # be small
+        self._L1 = (
+            abs(self._w_h).sum() +
+            abs(self._w_h2).sum() +
+            abs(self._w_o).sum()
+        )
+        self._L1_reg= 0.0
+        self._L2_reg= 0.001
+        # L2 norm ; one regularization option is to enforce
+        # L2 norm to be small
+        self._L2 = (
+            (self._w_h ** 2).sum() +
+            (self._w_h2 ** 2).sum() +
+            (self._w_o ** 2).sum()
+        )
+        
         # cost = T.mean(T.nnet.categorical_crossentropy(py_x, Y))
         # delta = ((Reward.reshape((-1, 1)) + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - self.model(State))
         delta = ((Reward + (self._discount_factor * 
                             T.max(self.model(ResultState, self._w_h_old, self._b_h_old, self._w_h2_old, self._b_h2_old, self._w_o_old, self._b_o_old, 0.2, 0.5), axis=1, keepdims=True)) ) - 
                             T.max(self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5), axis=1,  keepdims=True))
-        bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
-        # bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + (T.sum(self._w_h**2) + T.sum(self._b_h ** 2) + 
-        #                                              T.sum(self._w_o**2) + T.sum(self._b_o ** 2))
+        # bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
+        bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + ( self._L2_reg * self._L2) + ( self._L1_reg * self._L1)
 
         params = [self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o]
         # updates = sgd(bellman_cost, params, lr=self._learning_rate)
