@@ -24,7 +24,7 @@ class Map(object):
     def __init__(self, map):
         self._map = map
         self._agent = np.array([7,7])
-        self._target = np.array([2,3])
+        self._target = np.array([8,8])
         # self._map[self._target[0]][self._target[1]] = 1
         
         self._bounds = np.array([[0,0], [15,15]])
@@ -54,7 +54,7 @@ class Map(object):
         if ((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
             (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])):
             # Can't move out of map
-            return self.reward() + -5
+            return self.reward() #  + -5
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
         #     return self.reward() +-5

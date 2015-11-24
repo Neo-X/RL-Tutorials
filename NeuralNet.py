@@ -62,13 +62,15 @@ class NeuralNet(object):
         
         # model = T.nnet.sigmoid(T.dot(State, self._w) + self._b.reshape((1, -1)))
         # self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
-        py_x = self.model(State)
+        py_x = self.model(State, self._w_h, self._b_h, self._w_o, self._b_o)
         y_pred = T.argmax(py_x, axis=1)
         q_val = py_x
         
         # cost = T.mean(T.nnet.categorical_crossentropy(py_x, Y))
         # delta = ((Reward.reshape((-1, 1)) + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - self.model(State))
-        delta = ((Reward + (self._discount_factor * T.max(self.targetModel(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
+        delta = ((Reward + (self._discount_factor * 
+                            T.max(self.model(ResultState, self._w_h_old, self._b_h_old, self._w_o_old, self._b_o_old), axis=1, keepdims=True)) ) - 
+                            T.max(self.model(State, self._w_h, self._b_h, self._w_o, self._b_o), axis=1,  keepdims=True))
         bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
         # bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + (T.sum(self._w_h**2) + T.sum(self._b_h ** 2) + 
           #                                              T.sum(self._w_o**2) + T.sum(self._b_o ** 2))
@@ -82,14 +84,9 @@ class NeuralNet(object):
         self._bellman_error = theano.function(inputs=[State, Reward, ResultState], outputs=delta, allow_input_downcast=True)
         
         
-    def model(self, State):
-        h = T.tanh(T.dot(State, self._w_h) + self._b_h)
-        qyx = T.nnet.sigmoid(T.dot(h, self._w_o) + self._b_o)
-        return qyx
-    
-    def targetModel(self, State):
-        h = T.tanh(T.dot(State, self._w_h_old) + self._b_h_old)
-        qyx = T.nnet.sigmoid(T.dot(h, self._w_o_old) + self._b_o_old)
+    def model(self, State, w_h, b_h, w_o, b_o):
+        h = T.tanh(T.dot(State, w_h) + b_h)
+        qyx = T.tanh(T.dot(h, w_o) + b_o)
         return qyx
     
     def updateTargetModel(self):

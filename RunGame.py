@@ -132,8 +132,8 @@ if __name__ == "__main__":
     i=0
     states = np.array([[0,0]])
     # model = RLLogisticRegression(states, n_in=2, n_out=8)
-    # model = NeuralNet(states, n_in=2, n_out=8)
-    model = RLNeuralNetwork(states, n_in=2, n_out=8)
+    model = NeuralNet(states, n_in=2, n_out=8)
+    # model = RLNeuralNetwork(states, n_in=2, n_out=8)
     best_error=10000000.0
     U,V = get_policy_visual_data(model, max_state, game)
     game.init(U,V)    
