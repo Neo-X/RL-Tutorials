@@ -48,10 +48,10 @@ class NeuralNet(object):
         """
         # print "Initial W " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.04
+        self._learning_rate = 0.001
         self._discount_factor= 0.8
         
-        self._weight_update_steps=3000
+        self._weight_update_steps=5000
         self._updates=0
         
         

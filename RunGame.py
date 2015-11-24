@@ -7,15 +7,9 @@ import cPickle
 from RLLogisticRegression import RLLogisticRegression
 from NeuralNet import NeuralNet 
 from RLNeuralNetwork import RLNeuralNetwork 
+import sys
 
-def loadMap():
-    dataset="map.json"
-    import json
-    dataFile = open(dataset)
-    s = dataFile.read()
-    data = json.loads(s)
-    dataFile.close()
-    return data["map"]
+from RL_visualizing import *
 
 class ExperienceTuple(object):
 
@@ -81,28 +75,7 @@ def eGreedy(pa1, ra2, e):
     else:
         return pa1
     
-def get_policy_visual_data(model_, max_state, game):
-    X,Y = np.mgrid[0:16,0:16]
-    U = []
-    V = []
-    for i in range(16):
-        t_u = []
-        t_v = []
-        for j in range(16):
-            state = np.array([X[i][j],Y[i][j]])
-            pa = model_.predict([norm_state(state,max_state)])[0]
-            move = game.move(pa)
-            t_u.append(move[0])
-            t_v.append(move[1])
-        U.append(t_u)
-        V.append(t_v)
-    
-    U = np.array(U)*2.0
-    V = np.array(V)*2.0
-    return (U,V)
 
-def norm_state(state, max_state):
-    return (state-max_state)/max_state
     
     
 if __name__ == "__main__":
@@ -126,7 +99,7 @@ if __name__ == "__main__":
     
     game = Map(map)
     steps = 100
-    max_expereince = 10000
+    max_expereince = 20000
     # for i in range(steps):
     print action_selection
     i=0
@@ -134,8 +107,11 @@ if __name__ == "__main__":
     # model = RLLogisticRegression(states, n_in=2, n_out=8)
     model = NeuralNet(states, n_in=2, n_out=8)
     # model = RLNeuralNetwork(states, n_in=2, n_out=8)
+    if len(sys.argv) > 1:
+        file_name=sys.argv[1]
+        model = cPickle.load(open(file_name)) 
     best_error=10000000.0
-    U,V = get_policy_visual_data(model, max_state, game)
+    X, Y, U,V = get_policy_visual_data(model, max_state, game)
     game.init(U,V)    
     experience = []
     for round in range(rounds):
@@ -169,7 +145,7 @@ if __name__ == "__main__":
                 # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 
             if i % 100 == 0:
-                U,V = get_policy_visual_data(model, max_state, game)
+                X, Y, U,V = get_policy_visual_data(model, max_state, game)
                 game.update()
                 game.updatePolicy(U, V)
                 states, actions, result_states, rewards = get_batch(experience, len(experience))
@@ -179,7 +155,7 @@ if __name__ == "__main__":
     
         print ""
         # X,Y = np.mgrid[0:16,0:16]
-        U,V = get_policy_visual_data(model, max_state, game)
+        X, Y, U,V = get_policy_visual_data(model, max_state, game)
         game.updatePolicy(U, V)
         states, actions, result_states, rewards = get_batch(experience, len(experience))
         error = model.bellman_error(states, rewards, result_states)
