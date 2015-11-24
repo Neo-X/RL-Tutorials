@@ -118,7 +118,7 @@ if __name__ == "__main__":
         game.reset()
         # reduces random action select probability
         p = (rounds - round) / float(rounds)
-        print "Random Action selection p: " + str(p)
+        print "Random Action selection Pr(): " + str(p)
         while not game.reachedTarget():
             state = game.getState()
             action = random.choice(action_selection)
