@@ -63,13 +63,13 @@ class RLNeuralNetwork(object):
         self._b_h = init_b_weights((hidden_size,))
         self._w_h2 = init_weights((hidden_size, hidden_size))
         self._b_h2 = init_b_weights((hidden_size,))
-        self._w_o = init_weights((hidden_size, n_out))
+        self._w_o = init_tanh(hidden_size, n_out)
         self._b_o = init_b_weights((n_out,))
         
         self.updateTargetModel()
         self._w_h = init_weights((n_in, hidden_size))
         self._w_h2 = init_weights((hidden_size, hidden_size))
-        self._w_o = init_weights((hidden_size, n_out))
+        self._w_o = init_tanh(hidden_size, n_out)
 
         
         # print "Initial W " + str(self._w_o.get_value()) 
@@ -77,7 +77,7 @@ class RLNeuralNetwork(object):
         self._learning_rate = 0.0005
         self._discount_factor= 0.8
         
-        self._weight_update_steps=3000
+        self._weight_update_steps=5000
         self._updates=0
         
         
