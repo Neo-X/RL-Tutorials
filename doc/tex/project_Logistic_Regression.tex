@@ -2,7 +2,7 @@
 \chapter{Basic Reinforcement Learning Example Using Logistic Regression }
 \label{chapter:logistic-regression}
 
-Logistic Regression is one of the methods that can be used as an activation function. Others include Rectified Linear Units (ReLU) and the Perceptron. The conceptual target of using this activation function is to achieve the all mighty goal of linear separability. The data can be transformed through the activation function to find a hyperplane that can separate the data nicely. 
+Logistic Regression is one of the methods that can be used as an activation function. Others include Rectified Linear Units (ReLU) and the Perceptron. In classification the conceptual target of using this activation function is to achieve the all mighty goal of linear separability. In RL we are more concerned with constructing a reasonable function approximator for the state or action value function. In classification it can be common to a sigmoid function on the final layer to calculate the probability the input is of a particular class. This function is shown in Figure~\ref{figure:logistic-function}. This function limits our possible value function output to be between $0$ and $1$, I have found that it is better to at least use the \textit{tanh} function with a range in the $-1$ to $1$ range (see Figure~\ref{figure:tanh-function}).
 
 \begin{figure}
 	\label{figure:logistic-function}
@@ -11,39 +11,61 @@ Logistic Regression is one of the methods that can be used as an activation func
 \end{figure}
 
 \begin{equation}
-	sigmoid(x,W,b)=1/(1+exp(Wx+b))
+% 	sigmoid(\inputVector,\weightMatrix,\basisVector)=\frac{1}{1+e^{-\weightMatrix\inputVector+\basisVector}}
+	sigmoid(\inputVector)=\frac{1}{1+e^{-\inputVector}}
 \end{equation}  
 
+\begin{figure}
+	\label{figure:tanh-function}
+	\includegraphics[width=0.95\linewidth]{../images/tanh_zoom60.jpg}
+	\caption{A graph of the tanh function.}
+\end{figure}
+
+\begin{equation}
+	tanh(\inputVector)=\frac
+	{e^{\inputVector}-e^{-\inputVector}}
+	{e^{\inputVector}+e^{-\inputVector}}
+	%tanh(\inputVector,\weightMatrix,\basisVector)=\frac
+	%{e^{\weightMatrix\inputVector+\basisVector}-e^{-\weightMatrix\inputVector+\basisVector}}
+	%{e^{\weightMatrix\inputVector+\basisVector}+e^{-\weightMatrix\inputVector+\basisVector}}
+\end{equation}
 
 
-Often in RL the parameters of the model are denoted as θ and the goal is to optimize these parameters. For logistic regression using the sigmoid activation function this translates to θ={W,b}. Where W are the weights for the model and b is a bias for the model. Somewhat similar to the more common y=mx+b for defining a line. The b effectively shifts the sigmoid curve to the right or left.
+Often in RL the parameters of the model are denoted as \modelParameters and the goal is to optimize the bellman error with respect to these parameters. For logistic regression using the \textit{tanh} activation function this translates to $\modelParameters=\{\weightMatrix,\basisVector\}$. Where \weightMatrix are the weights for the model and \basisVector is a bias for the model. Somewhat similar to the more common $y=mx+b$ for defining a line. The \basisVector effectively shifts the curve to the right or left.
 
-Multidimensional Regression
+\section{Multidimensional Regression}
 
-This model extends to multiple dimensions or actions rather easily, $\inputVector, \basisVector$ become vectors and W is now a matrix with dimensions $len(\inputVector) x numActions$. Then the sigmoid function returns a vector of Q-values, one for each action in state \inputVector. The optimal action using the Q-Learning method can then be computed as
+This model extends to multiple dimensions or \textit{actions} rather easily, $\inputVector, \basisVector$ become vectors and \weightMatrix is now a matrix with dimensions $len(\inputVector) x numActions$. Then the sigmoid function returns a vector of Q-values, one for each action in state \inputVector. The optimal action using the Q-Learning method can then be computed as
 
-\[a∗= \arg\max_{a}Q(s,a)=\arg\max_{a} sigmoid(x,\theta)\]
+\begin{equation}
+\action^{*}= \argmax_{\action}\qValueFunction{\state}{\action}{}= \argmax_{i} tanh(\state,\theta)
+\end{equation}
+Keep in mind that in the multidimensional case $tanh(x,\theta)$ returns a vector with a length equal to the number of actions for the actor. The index with the maximum value is chosen $\argmax tanh(x,\theta)$ and corresponds to the index for the best action to execute in state \state,
 
+\subsection{Model Optimization}
 
-Model Optimization 
-To perform optimization of this sigmoidal model a cost function is needed. The idea of a cost function is to compute the difference between the current model and the perfect solution. For RL we use the Bellman Error to determine this
-\[cost(R, S, S') = sum(0.5 * \delta(R, S, S')^{2})\]
+To perform optimization using a tanh model a cost function is needed. The cost function is used to compute the difference between the current model and the perfect solution. For RL we use the Bellman Error to determine this
+\begin{equation}
+cost(R, S, S') = sum(0.5 * \delta(R, S, S')^{2})
+\end{equation}
 This cost function gives a fair measure of the model error. Note, in this formulation R,S,S′ are vectors or matrices and the squared the cost is used so that positive and negative errors to not cancel each other out in the sum. It is also common to use mean in this function instead of sum because sum is effected more by variable scale. Including our model in the cost function gives
-
-\[cost(R, S, S', \theta) = sum(0.5 * \delta(R, S, S', \theta)^{2})\]
+\begin{equation}
+cost(R, S, S', \theta) = sum(0.5 * \delta(R, S, S', \theta)^{2})
+\end{equation}
 
 To determine in what direction along the cost function contour will result in less error the gradient wrt the model parameters is needed 
-∂cost∂W,∂cost∂b. This can be calculated in Theano rather easily.
+$\frac{\partial cost}{\partial \modelParameters}$ in this case $\frac{\partial cost}{\partial \weightMatrix}, \frac{\partial cost}{\partial \basisVector}$ . This can be calculated in Theano rather easily.
 
 \begin{lstlisting}
     g_W = T.grad(cost=cost, wrt=model.W)
     g_b = T.grad(cost=cost, wrt=model.b)
 \end{lstlisting}
 
-With the gradient in hand we can make a update rule to step in the direction of less cost. 
-W′=W+(−∂cost∂W∗α)
-
-b′=b+(−∂cost∂b∗α)
+With the gradient in hand we can make a update rule to step in the direction of less cost.
+\begin{equation}
+	\weightMatrix' = \weightMatrix + (-\frac{\partial cost}{\partial \weightMatrix} \learningRate), 
+	\basisVector' = \basisVector = (-\frac{\partial cost}{\partial \basisVector} \learningRate)
+\end{equation} 
 
 This can also be done in Theano rather simply as 
 
