@@ -5,6 +5,7 @@
 Logistic Regression is one of the methods that can be used as an activation function. Others include Rectified Linear Units (ReLU) and the Perceptron. In classification the conceptual target of using this activation function is to achieve the all mighty goal of linear separability. In RL we are more concerned with constructing a reasonable function approximator for the state or action value function. In classification it can be common to a sigmoid function on the final layer to calculate the probability the input is of a particular class. This function is shown in Figure~\ref{figure:logistic-function}. This function limits our possible value function output to be between $0$ and $1$, I have found that it is better to at least use the \textit{tanh} function with a range in the $-1$ to $1$ range (see Figure~\ref{figure:tanh-function}).
 
 \begin{figure}
+	\centering
 	\label{figure:logistic-function}
 	\includegraphics[width=0.95\linewidth]{../images/Logistic-curve.png}
 	\caption{A graph of the logistic function.}
@@ -16,6 +17,7 @@ Logistic Regression is one of the methods that can be used as an activation func
 \end{equation}  
 
 \begin{figure}
+	\centering
 	\label{figure:tanh-function}
 	\includegraphics[width=0.95\linewidth]{../images/tanh_zoom60.jpg}
 	\caption{A graph of the tanh function.}
@@ -76,18 +78,40 @@ updates = [(model.W, model.W + (-g_W * learning_rate),
 
 
 Those are the steps needed to perform common Stochastic Gradient Descent (SGD). It should be noted that the \textit{learning rate} \learningRate for RL problems should be rather small, the effect of this will be discussed and shown later.
-Model Training
-Every time the agent selects an action a in some state s that leads to receiving some reward r and resulting in a new states s′ experience is gained. This single tuples of experience is kept in a experience history that is used to train the model. The experience history serves a similar purpose as training data in classification problems. 
-Training the model (or updates) is done over a mini batch, where a mini batch is a randomly selected sample of from the experience history of the agent. 
-Action Selection and Exploration
-A common method to select an action to execute is e-greedy action selection. This algorithm simply selects one of the available actions at random with probability e. Otherwise, the selected action comes from the policy \(\pi(s)\), in this case the logistic regression model.
 
-Learning Rate
-One tough challenge that has only recently seen good solutions is deadling with highly eratic policy changes. The policy swings from one end of the spectrum to the other making it almost impossible for the optimization to eventually settle on a good policy.
-Earlier I said we would look at the effect the learning rate has on the learning process. The learning rate is one of the parameters that influences the erraticness of the policy. The effect of a learning rate that is far to high is shown in the next two figures. Focus on the policy on the right that describes the optimal action/direction to be selected when the agent is in the location on the map that is the location of the arrow.
+\subsection{Model Training}
 
+Every time the agent selects an action \action in some state \state that leads to receiving some reward \reward and resulting in a new states \nextState experience is gained. This single tuple of experience is put in an experience history that is used to improve the model training. The experience history serves a similar purpose as training data in classification problems. 
+Training the model (or updates) is done over a mini batch, where a mini batch is a randomly selected sample from the experience history of the agent. 
 
-After lowering the learning rate from 0.5 to 0.01 small managable policy updates are made.
+\subsection{Action Selection and Exploration}
+
+A common method to select an action to execute is \eGreedy action selection. This algorithm simply selects one of the available actions at random with probability $\epsilon$. Otherwise, the selected action comes from the policy \policyFunction{\state}{}, in this case the logistic regression model.
+
+\subsection{Learning Rate}
+
+One tough challenge that has only recently seen good solutions is dealing with highly erratic policy changes. The policy can swing from one end of the spectrum to the other making it almost impossible for the optimization to eventually settle on a good policy.
+Earlier, I said we would look at the effect the learning rate has on the learning process. The learning rate is one of the parameters that influences the erraticness of the policy. The effect of a learning rate that is to high is shown in the Figure~\ref{figure:erratic-policy}. Focus on the policy on the right that describes the optimal action/direction to be selected when the agent is in the location on the map that is the location of the arrow.
+
+\begin{figure}
+	\centering
+	\label{figure:erratic-policy}
+	\includegraphics[width=0.9\linewidth]{../images/before_policyJump.png}
+	\includegraphics[width=0.9\linewidth]{../images/after_policyJump.png}
+	\caption{These two figures show the change in the policy after a single training update. 
+	This significant change is the result of a learning rate with a high value.}
+\end{figure}
+
+After lowering the learning rate from 0.5 to 0.01 small manageable policy updates are made, as can be seen in Figure~\ref{figure:smooth-policy}.
+
+\begin{figure}
+	\centering
+	\label{figure:smooth-policy}
+	\includegraphics[width=0.9\linewidth]{../images/before_policyJump-lower-learningRate.png}
+	\includegraphics[width=0.9\linewidth]{../images/after_policyJump-lower-learningRate.png}
+	\caption{These two figures show the change in the policy after a single training update. 
+	With respect to Figure~\ref{figure:erratic-policy} the policy updates are much smaller and smoother.}
+\end{figure}
 
 The Code 
 Can be found here.
