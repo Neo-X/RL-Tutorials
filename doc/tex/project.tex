@@ -1,0 +1,116 @@
+%%% template.tex
+%%%
+%%% This LaTeX source document can be used as the basis for your technical
+%%% paper or abstract. Intentionally stripped of annotation, the parameters
+%%% and commands should be adjusted for your particular paper - title, 
+%%% author, article DOI, etc.
+%%% The accompanying ``template.annotated.tex'' provides copious annotation
+%%% for the commands and parameters found in the source document. (The code
+%%% is identical in ``template.tex'' and ``template.annotated.tex.'')
+
+\documentclass[]{report}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+
+\usepackage[procnames]{listings}
+\usepackage{amsopn}
+% \usepackage{epsfig}
+\usepackage{amssymb}
+% \usepackage{amsfonts}
+\usepackage{xspace}
+\usepackage{hyperref}
+
+\usepackage{amsmath}
+% \usepackage{lmodern}
+% \usepackage{booktabs}
+\usepackage{float}
+\usepackage{wrapfig}
+% \usepackage{cite}
+%\usepackage{jneurosci}
+% \usepackage{natbib}
+\usepackage{named}
+
+\usepackage{graphicx}
+%\usepackage{enumitem}
+
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{multirow}
+\usepackage{verbatim}
+% \usepackage{soul}
+% \usepackage{array}
+% \setlength\extrarowheight{2pt} % or whatever amount is appropriate
+
+% I am having a hell of a time getting text colouring working in this document
+\usepackage[table]{xcolor}
+\usepackage{array,hhline}
+%\usepackage{tikz}
+%\usetikzlibrary{calc}
+%\usetikzlibrary{decorations.pathmorphing}
+% \usepackage{beamer}
+\usepackage{caption}
+\usepackage{siunitx}
+\sisetup{output-exponent-marker = e,round-mode = figures, round-precision = 3,
+ scientific-notation = true}
+\sisetup{fixdp,dp=3}
+
+\input{project_newcommands}
+
+\title{Reinforcement Learning With Examples}
+
+\author{Glen Berseth, University of British Columbia}
+
+\definecolor{keywords}{RGB}{255,0,90}
+\definecolor{comments}{RGB}{0,0,113}
+\definecolor{red}{RGB}{160,0,0}
+\definecolor{green}{RGB}{0,150,0}
+ 
+\lstset{language=Python, 
+        basicstyle=\ttfamily\small, 
+        keywordstyle=\color{keywords},
+        commentstyle=\color{comments},
+        stringstyle=\color{red},
+        showstringspaces=false,
+        identifierstyle=\color{green},
+        procnamekeys={def,class}}
+
+
+
+% \keywords{Reinforcement Learning, Artificial Intelligence}
+
+\begin{document}
+
+\maketitle
+
+\input{project_abstract}
+
+% \keywordlist
+
+%% Use this only if you're preparing a technical paper to be published in the 
+%% ACM 'Transactions on Graphics' journal.
+
+% \TOGlinkslist
+
+%% Required for all content. 
+
+% \copyrightspace
+
+\input{project_Introduction}
+
+\input{project_Logistic_Regression}
+
+
+% \input{project_related_work}
+
+% \input{project_gibbon_movement}
+
+% \input{project_Conclusion}
+
+% \section*{Acknowledgements}
+
+\bibliographystyle{named}
+\bibliography{project}
+
+\end{document}

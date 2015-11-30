@@ -1,0 +1,118 @@
+% new commands
+
+% common formatting commands
+\newcommand{\todo}[1]{\textcolor{red}{Todo:#1}}
+%\newcommand{\todo}[1]{\textcolor{red}{}}
+\newcommand{\glen}[1]{\textcolor{blue}{Glen:#1}}
+% \newcommand{\glen}[1]{\textcolor{blue}{}}
+\newcommand{\michiel}[1]{\textcolor{green}{Michiel:#1}}
+\newcommand{\todocite}[1]{\textcolor{red}{[??#1??]}}
+\newcommand{\changes}[1]{{\color{green}{#1}}~}
+
+% % % % % % % % % % % short forms % % % % % % % % % %
+\newcommand{\agent}{\emph{agent}\xspace}
+\newcommand{\BulletPhysics}{BulletPhysics\xspace}
+\newcommand{\ANNs}{ANNs\xspace}
+\newcommand{\ANN}{ANN\xspace}
+\newcommand{\torso}{torso\xspace}
+\newcommand{\anchor}{anchor\xspace}
+\newcommand{\anchorArm}{anchor-arm\xspace}
+\newcommand{\bodyArm}{body-arm\xspace}
+\newcommand{\bodyMass}{body-mass\xspace}
+\newcommand{\freeArm}{free-arm\xspace}
+\newcommand{\anchors}{anchors\xspace}
+\newcommand{\brachiator}{pendulum\xspace}
+\newcommand{\brachiators}{pendulums\xspace}
+\newcommand{\ricochetal}{ricochetal\xspace}
+\newcommand{\flight}{flight\xspace}
+\newcommand{\contractionStrength}{\emph{contractionStrength}\xspace}
+\newcommand{\anchorArmStrength}{\emph{anchorArmStrength}\xspace}
+\newcommand{\transitionTuples}{\emph{transition tuples}\xspace}
+
+\newcommand{\stateFlight}{\emph{Flight}\xspace}
+\newcommand{\stateSwing}{\emph{Swing}\xspace}
+\newcommand{\releaseAngle}{\emph{release-angle}\xspace}
+\newcommand{\armDisplacement}{\emph{arm-displacement}\xspace}
+\newcommand{\flightPhaseLength}{\emph{flight-phase-length}\xspace}
+
+
+
+% % % % % % % % % RL shortforms % % % % % % %
+\newcommand{\epoch}{\emph{epoch}\xspace}
+\newcommand{\policy}{\emph{policy}\xspace}
+\newcommand{\eGreedy}{\ensuremath{\epsilon}-greedy\xspace}
+
+
+
+
+% % % % % % % % math defines  % % % % % %
+\newcommand{\parameter}{\ensuremath{p}\xspace}
+\newcommand{\parameterVector}{\ensuremath{\mathbb{P}}\xspace}
+\newcommand{\kernelWidth}{\ensuremath{d}\xspace}
+\newcommand{\freeArmTorque}{\ensuremath{\tau_{f}}\xspace}
+\newcommand{\anchorArmTorque}{\ensuremath{\tau_{a}}\xspace}
+\newcommand{\anchorArmTorqueInitial}{\ensuremath{\tau_{a0}}\xspace}
+\newcommand{\torsoTorque}{\ensuremath{\tau_{t}}\xspace}
+\newcommand{\velocity}{\ensuremath{\textbf{v}}\xspace}
+\newcommand{\position}{\ensuremath{\textbf{p}}\xspace}
+\newcommand{\controllerVelocity}{\ensuremath{\velocity_{com}}\xspace}
+\newcommand{\initialAngle}{\ensuremath{\theta_{0
+}}\xspace}
+\newcommand{\currentAnchorPosition}{\ensuremath{\position_{cur
+}}\xspace}
+
+\newcommand{\setOfTuples}{\ensuremath{\mathcal{T}}\xspace}
+\newcommand{\transitionTuple}{\ensuremath{T}\xspace}
+
+% % % % % % RL math % % % % % % %
+\newcommand{\state}{\ensuremath{\textbf{s}}\xspace}
+\newcommand{\nextState}{\ensuremath{\state'}\xspace}
+\newcommand{\action}{\ensuremath{a}\xspace}
+\newcommand{\nextAction}{\ensuremath{\action'}\xspace}
+\newcommand{\reward}{\ensuremath{r}\xspace}
+\newcommand{\vvalue}{\ensuremath{q}\xspace}
+\newcommand{\states}{\ensuremath{S}\xspace}
+\newcommand{\actions}{\ensuremath{A}\xspace}
+\newcommand{\availableActions}{\ensuremath{A_{\ttime}}(\state)\xspace}
+\newcommand{\ttime}{\ensuremath{t}\xspace}
+\newcommand{\actionEpsilon}{\ensuremath{\epsilon}\xspace}
+\newcommand{\actionOmega}{\ensuremath{\omega}\xspace}
+\newcommand{\policyFunction}[2]{\ensuremath{\pi_{#2}(#1)}\xspace}
+\newcommand{\valueFunction}[2]{\ensuremath{V_{#2}(#1)}\xspace}
+\newcommand{\valueFunctionSampled}[2]{\ensuremath{\hat{v}_{#2}(#1)}\xspace}
+\newcommand{\qValueFunction}[3]{\ensuremath{Q_{#3}(#1,#2)}\xspace}
+\newcommand{\approximateQValueFunction}[3]{\ensuremath{\hat{Q}_{#3}(#1,#2)}\xspace}
+\newcommand{\qValueFunctionSampled}[3]{\ensuremath{\hat{q}_{#3}(#1,#2)}\xspace}
+\newcommand{\expectedValue}{\ensuremath{\mathbb{E}}\xspace}
+\newcommand{\discountFactor}{\ensuremath{\gamma}\xspace}
+\newcommand{\learningRate}{\ensuremath{\alpha}\xspace}
+\newcommand{\rewardFunction}[3]{\ensuremath{R(#1,#2,#3)}\xspace}
+\newcommand{\tranitionProbability}[3]{\ensuremath{T(#1,#2,#3)}\xspace}
+
+
+% % % % % % Parametric RL % % % % % % %
+\newcommand{\weightMatrix}{\ensuremath{W}\xspace}
+\newcommand{\basisVector}{\ensuremath{b}\xspace}
+\newcommand{\inputVector}{\ensuremath{\textbf{x}}\xspace}
+\newcommand{\stocasticVariable}{\ensuremath{Y}\xspace}
+\newcommand{\class}{\ensuremath{y}\xspace}
+\newcommand{\predictedClass}{\ensuremath{\class_{class}}\xspace}
+\newcommand{\modelParameters}{\ensuremath{\theta}\xspace}
+\newcommand{\trainingData}{\ensuremath{D}\xspace}
+\newcommand{\likelihood}{\ensuremath{\mathcal{L}}\xspace}
+\newcommand{\loss}{\ensuremath{\ell}\xspace}
+\newcommand{\qValueFunctionParamaetric}[4]{\ensuremath{q_{#4}(#1,#2,#3)}\xspace}
+\newcommand{\bellmanError}[0]{\ensuremath{e_{b}}\xspace}
+\newcommand{\overestimationError}[0]{\ensuremath{e_{o}}\xspace}
+
+% math operations
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\specialcell}[2][c]{%
+  \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+  \DeclareMathOperator*{\argmax}{arg\,max}
+  \newcommand{\specialcelll}[2][c]{%
+    \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+
+\newcolumntype{M}{>{\centering\arraybackslash}m{\dimexpr.68\linewidth-1\tabcolsep}}
+\newcolumntype{L}{>{\centering\arraybackslash}m{\dimexpr.30\linewidth-1\tabcolsep}}
