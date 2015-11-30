@@ -24,21 +24,27 @@ def get_policy_visual_data(model_, max_state, game):
     X,Y = np.mgrid[0:16,0:16]
     U = []
     V = []
+    Q = []
     for i in range(16):
         t_u = []
         t_v = []
+        t_q = []
         for j in range(16):
             state = np.array([X[i][j],Y[i][j]])
             pa = model_.predict([norm_state(state,max_state)])[0]
+            q = np.max(model_.q_values([norm_state(state,max_state)])) 
             move = game.move(pa)
             t_u.append(move[0])
             t_v.append(move[1])
+            t_q.append(q)
         U.append(t_u)
         V.append(t_v)
+        Q.append(t_q)
     
-    U = np.array(U)*2.0
-    V = np.array(V)*2.0
-    return (X, Y, U,V)
+    U = np.array(U)*1.0
+    V = np.array(V)*1.0
+    return (X, Y, U, V, Q)
+
 
 class RLVisulize(object):
     
@@ -47,11 +53,23 @@ class RLVisulize(object):
         self._map = map
         self._bounds = np.array([[0,0], [15,15]])
 
-    def final_policy(self, X, Y, U, V):
+    def final_policy(self, X, Y, U, V, Q):
         X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
-        print X,Y
+        # print X,Y
+        # print U,V
+        print Q
+        fig, ax = plt.subplots(1)
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
-        plt.quiver(X,Y,U,V, linewidth=1.0, pivot='mid', edgecolor='k', headaxislength=3, facecolor='black', angles='xy', linestyles='-', scale=50.0)
+        ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        plt.title("Final Policy")
+        # these are matplotlib.patch.Patch properties
+        textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+        
+        # place a text box in upper left in axes coords
+        ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
+                verticalalignment='top', bbox=props)
         plt.show()
         
         
@@ -65,5 +83,5 @@ if __name__ == "__main__":
     map = loadMap()
     rlv = RLVisulize(map)
     game = Map(map)
-    X, Y, U, V = get_policy_visual_data(model, max_state, game)
-    rlv.final_policy(X, Y, U, V)
+    X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+    rlv.final_policy(X, Y, U, V, Q)

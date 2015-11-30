@@ -80,7 +80,7 @@ class Map(object):
     def getState(self):
         return self._agent
     
-    def init(self, U, V):
+    def init(self, U, V, Q):
         colours = ['gray','black','blue']
         cmap = mpl.colors.ListedColormap(['gray','black','blue'])
         bounds=[-1,-1,1,1]
@@ -128,8 +128,12 @@ class Map(object):
         X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
         print X,Y
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
-        self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=1.0, pivot='mid', edgecolor='k', headaxislength=3, facecolor='black', angles='xy', linestyles='-', scale=50.0)
-        self._policy_ax.set_aspect(1.)
+        q_max = np.max(Q)
+        q_min = np.min(Q)
+        Q = (Q - q_min)/ (q_max-q_min)
+        self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        # self._policy_ax.set_aspect(1.)
     
     def update(self):
         """perform animation step"""
@@ -141,9 +145,24 @@ class Map(object):
         # self._line1.set_ydata(np.sin(x + phase))
         self._fig.canvas.draw()
         
-    def updatePolicy(self, U, V):
+    def updatePolicy(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
-        self._policy.set_UVC(U,V)
+        q_max = np.max(Q)
+        q_min = np.min(Q)
+        Q = (Q - q_min)/ (q_max-q_min)
+        self._policy2.set_UVC(U, V, Q)
+        # self._policy2.set_vmin(1.0)
+        """
+        self._policy2.update_scalarmappable()
+        print "cmap " + str(self._policy2.cmap)  
+        print "Face colours" + str(self._policy2.get_facecolor())
+        colours = ['gray','black','blue']
+        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                   colours,
+                                                   256)
+        self._policy2.cmap._set_extremes()
+        """
+        self._policy.set_UVC(U, V)
         self._fig.canvas.draw()
         
     def reachedTarget(self):

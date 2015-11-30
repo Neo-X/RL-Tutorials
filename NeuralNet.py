@@ -106,5 +106,7 @@ class NeuralNet(object):
         return self._predict(state)
     def q_values(self, state):
         return self._q_values(state)
+    def q_value(self, state):
+        return np.max(self.q_values(state))
     def bellman_error(self, state, reward, result_state):
         return self._bellman_error(state, reward, result_state)

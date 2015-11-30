@@ -105,14 +105,14 @@ if __name__ == "__main__":
     i=0
     states = np.array([[0,0]])
     # model = RLLogisticRegression(states, n_in=2, n_out=8)
-    # model = NeuralNet(states, n_in=2, n_out=8)
-    model = RLNeuralNetwork(states, n_in=2, n_out=8)
+    model = NeuralNet(states, n_in=2, n_out=8)
+    # model = RLNeuralNetwork(states, n_in=2, n_out=8)
     if len(sys.argv) > 1:
         file_name=sys.argv[1]
         model = cPickle.load(open(file_name)) 
     best_error=10000000.0
-    X, Y, U,V = get_policy_visual_data(model, max_state, game)
-    game.init(U,V)    
+    X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+    game.init(U, V, Q)    
     experience = []
     for round in range(rounds):
         game.reset()
@@ -145,9 +145,9 @@ if __name__ == "__main__":
                 # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 
             if i % 100 == 0:
-                X, Y, U,V = get_policy_visual_data(model, max_state, game)
+                X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
                 game.update()
-                game.updatePolicy(U, V)
+                game.updatePolicy(U, V, Q)
                 states, actions, result_states, rewards = get_batch(experience, len(experience))
                 error = model.bellman_error(states, rewards, result_states)
                 error = np.mean(np.fabs(error))
@@ -155,8 +155,8 @@ if __name__ == "__main__":
     
         print ""
         # X,Y = np.mgrid[0:16,0:16]
-        X, Y, U,V = get_policy_visual_data(model, max_state, game)
-        game.updatePolicy(U, V)
+        X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+        game.updatePolicy(U, V, Q)
         states, actions, result_states, rewards = get_batch(experience, len(experience))
         error = model.bellman_error(states, rewards, result_states)
         error = np.mean(np.fabs(error))
