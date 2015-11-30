@@ -9,7 +9,7 @@ def floatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
 
 def init_weights(shape):
-    return theano.shared(floatX(np.random.randn(*shape) * 0.01))
+    return theano.shared(floatX(np.random.randn(*shape) * 0.5))
 
 def init_b_weights(shape):
     return theano.shared(floatX(np.random.randn(*shape) * 0.0 + 0.1))
@@ -33,6 +33,7 @@ def sgd(cost, params, lr=0.05):
     return updates
 
 def rectify(X):
+    # return X
     return T.maximum(X, 0.)
 
 def RMSprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
@@ -48,6 +49,7 @@ def RMSprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
     return updates
 
 def dropout(X, p=0.):
+    p=0.0 # diabled dropout
     if p > 0:
         retain_prob = 1 - p
         X *= srng.binomial(X.shape, p=retain_prob, dtype=theano.config.floatX)
@@ -74,7 +76,7 @@ class RLNeuralNetwork(object):
         
         # print "Initial W " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.0005
+        self._learning_rate = 0.001
         self._discount_factor= 0.8
         
         self._weight_update_steps=5000
@@ -119,8 +121,8 @@ class RLNeuralNetwork(object):
         bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + ( self._L2_reg * self._L2) + ( self._L1_reg * self._L1)
 
         params = [self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o]
-        # updates = sgd(bellman_cost, params, lr=self._learning_rate)
-        updates = RMSprop(bellman_cost, params, lr=self._learning_rate)
+        updates = sgd(bellman_cost, params, lr=self._learning_rate)
+        # updates = RMSprop(bellman_cost, params, lr=self._learning_rate)
         
         self._train = theano.function(inputs=[State, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)
         self._predict = theano.function(inputs=[State], outputs=y_pred, allow_input_downcast=True)

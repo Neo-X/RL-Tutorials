@@ -105,8 +105,8 @@ if __name__ == "__main__":
     i=0
     states = np.array([[0,0]])
     # model = RLLogisticRegression(states, n_in=2, n_out=8)
-    model = NeuralNet(states, n_in=2, n_out=8)
-    # model = RLNeuralNetwork(states, n_in=2, n_out=8)
+    # model = NeuralNet(states, n_in=2, n_out=8)
+    model = RLNeuralNetwork(states, n_in=2, n_out=8)
     if len(sys.argv) > 1:
         file_name=sys.argv[1]
         model = cPickle.load(open(file_name)) 

@@ -128,11 +128,18 @@ class Map(object):
         X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
         print X,Y
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
+        textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+        
+        # place a text box in upper left in axes coords
+        self._policyText = self._policy_ax.text(0.05, 0.95, textstr, transform=self._policy_ax.transAxes, fontsize=14,
+                verticalalignment='top', bbox=props)
         q_max = np.max(Q)
         q_min = np.min(Q)
         Q = (Q - q_min)/ (q_max-q_min)
         self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
         self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        
         # self._policy_ax.set_aspect(1.)
     
     def update(self):
@@ -147,6 +154,8 @@ class Map(object):
         
     def updatePolicy(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
+        textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+        self._policyText.set_text(textstr)
         q_max = np.max(Q)
         q_min = np.min(Q)
         Q = (Q - q_min)/ (q_max-q_min)
