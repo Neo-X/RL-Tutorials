@@ -54,9 +54,9 @@ class RLLogisticRegression(object):
         self._updates=0
         
         # data types for model
-        State = T.fmatrix()
-        ResultState = T.fmatrix()
-        Reward = T.fmatrix()
+        State = T.fmatrix("State")
+        ResultState = T.fmatrix("ResultState")
+        Reward = T.fmatrix("Reward")
         # Q_val = T.fmatrix()
         
         model = T.nnet.sigmoid(T.dot(State, self._w) + self._b.reshape((1, -1)))
