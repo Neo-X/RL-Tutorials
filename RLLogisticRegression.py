@@ -7,10 +7,10 @@ def floatX(State):
 
 def init_weights(shape):
     # return theano.shared(floatX(np.zeros(shape)))
-    return theano.shared(floatX(np.random.randn(*shape) * 0.5))
+    return theano.shared(floatX(np.random.randn(*shape) * 1.0))
 
 def init_b_weights(shape):
-    return theano.shared(floatX(np.random.randn(*shape) * 0.01))
+    return theano.shared(floatX(np.random.randn(*shape) * 0.1))
 
 def init_tanh(n_in, n_out, r_num):
     rng = np.random.RandomState(r_num)
@@ -53,14 +53,14 @@ class RLLogisticRegression(object):
         # self._w = init_weights((n_in, n_out))
         # self._w_old = init_weights((n_in, n_out))
         self._w = init_tanh(n_in, n_out, 1234)
-        self._w_old = init_tanh(n_in, n_out, 1235)
+        self._w_old = init_tanh(n_in, n_out, 2235)
         print "Initial W " + str(self._w.get_value()) 
         # (n_out,) ,) used so that it can be added as row or column
         self._b = init_b_weights((n_out,))
         self._b_old = init_b_weights((n_out,))
         
         # learning rate for gradient descent updates.
-        self._learning_rate = 0.001
+        self._learning_rate = 0.005
         # future discount 
         self._discount_factor= 0.8
         self._weight_update_steps=5000

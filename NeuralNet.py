@@ -11,6 +11,10 @@ def init_weights(shape):
 def init_b_weights(shape):
     return theano.shared(floatX(np.random.randn(*shape) * 0.1))
 
+def rectify(X):
+    # return X
+    return T.maximum(X, 0.)
+
 def init_tanh(n_in, n_out):
     rng = np.random.RandomState(1234)
     return theano.shared(np.asarray(
@@ -34,8 +38,8 @@ class NeuralNet(object):
     def __init__(self, input, n_in, n_out):
 
         hidden_size=36
-        self._w_h = init_tanh(n_in, hidden_size)
-        # self._w_h = init_weights((n_in, hidden_size))
+        # self._w_h = init_tanh(n_in, hidden_size)
+        self._w_h = init_weights((n_in, hidden_size))
         self._b_h = init_b_weights((hidden_size,))
         self._w_o = init_weights((hidden_size, n_out))
         self._b_o = init_b_weights((n_out,))
@@ -43,7 +47,7 @@ class NeuralNet(object):
         # self.updateTargetModel()
         
         self._w_h_old = init_tanh(n_in, hidden_size)
-        # self._w_h_old = init_weights((n_in, hidden_size))
+        self._w_h_old = init_weights((n_in, hidden_size))
         self._b_h_old = init_b_weights((hidden_size,))
         self._w_o_old = init_weights((hidden_size, n_out))
         self._b_o_old = init_b_weights((n_out,))
@@ -101,8 +105,9 @@ class NeuralNet(object):
         
         
     def model(self, State, w_h, b_h, w_o, b_o):
-        h = T.tanh(T.dot(State, w_h) + b_h)
+        # h = T.tanh(T.dot(State, w_h) + b_h)
         # h = T.dot(State, w_h) + b_h
+        h = rectify(T.dot(State, w_h) + b_h)
         qyx = T.tanh(T.dot(h, w_o) + b_o)
         return qyx
     

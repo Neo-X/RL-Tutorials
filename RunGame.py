@@ -86,11 +86,11 @@ if __name__ == "__main__":
     settings = json.load(file)
     file.close()
     batch_size=32
-    rounds = 500
+    rounds = 1000
     epsilon = 0.8
     map = loadMap()
     # Normalization constants for data
-    max_reward = math.sqrt(16**2 * 2)
+    max_reward = math.sqrt(16**2 * 2) + 5.0
     # max_reward = 1.0
     max_state = 8.0
     
@@ -101,8 +101,8 @@ if __name__ == "__main__":
     print "Max State: " + str(max_state)
     
     game = Map(map)
-    steps = 500
-    max_expereince = 20000
+    steps = 1000
+    max_expereince = 10000
     # for i in range(steps):
     print action_selection
     i=0
@@ -155,6 +155,7 @@ if __name__ == "__main__":
             # print model.q_values([tup._state])
             if len(experience) > max_expereince:
                 experience.pop(0)
+                # print experience[:10]
             if len(experience) > batch_size:
                 _states, _actions, _result_states, _rewards = get_batch(experience, batch_size)
                 cost = model.train(_states, _actions, _rewards, _result_states)
@@ -179,7 +180,7 @@ if __name__ == "__main__":
         error = np.mean(np.fabs(error))
         print "Round: " + str(round) + " Iteration: " + str(i) + " Bellman Error: " + str(error) + " Expereince: " + str(len(experience))
         """
-        print model.q_values(states)[:10]
+        # print model.q_values(states)[:5]
         # print experience[:10]
     
     # print "Experience: " + str(experience)
