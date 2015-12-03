@@ -3,6 +3,7 @@ import random
 import numpy as np
 import math
 import cPickle
+import json
 
 from RLLogisticRegression import RLLogisticRegression
 from NeuralNet import NeuralNet 
@@ -81,9 +82,11 @@ def eGreedy(pa1, ra2, e):
 if __name__ == "__main__":
     
     # make a color map of fixed colors
-    
+    file = open(sys.argv[1])
+    settings = json.load(file)
+    file.close()
     batch_size=32
-    rounds = 500    
+    rounds = 500
     epsilon = 0.8
     map = loadMap()
     # Normalization constants for data
@@ -104,12 +107,22 @@ if __name__ == "__main__":
     print action_selection
     i=0
     states = np.array([[0,0]])
-    model = RLLogisticRegression(states, n_in=2, n_out=8)
-    # model = NeuralNet(states, n_in=2, n_out=8)
-    # model = RLNeuralNetwork(states, n_in=2, n_out=8)
+    if settings['agent_name'] == "Deep":
+        print "Creating Deep agent"
+        model = RLLogisticRegression(states, n_in=2, n_out=8)
+    elif settings['agent_name'] == "NN":
+        print "Creating NN agent"
+        model = NeuralNet(states, n_in=2, n_out=8)
+    elif settings['agent_name'] == "logistic":
+        print "Creating Logistic agent"
+        model = RLNeuralNetwork(states, n_in=2, n_out=8)
+    else:
+        print "Unrecognized model: " + str(settings['agent_name'])
+    """ 
     if len(sys.argv) > 1:
         file_name=sys.argv[1]
-        model = cPickle.load(open(file_name)) 
+        model = cPickle.load(open(file_name))
+        """ 
     best_error=10000000.0
     X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
     game.init(U, V, Q)    
@@ -168,7 +181,7 @@ if __name__ == "__main__":
     
     # print "Experience: " + str(experience)
     print "Found target after " + str(i) + " actions"
-    file_name="navigator_agent.pkl"
+    file_name="navigator_agent_"+str(settings['agent_name'])+".pkl"
     f = open(file_name, 'w')
     cPickle.dump(model, f)
     f.close()
