@@ -8,6 +8,10 @@ This work is done to help understand the full Reiforcement Learning pipeline. I 
  2. pip install Theano
  3. pip install matplotlib
 
+## Using
+
+	$ python RunGame.py Deep.json
+
 
 ## References
 
