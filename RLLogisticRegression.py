@@ -7,7 +7,7 @@ def floatX(State):
 
 def init_weights(shape):
     # return theano.shared(floatX(np.zeros(shape)))
-    return theano.shared(floatX(np.random.randn(*shape) * 0.1))
+    return theano.shared(floatX(np.random.randn(*shape) * 0.5))
 
 def init_b_weights(shape):
     return theano.shared(floatX(np.random.randn(*shape) * 0.0))
@@ -40,17 +40,17 @@ class RLLogisticRegression(object):
         """
         
         self._w = init_weights((n_in, n_out))
-        self._w_old = init_b_weights((n_in, n_out))
+        self._w_old = init_weights((n_in, n_out))
         print "Initial W " + str(self._w.get_value()) 
         # (n_out,) ,) used so that it can be added as row or column
-        self._b = init_weights((n_out,))
+        self._b = init_b_weights((n_out,))
         self._b_old = init_b_weights((n_out,))
         
         # learning rate for gradient descent updates.
         self._learning_rate = 0.005
         # future discount 
         self._discount_factor= 0.8
-        self._weight_update_steps=2000
+        self._weight_update_steps=5000
         self._updates=0
         
         # data types for model
@@ -59,7 +59,7 @@ class RLLogisticRegression(object):
         Reward = T.fmatrix("Reward")
         # Q_val = T.fmatrix()
         
-        model = T.nnet.sigmoid(T.dot(State, self._w) + self._b.reshape((1, -1)))
+        model = T.nnet.sigmoid(T.dot(State, self._w) + self._b)
         self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
         
         q_val = self.model(State, self._w, self._b)

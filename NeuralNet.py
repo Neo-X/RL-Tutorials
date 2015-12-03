@@ -6,7 +6,10 @@ def floatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
 
 def init_weights(shape):
-    return theano.shared(floatX(np.random.randn(*shape) * 0.01))
+    return theano.shared(floatX(np.random.randn(*shape) * 0.5))
+
+def init_b_weights(shape):
+    return theano.shared(floatX(np.random.randn(*shape) * 0.1))
 
 def init_tanh(n_in, n_out):
     rng = np.random.RandomState(1234)
@@ -31,22 +34,22 @@ class NeuralNet(object):
     def __init__(self, input, n_in, n_out):
 
         hidden_size=36
-        self._w_h = init_tanh(n_in, hidden_size)
-        self._b_h = theano.shared(np.zeros((hidden_size,), dtype=theano.config.floatX) + 0.1)
+        # self._w_h = init_tanh(n_in, hidden_size)
+        self._w_h = init_weights((n_in, hidden_size))
+        self._b_h = init_b_weights((hidden_size,))
         self._w_o = init_weights((hidden_size, n_out))
-        self._b_o = theano.shared(np.zeros((n_out,), dtype=theano.config.floatX) + 0.1)
+        self._b_o = init_b_weights((n_out,))
         
-        self.updateTargetModel()
-        """
-        self._w_h_old = init_tanh(n_in, hidden_size)
-        self._b_h_old = theano.shared(np.zeros((hidden_size,), dtype=theano.config.floatX))
-        self._w_o_old = theano.shared(np.zeros(
-                (hidden_size, n_out),
-                dtype=theano.config.floatX
-            ))
-        self._b_o_old = theano.shared(np.zeros((n_out,), dtype=theano.config.floatX))
-        """
-        # print "Initial W " + str(self._w_o.get_value()) 
+        # self.updateTargetModel()
+        
+        # self._w_h_old = init_tanh(n_in, hidden_size)
+        self._w_h_old = init_weights((n_in, hidden_size))
+        self._b_h_old = init_b_weights((hidden_size,))
+        self._w_o_old = init_weights((hidden_size, n_out))
+        self._b_o_old = init_b_weights((n_out,))
+        
+        print "Initial W_h " + str(self._w_h.get_value())
+        print "Initial W_o " + str(self._w_o.get_value()) 
         
         self._learning_rate = 0.001
         self._discount_factor= 0.8
@@ -55,10 +58,23 @@ class NeuralNet(object):
         self._updates=0
         
         
-        State = T.fmatrix()
-        ResultState = T.fmatrix()
-        Reward = T.fmatrix()
+        State = T.dmatrix()
+        ResultState = T.dmatrix()
+        Reward = T.dmatrix()
         # Q_val = T.fmatrix()
+        
+        self._L1 = (
+            abs(self._w_h).sum() +
+            abs(self._w_o).sum()
+        )
+        self._L1_reg= 0.0
+        self._L2_reg= 0.001
+        # L2 norm ; one regularization option is to enforce
+        # L2 norm to be small
+        self._L2 = (
+            (self._w_h ** 2).sum() +
+            (self._w_o ** 2).sum()
+        )
         
         # model = T.nnet.sigmoid(T.dot(State, self._w) + self._b.reshape((1, -1)))
         # self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
@@ -71,9 +87,8 @@ class NeuralNet(object):
         delta = ((Reward + (self._discount_factor * 
                             T.max(self.model(ResultState, self._w_h_old, self._b_h_old, self._w_o_old, self._b_o_old), axis=1, keepdims=True)) ) - 
                             T.max(self.model(State, self._w_h, self._b_h, self._w_o, self._b_o), axis=1,  keepdims=True))
-        bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
-        # bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + (T.sum(self._w_h**2) + T.sum(self._b_h ** 2) + 
-          #                                              T.sum(self._w_o**2) + T.sum(self._b_o ** 2))
+        # bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
+        bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + ( self._L2_reg * self._L2) + ( self._L1_reg * self._L1)
 
         params = [self._w_h, self._b_h, self._w_o, self._b_o]
         updates = sgd(bellman_cost, params, lr=self._learning_rate)
@@ -85,7 +100,8 @@ class NeuralNet(object):
         
         
     def model(self, State, w_h, b_h, w_o, b_o):
-        h = T.tanh(T.dot(State, w_h) + b_h)
+        # h = T.tanh(T.dot(State, w_h) + b_h)
+        h = T.dot(State, w_h) + b_h
         qyx = T.tanh(T.dot(h, w_o) + b_o)
         return qyx
     
