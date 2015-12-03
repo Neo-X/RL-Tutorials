@@ -10,7 +10,18 @@ def init_weights(shape):
     return theano.shared(floatX(np.random.randn(*shape) * 0.5))
 
 def init_b_weights(shape):
-    return theano.shared(floatX(np.random.randn(*shape) * 0.0))
+    return theano.shared(floatX(np.random.randn(*shape) * 0.01))
+
+def init_tanh(n_in, n_out, r_num):
+    rng = np.random.RandomState(r_num)
+    return theano.shared(np.asarray(
+                rng.uniform(
+                    low=-np.sqrt(6. / (n_in + n_out)),
+                    high=np.sqrt(6. / (n_in + n_out)),
+                    size=(n_in, n_out)
+                ),
+                dtype=theano.config.floatX
+            ))
 
 
 class RLLogisticRegression(object):
@@ -39,15 +50,17 @@ class RLLogisticRegression(object):
 
         """
         
-        self._w = init_weights((n_in, n_out))
-        self._w_old = init_weights((n_in, n_out))
+        # self._w = init_weights((n_in, n_out))
+        # self._w_old = init_weights((n_in, n_out))
+        self._w = init_tanh(n_in, n_out, 1234)
+        self._w_old = init_tanh(n_in, n_out, 1235)
         print "Initial W " + str(self._w.get_value()) 
         # (n_out,) ,) used so that it can be added as row or column
         self._b = init_b_weights((n_out,))
         self._b_old = init_b_weights((n_out,))
         
         # learning rate for gradient descent updates.
-        self._learning_rate = 0.005
+        self._learning_rate = 0.001
         # future discount 
         self._discount_factor= 0.8
         self._weight_update_steps=5000
@@ -60,7 +73,7 @@ class RLLogisticRegression(object):
         Action = T.icol("Action")
         # Q_val = T.fmatrix()
         
-        model = T.nnet.sigmoid(T.dot(State, self._w) + self._b)
+        model = T.tanh(T.dot(State, self._w) + self._b)
         self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
         
         q_val = self.model(State, self._w, self._b)

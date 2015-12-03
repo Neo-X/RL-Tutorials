@@ -34,16 +34,16 @@ class NeuralNet(object):
     def __init__(self, input, n_in, n_out):
 
         hidden_size=36
-        # self._w_h = init_tanh(n_in, hidden_size)
-        self._w_h = init_weights((n_in, hidden_size))
+        self._w_h = init_tanh(n_in, hidden_size)
+        # self._w_h = init_weights((n_in, hidden_size))
         self._b_h = init_b_weights((hidden_size,))
         self._w_o = init_weights((hidden_size, n_out))
         self._b_o = init_b_weights((n_out,))
         
         # self.updateTargetModel()
         
-        # self._w_h_old = init_tanh(n_in, hidden_size)
-        self._w_h_old = init_weights((n_in, hidden_size))
+        self._w_h_old = init_tanh(n_in, hidden_size)
+        # self._w_h_old = init_weights((n_in, hidden_size))
         self._b_h_old = init_b_weights((hidden_size,))
         self._w_o_old = init_weights((hidden_size, n_out))
         self._b_o_old = init_b_weights((n_out,))
@@ -51,16 +51,17 @@ class NeuralNet(object):
         print "Initial W_h " + str(self._w_h.get_value())
         print "Initial W_o " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.001
+        self._learning_rate = 0.0005
         self._discount_factor= 0.8
         
         self._weight_update_steps=5000
         self._updates=0
         
         
-        State = T.dmatrix()
-        ResultState = T.dmatrix()
-        Reward = T.dmatrix()
+        State = T.fmatrix("State")
+        ResultState = T.fmatrix("ResultState")
+        Reward = T.col("Reward")
+        Action = T.icol("Action")
         # Q_val = T.fmatrix()
         
         self._L1 = (
@@ -86,22 +87,22 @@ class NeuralNet(object):
         # delta = ((Reward.reshape((-1, 1)) + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - self.model(State))
         delta = ((Reward + (self._discount_factor * 
                             T.max(self.model(ResultState, self._w_h_old, self._b_h_old, self._w_o_old, self._b_o_old), axis=1, keepdims=True)) ) - 
-                            T.max(self.model(State, self._w_h, self._b_h, self._w_o, self._b_o), axis=1,  keepdims=True))
+                            (self.model(State, self._w_h, self._b_h, self._w_o, self._b_o))[Action])
         # bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
         bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + ( self._L2_reg * self._L2) + ( self._L1_reg * self._L1)
 
         params = [self._w_h, self._b_h, self._w_o, self._b_o]
         updates = sgd(bellman_cost, params, lr=self._learning_rate)
         
-        self._train = theano.function(inputs=[State, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)
+        self._train = theano.function(inputs=[State, Action, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)
         self._predict = theano.function(inputs=[State], outputs=y_pred, allow_input_downcast=True)
         self._q_values = theano.function(inputs=[State], outputs=py_x, allow_input_downcast=True)
-        self._bellman_error = theano.function(inputs=[State, Reward, ResultState], outputs=delta, allow_input_downcast=True)
+        self._bellman_error = theano.function(inputs=[State, Action, Reward, ResultState], outputs=delta, allow_input_downcast=True)
         
         
     def model(self, State, w_h, b_h, w_o, b_o):
-        # h = T.tanh(T.dot(State, w_h) + b_h)
-        h = T.dot(State, w_h) + b_h
+        h = T.tanh(T.dot(State, w_h) + b_h)
+        # h = T.dot(State, w_h) + b_h
         qyx = T.tanh(T.dot(h, w_o) + b_o)
         return qyx
     
@@ -112,17 +113,15 @@ class NeuralNet(object):
         self._w_o_old = self._w_o 
         self._b_o_old = self._b_o 
     
-    def train(self, state, reward, result_state):
+    def train(self, state, action, reward, result_state):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        return self._train(state, reward, result_state)
+        return self._train(state, action, reward, result_state)
     
     def predict(self, state):
         return self._predict(state)
     def q_values(self, state):
         return self._q_values(state)
-    def q_value(self, state):
-        return np.max(self.q_values(state))
-    def bellman_error(self, state, reward, result_state):
-        return self._bellman_error(state, reward, result_state)
+    def bellman_error(self, state, action, reward, result_state):
+        return self._bellman_error(state, action, reward, result_state)

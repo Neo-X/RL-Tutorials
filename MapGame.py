@@ -50,11 +50,12 @@ class Map(object):
     def act(self, action):
         move = np.array(self.move(action))
         loc = self._agent + (move * random.uniform(0.2,1.0))
-
+        """
         if ((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
             (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])):
             # Can't move out of map
             return self.reward() #  + -5
+            """
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
         #     return self.reward() +-5

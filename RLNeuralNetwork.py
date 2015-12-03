@@ -83,9 +83,10 @@ class RLNeuralNetwork(object):
         self._updates=0
         
         
-        State = T.fmatrix()
-        ResultState = T.fmatrix()
-        Reward = T.fmatrix()
+        State = T.fmatrix("State")
+        ResultState = T.fmatrix("ResultState")
+        Reward = T.col("Reward")
+        Action = T.icol("Action")
         # Q_val = T.fmatrix()
         
         # model = T.nnet.sigmoid(T.dot(State, self._w) + self._b.reshape((1, -1)))
@@ -116,7 +117,7 @@ class RLNeuralNetwork(object):
         # delta = ((Reward.reshape((-1, 1)) + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - self.model(State))
         delta = ((Reward + (self._discount_factor * 
                             T.max(self.model(ResultState, self._w_h_old, self._b_h_old, self._w_h2_old, self._b_h2_old, self._w_o_old, self._b_o_old, 0.2, 0.5), axis=1, keepdims=True)) ) - 
-                            T.max(self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5), axis=1,  keepdims=True))
+                            (self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5))[Action])
         # bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
         bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + ( self._L2_reg * self._L2) + ( self._L1_reg * self._L1)
 
@@ -124,10 +125,10 @@ class RLNeuralNetwork(object):
         updates = sgd(bellman_cost, params, lr=self._learning_rate)
         # updates = RMSprop(bellman_cost, params, lr=self._learning_rate)
         
-        self._train = theano.function(inputs=[State, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)
+        self._train = theano.function(inputs=[State, Action, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)
         self._predict = theano.function(inputs=[State], outputs=y_pred, allow_input_downcast=True)
         self._q_values = theano.function(inputs=[State], outputs=py_x, allow_input_downcast=True)
-        self._bellman_error = theano.function(inputs=[State, Reward, ResultState], outputs=delta, allow_input_downcast=True)
+        self._bellman_error = theano.function(inputs=[State, Action, Reward, ResultState], outputs=delta, allow_input_downcast=True)
         
         
     def model(self, State, w_h, b_h, w_h2, b_h2, w_o, b_o, p_drop_input, p_drop_hidden):
@@ -151,15 +152,15 @@ class RLNeuralNetwork(object):
         self._w_o_old = self._w_o 
         self._b_o_old = self._b_o 
     
-    def train(self, state, reward, result_state):
+    def train(self, state, action, reward, result_state):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        return self._train(state, reward, result_state)
+        return self._train(state, action, reward, result_state)
     
     def predict(self, state):
         return self._predict(state)
     def q_values(self, state):
         return self._q_values(state)
-    def bellman_error(self, state, reward, result_state):
-        return self._bellman_error(state, reward, result_state)
+    def bellman_error(self, state, action, reward, result_state):
+        return self._bellman_error(state, action, reward, result_state)

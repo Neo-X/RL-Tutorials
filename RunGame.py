@@ -133,7 +133,7 @@ if __name__ == "__main__":
         p = (rounds - round) / float(rounds)
         print "Random Action selection Pr(): " + str(p)
         while not game.reachedTarget():
-            # game.reset()
+            game.reset()
             state = game.getState()
             action = random.choice(action_selection)
             pa = model.predict([norm_state(state, max_state)])[0]
@@ -152,6 +152,7 @@ if __name__ == "__main__":
             i +=1
             
             # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
+            # print model.q_values([tup._state])
             if len(experience) > max_expereince:
                 experience.pop(0)
             if len(experience) > batch_size:
