@@ -107,14 +107,14 @@ if __name__ == "__main__":
     print action_selection
     i=0
     states = np.array([[0,0]])
-    if settings['agent_name'] == "Deep":
-        print "Creating Deep agent"
+    if settings['agent_name'] == "logistic":
+        print "Creating Logistic agent"
         model = RLLogisticRegression(states, n_in=2, n_out=8)
     elif settings['agent_name'] == "NN":
         print "Creating NN agent"
         model = NeuralNet(states, n_in=2, n_out=8)
-    elif settings['agent_name'] == "logistic":
-        print "Creating Logistic agent"
+    elif settings['agent_name'] == "Deep":
+        print "Creating Deep agent"
         model = RLNeuralNetwork(states, n_in=2, n_out=8)
     else:
         print "Unrecognized model: " + str(settings['agent_name'])
@@ -156,15 +156,15 @@ if __name__ == "__main__":
                 experience.pop(0)
             if len(experience) > batch_size:
                 _states, _actions, _result_states, _rewards = get_batch(experience, batch_size)
-                cost = model.train(_states, _rewards, _result_states)
+                cost = model.train(_states, _actions, _rewards, _result_states)
                 # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 
             if i % steps == 0:
                 X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
                 game.update()
                 game.updatePolicy(U, V, Q)
-                states, actions, result_states, rewards = get_batch(experience, len(experience))
-                error = model.bellman_error(states, rewards, result_states)
+                states, actions, result_states, rewards = get_batch(experience, 64)
+                error = model.bellman_error(states, actions, rewards, result_states)
                 error = np.mean(np.fabs(error))
                 print "Iteration: " + str(i) + " Cost: " + str(cost) + " Bellman Error: " + str(error)
     
@@ -172,10 +172,12 @@ if __name__ == "__main__":
         # X,Y = np.mgrid[0:16,0:16]
         X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
         game.updatePolicy(U, V, Q)
+        """
         states, actions, result_states, rewards = get_batch(experience, len(experience))
-        error = model.bellman_error(states, rewards, result_states)
+        error = model.bellman_error(states, actions, rewards, result_states)
         error = np.mean(np.fabs(error))
         print "Round: " + str(round) + " Iteration: " + str(i) + " Bellman Error: " + str(error) + " Expereince: " + str(len(experience))
+        """
         print model.q_values(states)[:10]
         # print experience[:10]
     

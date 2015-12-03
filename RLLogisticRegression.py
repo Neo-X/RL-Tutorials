@@ -56,7 +56,8 @@ class RLLogisticRegression(object):
         # data types for model
         State = T.fmatrix("State")
         ResultState = T.fmatrix("ResultState")
-        Reward = T.fmatrix("Reward")
+        Reward = T.col("Reward")
+        Action = T.icol("Action")
         # Q_val = T.fmatrix()
         
         model = T.nnet.sigmoid(T.dot(State, self._w) + self._b)
@@ -67,7 +68,7 @@ class RLLogisticRegression(object):
         
         # bellman error, delta error
         delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState, self._w_old, self._b_old), axis=1, keepdims=True)) ) -
-                  T.max(self.model(State, self._w, self._b), axis=1,  keepdims=True))
+                  (self.model(State, self._w, self._b))[Action])
         # delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
         
         self._L2_reg= 0.01
@@ -94,11 +95,11 @@ class RLLogisticRegression(object):
                   [self._b, self._b + (-gradient_b * self._learning_rate)]]
         
         # This function performs one training step and update
-        self._train = theano.function(inputs=[State, Reward, ResultState], outputs=bellman_cost, updates=update, allow_input_downcast=True)
+        self._train = theano.function(inputs=[State, Action, Reward, ResultState], outputs=bellman_cost, updates=update, allow_input_downcast=True)
         # Used to get to predicted actions to select
         self._predict = theano.function(inputs=[State], outputs=action_pred, allow_input_downcast=True)
         self._q_values = theano.function(inputs=[State], outputs=q_val, allow_input_downcast=True)
-        self._bellman_error = theano.function(inputs=[State, Reward, ResultState], outputs=delta, allow_input_downcast=True)
+        self._bellman_error = theano.function(inputs=[State, Action, Reward, ResultState], outputs=delta, allow_input_downcast=True)
         
 
     def model(self, State, w, b):
@@ -116,15 +117,15 @@ class RLLogisticRegression(object):
         self._w_old = self._w 
         self._b_old = self._b
         
-    def train(self, state, reward, result_state):
+    def train(self, state, action, reward, result_state):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        return self._train(state, reward, result_state)
+        return self._train(state, action, reward, result_state)
     
     def predict(self, state):
         return self._predict(state)
     def q_values(self, state):
         return self._q_values(state)
-    def bellman_error(self, state, reward, result_state):
-        return self._bellman_error(state, reward, result_state)
+    def bellman_error(self, state, action, reward, result_state):
+        return self._bellman_error(state, action, reward, result_state)
