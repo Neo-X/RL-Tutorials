@@ -7,61 +7,12 @@ import json
 
 from RLLogisticRegression import RLLogisticRegression
 from NeuralNet import NeuralNet 
+from ExperienceMemory import ExperienceMemory
 from RLNeuralNetwork import RLNeuralNetwork 
 import sys
 
 from RL_visualizing import *
 
-class ExperienceTuple(object):
-
-    def __init__(self, state, action, resultState, reward):
-        self._state = state
-        self._action = action
-        self._resultState = resultState
-        self._reward = reward
-    
-    def __str__(self): 
-        return self.__repr__()
-    
-    def __repr__(self): 
-        return "{" + str(self._state) + ", " + str(self._action) + ", " + str(self._resultState) + ", " + str(self._reward) + "}"
-
-
-
-
-def get_datas(experiences):
-    
-    
-    state = []
-    action = []
-    resultState = []
-    reward = []
-    
-    for i in range(len(experiences)):
-        state.append(experiences[i]._state)
-        action.append(experiences[i]._action)
-        resultState.append(experiences[i]._resultState)
-        reward.append(experiences[i]._reward)
-    # print c
-    # print experience[indices]
-    state = np.array(state)
-    action = np.array(action)
-    resultState = np.array(resultState)
-    reward = np.array(reward)
-     
-    return (state, action, resultState, reward)
-
-def get_batch(experience, batch_size=32):
-    """
-    len(experience > batch_size
-    """
-    # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
-    indices = (random.sample(range(0, len(experience)), batch_size))
-    # print indices
-    c = [ experience[i] for i in indices]
-    
-    return get_datas(c)
-    
 def eGreedy(pa1, ra2, e):
     """
         epsilon greedy action select
@@ -126,7 +77,7 @@ if __name__ == "__main__":
     best_error=10000000.0
     X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
     game.init(U, V, Q)    
-    experience = []
+    experience = ExperienceMemory(2, 1, 5000)
     for round in range(rounds):
         game.reset()
         # reduces random action select probability
@@ -143,21 +94,18 @@ if __name__ == "__main__":
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
             # Everything should be normalized to be between -1 and 1
-            tup = ExperienceTuple(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward/max_reward])
-            experience.append(tup)
+            reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
+            experience.insert(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward_])
             # Update agent on screen
             # game.update()
             # U,V = get_policy_visual_data(model, max_state, game)
             # game.updatePolicy(U, V)
             i +=1
-            
+            print "Reward: " + str(reward_)
             # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
             # print model.q_values([tup._state])
-            if len(experience) > max_expereince:
-                experience.pop(0)
-                # print experience[:10]
-            if len(experience) > batch_size:
-                _states, _actions, _result_states, _rewards = get_batch(experience, batch_size)
+            if experience.samples() > batch_size:
+                _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
                 cost = model.train(_states, _actions, _rewards, _result_states)
                 # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 
@@ -165,7 +113,7 @@ if __name__ == "__main__":
                 X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
                 game.update()
                 game.updatePolicy(U, V, Q)
-                states, actions, result_states, rewards = get_batch(experience, 64)
+                states, actions, result_states, rewards = experience.get_batch(64)
                 error = model.bellman_error(states, actions, rewards, result_states)
                 error = np.mean(np.fabs(error))
                 print "Iteration: " + str(i) + " Cost: " + str(cost) + " Bellman Error: " + str(error)
