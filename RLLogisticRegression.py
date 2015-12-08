@@ -2,6 +2,10 @@ import theano
 from theano import tensor as T
 import numpy as np
 
+# enable on-the-fly graph computations
+# theano.config.compute_test_value = 'raise'
+
+
 def floatX(State):
     return np.asarray(State, dtype=theano.config.floatX)
 
@@ -60,23 +64,28 @@ class RLLogisticRegression(object):
         self._b_old = init_b_weights((n_out,))
         
         # learning rate for gradient descent updates.
-        self._learning_rate = 0.005
+        self._learning_rate = 0.05
         # future discount 
         self._discount_factor= 0.8
         self._weight_update_steps=5000
         self._updates=0
         
         # data types for model
-        State = T.fmatrix("State")
-        ResultState = T.fmatrix("ResultState")
+        State = T.dmatrix("State")
+        State.tag.test_value = np.random.rand(32,2)
+        ResultState = T.dmatrix("ResultState")
+        ResultState.tag.test_value = np.random.rand(32,2)
         Reward = T.col("Reward")
+        Reward.tag.test_value = np.random.rand(32,1)
         Action = T.icol("Action")
+        Action.tag.test_value = np.zeros((32,1),dtype=np.dtype('int32'))
         # Q_val = T.fmatrix()
         
         model = T.tanh(T.dot(State, self._w) + self._b)
         self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
         
         q_val = self.model(State, self._w, self._b)
+        q_func = T.max(q_val)
         action_pred = T.argmax(q_val, axis=1)
         
         # bellman error, delta error
@@ -96,16 +105,21 @@ class RLLogisticRegression(object):
         bellman_cost = T.mean(0.5 *  ((delta) ** 2 ) ) + (self._L2 * self._L2_reg)
         
         # Compute gradients w.r.t. model parameters
-        gradient = T.grad(cost=bellman_cost, wrt=self._w)
-        gradient_b = T.grad(cost=bellman_cost, wrt=self._b)
+        # gradient = T.grad(cost=bellman_cost, wrt=self._w)
+        # gradient_b = T.grad(cost=bellman_cost, wrt=self._b)
+        gradient = T.grad(cost=q_func, wrt=self._w)
+        gradient_b = T.grad(cost=q_func, wrt=self._b)
+        
         
         """
             Updates to apply to parameters
             Performing gradient descent, want to add steps in the negative direction of 
             gradient.
         """
-        update = [[self._w, self._w + (-gradient * self._learning_rate)],
-                  [self._b, self._b + (-gradient_b * self._learning_rate)]]
+        print "Delta shape: " + str(theano.tensor.shape(delta).shape)
+        print "gradient shape: " + str(theano.tensor.shape(gradient).shape[0])
+        update = [[self._w, self._w + (self._learning_rate * gradient)],
+                  [self._b, self._b + (self._learning_rate * gradient_b)]]
         
         # This function performs one training step and update
         self._train = theano.function(inputs=[State, Action, Reward, ResultState], outputs=bellman_cost, updates=update, allow_input_downcast=True)

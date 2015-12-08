@@ -101,7 +101,7 @@ if __name__ == "__main__":
             # U,V = get_policy_visual_data(model, max_state, game)
             # game.updatePolicy(U, V)
             i +=1
-            print "Reward: " + str(reward_)
+            # print "Reward: " + str(reward_)
             # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
             # print model.q_values([tup._state])
             if experience.samples() > batch_size:
