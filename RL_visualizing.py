@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-from matplotlib import mpl
+# from matplotlib import mpl
 import numpy as np
-import matplotlib.animation as animation
+# import matplotlib.animation as animation
 import random
 import cPickle
 import sys

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-from matplotlib import mpl
+# from matplotlib import mpl
 import numpy as np
-import matplotlib.animation as animation
+# import matplotlib.animation as animation
 import random
 
 def loadMap():
@@ -83,9 +83,9 @@ class Map(object):
     
     def init(self, U, V, Q):
         colours = ['gray','black','blue']
-        cmap = mpl.colors.ListedColormap(['gray','black','blue'])
-        bounds=[-1,-1,1,1]
-        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+        # cmap = mpl.colors.ListedColormap(['gray','black','blue'])
+        # bounds=[-1,-1,1,1]
+        # norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
         
 
         plt.ion()
@@ -98,10 +98,10 @@ class Map(object):
         
         self._map_ax.plot([self._target[0]], [self._target[1]], 'ro', ms=10)
         # self._line1, = self._ax.plot(x, y, 'r-') # Returns a tuple of line objects, thus the comma        
-        
+        """
         cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                   colours,
-                                                   256)
+                                                  colours,
+                                                 256)
         
         img1 = self._map_ax.imshow(self._map,interpolation='nearest',
                             cmap = cmap2,
@@ -109,18 +109,18 @@ class Map(object):
         img2 = self._policy_ax.imshow(self._map,interpolation='nearest',
                             cmap = cmap2,
                             origin='lower')
-        
+        """
         
         # make a color bar
         # self._map_ax.colorbar(img2,cmap=cmap,
-          #               norm=norm,boundaries=bounds,ticks=[-1,0,1])
+        #               norm=norm,boundaries=bounds,ticks=[-1,0,1])
         self._map_ax.grid(True,color='white')
         # self._policy_ax.grid(True,color='white')
         
         # fig = plt.figure()
         #fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
         #ax = fig.add_subplot(111, aspect='equal', autoscale_on=False,
-         #                    xlim=(-3.2, 3.2), ylim=(-2.4, 2.4))
+        #                    xlim=(-3.2, 3.2), ylim=(-2.4, 2.4))
         
         # particles holds the locations of the particles
         
