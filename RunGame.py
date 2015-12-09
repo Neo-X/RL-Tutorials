@@ -98,8 +98,8 @@ if __name__ == "__main__":
             experience.insert(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward_])
             # Update agent on screen
             # game.update()
-            # U,V = get_policy_visual_data(model, max_state, game)
-            # game.updatePolicy(U, V)
+            # X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+            # game.updatePolicy(U, V, Q)
             i +=1
             # print "Reward: " + str(reward_)
             # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)

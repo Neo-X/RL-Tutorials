@@ -1,9 +1,13 @@
 import theano
 from theano import tensor as T
 import numpy as np
+# from theano.tensor import add, mul, Apply, Variable, Constant, TensorType
 
 # enable on-the-fly graph computations
 # theano.config.compute_test_value = 'raise'
+
+# For debugging
+theano.config.mode='FAST_COMPILE'
 
 
 def floatX(State):
@@ -14,7 +18,7 @@ def init_weights(shape):
     return theano.shared(floatX(np.random.randn(*shape) * 1.0))
 
 def init_b_weights(shape):
-    return theano.shared(floatX(np.random.randn(*shape) * 0.1))
+    return theano.shared(floatX(np.random.randn(*shape) * 0.1), broadcastable=(True, False))
 
 def init_tanh(n_in, n_out, r_num):
     rng = np.random.RandomState(r_num)
@@ -60,8 +64,9 @@ class RLLogisticRegression(object):
         self._w_old = init_tanh(n_in, n_out, 2235)
         print "Initial W " + str(self._w.get_value()) 
         # (n_out,) ,) used so that it can be added as row or column
-        self._b = init_b_weights((n_out,))
-        self._b_old = init_b_weights((n_out,))
+        # 1x8
+        self._b = init_b_weights((1,n_out))
+        self._b_old = init_b_weights((1,n_out))
         
         # learning rate for gradient descent updates.
         self._learning_rate = 0.05
@@ -86,9 +91,10 @@ class RLLogisticRegression(object):
         
         q_val = self.model(State, self._w, self._b)
         q_func = T.max(q_val)
-        action_pred = T.argmax(q_val, axis=1)
+        action_pred = T.argmax(q_val, axis=0)
         
         # bellman error, delta error
+        # 32x1 + ( scalar * 32x1) - 32x1
         delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState, self._w_old, self._b_old), axis=1, keepdims=True)) ) -
                   (self.model(State, self._w, self._b))[Action])
         # delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
@@ -105,10 +111,10 @@ class RLLogisticRegression(object):
         bellman_cost = T.mean(0.5 *  ((delta) ** 2 ) ) + (self._L2 * self._L2_reg)
         
         # Compute gradients w.r.t. model parameters
-        # gradient = T.grad(cost=bellman_cost, wrt=self._w)
-        # gradient_b = T.grad(cost=bellman_cost, wrt=self._b)
-        gradient = T.grad(cost=q_func, wrt=self._w)
-        gradient_b = T.grad(cost=q_func, wrt=self._b)
+        gradient = T.grad(cost=bellman_cost, wrt=self._w)
+        gradient_b = T.grad(cost=bellman_cost, wrt=self._b)
+        # gradient = T.grad(cost=q_func, wrt=self._w)
+        # gradient_b = T.grad(cost=q_func, wrt=self._b)
         
         
         """
@@ -118,8 +124,11 @@ class RLLogisticRegression(object):
         """
         print "Delta shape: " + str(theano.tensor.shape(delta).shape)
         print "gradient shape: " + str(theano.tensor.shape(gradient).shape[0])
-        update = [[self._w, self._w + (self._learning_rate * gradient)],
-                  [self._b, self._b + (self._learning_rate * gradient_b)]]
+        update = [[self._w, self._w + (self._learning_rate * -gradient)],
+                  [self._b, self._b + (self._learning_rate * -gradient_b)]]
+        
+        #update = [[self._w, self._w + (self._learning_rate * gradient)],
+        #          [self._b, self._b + (self._learning_rate * gradient_b)]]
         
         # This function performs one training step and update
         self._train = theano.function(inputs=[State, Action, Reward, ResultState], outputs=bellman_cost, updates=update, allow_input_downcast=True)
@@ -131,7 +140,9 @@ class RLLogisticRegression(object):
 
     def model(self, State, w, b):
         """
-        Beter to have only one model function
+        Better to have only one model function
+        return should be 32x8
+        (32x2 * 2x8) + 1x8
         """
         # return self._model(State)
         return T.tanh(T.dot(State, w) + b)

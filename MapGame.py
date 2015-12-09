@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib
 # from matplotlib import mpl
 import numpy as np
 # import matplotlib.animation as animation
@@ -83,9 +84,9 @@ class Map(object):
     
     def init(self, U, V, Q):
         colours = ['gray','black','blue']
-        # cmap = mpl.colors.ListedColormap(['gray','black','blue'])
-        # bounds=[-1,-1,1,1]
-        # norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+        cmap = matplotlib.colors.ListedColormap(['gray','black','blue'])
+        bounds=[-1,-1,1,1]
+        norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
         
 
         plt.ion()
@@ -98,8 +99,8 @@ class Map(object):
         
         self._map_ax.plot([self._target[0]], [self._target[1]], 'ro', ms=10)
         # self._line1, = self._ax.plot(x, y, 'r-') # Returns a tuple of line objects, thus the comma        
-        """
-        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+        
+        cmap2 = matplotlib.colors.LinearSegmentedColormap.from_list('my_colormap',
                                                   colours,
                                                  256)
         
@@ -109,7 +110,7 @@ class Map(object):
         img2 = self._policy_ax.imshow(self._map,interpolation='nearest',
                             cmap = cmap2,
                             origin='lower')
-        """
+        
         
         # make a color bar
         # self._map_ax.colorbar(img2,cmap=cmap,
