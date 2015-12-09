@@ -113,7 +113,7 @@ if __name__ == "__main__":
                 X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
                 game.update()
                 game.updatePolicy(U, V, Q)
-                states, actions, result_states, rewards = experience.get_batch(64)
+                states, actions, result_states, rewards = experience.get_batch(32)
                 error = model.bellman_error(states, actions, rewards, result_states)
                 error = np.mean(np.fabs(error))
                 print "Iteration: " + str(i) + " Cost: " + str(cost) + " Bellman Error: " + str(error)

@@ -7,7 +7,7 @@ import numpy as np
 # theano.config.compute_test_value = 'raise'
 
 # For debugging
-theano.config.mode='FAST_COMPILE'
+# theano.config.mode='FAST_COMPILE'
 
 
 def floatX(State):
@@ -60,6 +60,7 @@ class RLLogisticRegression(object):
         
         # self._w = init_weights((n_in, n_out))
         # self._w_old = init_weights((n_in, n_out))
+        batch_size=32
         self._w = init_tanh(n_in, n_out, 1234)
         self._w_old = init_tanh(n_in, n_out, 2235)
         print "Initial W " + str(self._w.get_value()) 
@@ -69,7 +70,7 @@ class RLLogisticRegression(object):
         self._b_old = init_b_weights((1,n_out))
         
         # learning rate for gradient descent updates.
-        self._learning_rate = 0.05
+        self._learning_rate = 0.005
         # future discount 
         self._discount_factor= 0.8
         self._weight_update_steps=5000
@@ -77,13 +78,13 @@ class RLLogisticRegression(object):
         
         # data types for model
         State = T.dmatrix("State")
-        State.tag.test_value = np.random.rand(32,2)
+        State.tag.test_value = np.random.rand(batch_size,2)
         ResultState = T.dmatrix("ResultState")
-        ResultState.tag.test_value = np.random.rand(32,2)
+        ResultState.tag.test_value = np.random.rand(batch_size,2)
         Reward = T.col("Reward")
-        Reward.tag.test_value = np.random.rand(32,1)
+        Reward.tag.test_value = np.random.rand(batch_size,1)
         Action = T.icol("Action")
-        Action.tag.test_value = np.zeros((32,1),dtype=np.dtype('int32'))
+        Action.tag.test_value = np.zeros((batch_size,1),dtype=np.dtype('int32'))
         # Q_val = T.fmatrix()
         
         model = T.tanh(T.dot(State, self._w) + self._b)
@@ -96,7 +97,7 @@ class RLLogisticRegression(object):
         # bellman error, delta error
         # 32x1 + ( scalar * 32x1) - 32x1
         delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState, self._w_old, self._b_old), axis=1, keepdims=True)) ) -
-                  (self.model(State, self._w, self._b))[Action])
+                  (self.model(State, self._w, self._b))[T.arange(batch_size), Action.reshape((-1,))].reshape((-1, 1)))
         # delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
         
         self._L2_reg= 0.01
@@ -127,7 +128,7 @@ class RLLogisticRegression(object):
         update = [[self._w, self._w + (self._learning_rate * -gradient)],
                   [self._b, self._b + (self._learning_rate * -gradient_b)]]
         
-        #update = [[self._w, self._w + (self._learning_rate * gradient)],
+        # update = [[self._w, self._w + (self._learning_rate * delta * gradient)],
         #          [self._b, self._b + (self._learning_rate * gradient_b)]]
         
         # This function performs one training step and update
