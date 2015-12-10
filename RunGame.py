@@ -94,7 +94,8 @@ if __name__ == "__main__":
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
             # Everything should be normalized to be between -1 and 1
-            reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
+            # reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
+            reward_ = (reward)/(max_reward)
             experience.insert(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward_])
             # Update agent on screen
             # game.update()
