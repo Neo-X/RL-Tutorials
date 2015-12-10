@@ -116,13 +116,13 @@ class NeuralNet(object):
         py_x = self.model(State, self._w_h, self._b_h, self._w_o, self._b_o)
         y_pred = T.argmax(py_x, axis=1)
         q_val = T.max(py_x)
-        q_func = T.mean((self.model(State, self._w_h, self._b_h, self._w_o, self._b_o))[T.arange(batch_size), Action.reshape((-1,))].reshape((-1, 1)))
+        q_func = T.mean((self.model(State, self._w_h, self._b_h, self._w_o, self._b_o))[T.arange(T.arange(Action.shape[0])), Action.reshape((-1,))].reshape((-1, 1)))
         
         # cost = T.mean(T.nnet.categorical_crossentropy(py_x, Y))
         # delta = ((Reward.reshape((-1, 1)) + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - self.model(State))
         delta = ((Reward + (self._discount_factor * 
                             T.max(self.model(ResultState, self._w_h_old, self._b_h_old, self._w_o_old, self._b_o_old), axis=1, keepdims=True)) ) - 
-                            (self.model(State, self._w_h, self._b_h, self._w_o, self._b_o))[T.arange(batch_size), Action.reshape((-1,))].reshape((-1, 1)))
+                            (self.model(State, self._w_h, self._b_h, self._w_o, self._b_o))[T.arange(T.arange(Action.shape[0])), Action.reshape((-1,))].reshape((-1, 1)))
         # bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
         bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + ( self._L2_reg * self._L2) + ( self._L1_reg * self._L1)
 
