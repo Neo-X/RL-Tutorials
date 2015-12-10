@@ -12,7 +12,7 @@ def init_weights(shape):
     return theano.shared(floatX(np.random.randn(*shape) * 0.5))
 
 def init_b_weights(shape):
-    return theano.shared(floatX(np.random.randn(*shape) * 0.0 + 0.1))
+    return theano.shared(floatX(np.random.randn(*shape) * 0.1), broadcastable=(True, False))
 
 def init_tanh(n_in, n_out):
     rng = np.random.RandomState(1234)
@@ -32,6 +32,13 @@ def sgd(cost, params, lr=0.05):
         updates.append([p, p + (-g * lr)])
     return updates
 
+def rlTDSGD(cost, delta, params, lr=0.05):
+    grads = T.grad(cost=cost, wrt=params)
+    updates = []
+    for p, g in zip(params, grads):
+        updates.append([p, p + (lr * delta * g)])
+    return updates
+
 def rectify(X):
     # return X
     return T.maximum(X, 0.)
@@ -48,8 +55,21 @@ def RMSprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
         updates.append((p, p - lr * g))
     return updates
 
+def RMSpropRL(cost, delta, params, lr=0.001, rho=0.9, epsilon=1e-6):
+    grads = T.grad(cost=cost, wrt=params)
+    updates = []
+    for p, g in zip(params, grads):
+        acc = theano.shared(p.get_value() * 0.0)
+        acc_new = rho * acc + (1 - rho) * g ** 2
+        gradient_scaling = T.sqrt(acc_new + epsilon)
+        g = g / gradient_scaling
+        updates.append((acc, acc_new))
+        updates.append((p, p - (lr * delta * g)))
+    return updates
+
+
 def dropout(X, p=0.):
-    p=0.0 # diabled dropout
+    p=0.0 # disabled dropout
     if p > 0:
         retain_prob = 1 - p
         X *= srng.binomial(X.shape, p=retain_prob, dtype=theano.config.floatX)
@@ -61,12 +81,13 @@ class RLNeuralNetwork(object):
     def __init__(self, input, n_in, n_out):
 
         hidden_size=36
+        batch_size=32
         self._w_h = init_weights((n_in, hidden_size))
-        self._b_h = init_b_weights((hidden_size,))
+        self._b_h = init_b_weights((1,hidden_size))
         self._w_h2 = init_weights((hidden_size, hidden_size))
-        self._b_h2 = init_b_weights((hidden_size,))
+        self._b_h2 = init_b_weights((1,hidden_size))
         self._w_o = init_tanh(hidden_size, n_out)
-        self._b_o = init_b_weights((n_out,))
+        self._b_o = init_b_weights((1,n_out))
         
         self.updateTargetModel()
         self._w_h = init_weights((n_in, hidden_size))
@@ -83,16 +104,22 @@ class RLNeuralNetwork(object):
         self._updates=0
         
         
-        State = T.fmatrix("State")
-        ResultState = T.fmatrix("ResultState")
+        # data types for model
+        State = T.dmatrix("State")
+        State.tag.test_value = np.random.rand(batch_size,2)
+        ResultState = T.dmatrix("ResultState")
+        ResultState.tag.test_value = np.random.rand(batch_size,2)
         Reward = T.col("Reward")
+        Reward.tag.test_value = np.random.rand(batch_size,1)
         Action = T.icol("Action")
+        Action.tag.test_value = np.zeros((batch_size,1),dtype=np.dtype('int32'))
         # Q_val = T.fmatrix()
         
         # model = T.nnet.sigmoid(T.dot(State, self._w) + self._b.reshape((1, -1)))
         # self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
         py_x = self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.0, 0.0)
         y_pred = T.argmax(py_x, axis=1)
+        q_func = T.mean((self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.0, 0.0))[T.arange(batch_size), Action.reshape((-1,))].reshape((-1, 1)))
         # q_val = py_x
         # noisey_q_val = self.model(ResultState, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5)
         
@@ -117,12 +144,13 @@ class RLNeuralNetwork(object):
         # delta = ((Reward.reshape((-1, 1)) + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - self.model(State))
         delta = ((Reward + (self._discount_factor * 
                             T.max(self.model(ResultState, self._w_h_old, self._b_h_old, self._w_h2_old, self._b_h2_old, self._w_o_old, self._b_o_old, 0.2, 0.5), axis=1, keepdims=True)) ) - 
-                            (self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5))[Action])
+                            (self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5))[T.arange(batch_size), Action.reshape((-1,))].reshape((-1, 1)))
         # bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
         bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + ( self._L2_reg * self._L2) + ( self._L1_reg * self._L1)
 
         params = [self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o]
-        updates = sgd(bellman_cost, params, lr=self._learning_rate)
+        # updates = sgd(bellman_cost, params, lr=self._learning_rate)
+        updates = rlTDSGD(q_func, T.mean(delta), params, lr=self._learning_rate)
         # updates = RMSprop(bellman_cost, params, lr=self._learning_rate)
         
         self._train = theano.function(inputs=[State, Action, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)

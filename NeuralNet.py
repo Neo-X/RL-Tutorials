@@ -2,6 +2,10 @@ import theano
 from theano import tensor as T
 import numpy as np
 
+# For debugging
+# theano.config.mode='FAST_COMPILE'
+
+
 def floatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
 
@@ -44,7 +48,7 @@ def RMSpropRL(cost, delta, params, lr=0.001, rho=0.9, epsilon=1e-6):
     grads = T.grad(cost=cost, wrt=params)
     updates = []
     for p, g in zip(params, grads):
-        acc = theano.shared(p.get_value() * 0.)
+        acc = theano.shared(p.get_value() * 0.0)
         acc_new = rho * acc + (1 - rho) * g ** 2
         gradient_scaling = T.sqrt(acc_new + epsilon)
         g = g / gradient_scaling
@@ -76,17 +80,22 @@ class NeuralNet(object):
         print "Initial W_h " + str(self._w_h.get_value())
         print "Initial W_o " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.0005
+        self._learning_rate = 0.001
         self._discount_factor= 0.8
         
         self._weight_update_steps=10000
         self._updates=0
         
         
-        State = T.fmatrix("State")
-        ResultState = T.fmatrix("ResultState")
+        # data types for model
+        State = T.dmatrix("State")
+        State.tag.test_value = np.random.rand(batch_size,2)
+        ResultState = T.dmatrix("ResultState")
+        ResultState.tag.test_value = np.random.rand(batch_size,2)
         Reward = T.col("Reward")
+        Reward.tag.test_value = np.random.rand(batch_size,1)
         Action = T.icol("Action")
+        Action.tag.test_value = np.zeros((batch_size,1),dtype=np.dtype('int32'))
         # Q_val = T.fmatrix()
         
         self._L1 = (
@@ -120,6 +129,7 @@ class NeuralNet(object):
         params = [self._w_h, self._b_h, self._w_o, self._b_o]
         # updates = sgd(bellman_cost, params, lr=self._learning_rate)
         updates = rlTD(q_func, T.mean(delta), params, lr=self._learning_rate)
+        # updates = RMSpropRL(q_func, T.mean(delta), params, lr=self._learning_rate)
         
         self._train = theano.function(inputs=[State, Action, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)
         self._predict = theano.function(inputs=[State], outputs=y_pred, allow_input_downcast=True)

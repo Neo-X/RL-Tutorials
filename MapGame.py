@@ -50,7 +50,8 @@ class Map(object):
             
     def act(self, action):
         move = np.array(self.move(action))
-        loc = self._agent + (move * random.uniform(0.2,1.0))
+        loc = self._agent + (move * random.uniform(0.5,1.0))
+        # loc = self._agent + (move)
         
         if ((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
             (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])):

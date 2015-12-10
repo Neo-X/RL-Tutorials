@@ -84,7 +84,7 @@ if __name__ == "__main__":
         p = (rounds - round) / float(rounds)
         print "Random Action selection Pr(): " + str(p)
         while not game.reachedTarget():
-            game.reset()
+            # game.reset()
             state = game.getState()
             action = random.choice(action_selection)
             pa = model.predict([norm_state(state, max_state)])[0]
