@@ -153,7 +153,7 @@ class RLNeuralNetwork(object):
 
         params = [self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o]
         # updates = sgd(bellman_cost, params, lr=self._learning_rate)
-        # updates = rlTDSGD(q_func, T.mean(delta), params, lr=self._learning_rate)
+        updates = rlTDSGD(q_func, T.mean(delta), params, lr=self._learning_rate)
         # updates = RMSprop(bellman_cost, params, lr=self._learning_rate)
         updates = RMSpropRL(bellman_cost, T.mean(delta), params, lr=self._learning_rate)
         

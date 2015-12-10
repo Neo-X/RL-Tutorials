@@ -11,4 +11,5 @@ if __name__ == "__main__":
     print "A: " + str(a)
     print "X: " + str(x)
     print x[a]
-    print x[np.arange(batch_size), a.reshape((-1,))].reshape((-1, 1))
+    print a.shape[0]
+    print x[np.arange(x.shape[0]), a.reshape((-1,))].reshape((-1, 1))
