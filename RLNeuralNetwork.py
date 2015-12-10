@@ -52,7 +52,7 @@ def RMSprop(cost, params, lr=0.001, rho=0.9, epsilon=1e-6):
         gradient_scaling = T.sqrt(acc_new + epsilon)
         g = g / gradient_scaling
         updates.append((acc, acc_new))
-        updates.append((p, p - lr * g))
+        updates.append((p, p - (lr * g)))
     return updates
 
 def RMSpropRL(cost, delta, params, lr=0.001, rho=0.9, epsilon=1e-6):
@@ -64,7 +64,7 @@ def RMSpropRL(cost, delta, params, lr=0.001, rho=0.9, epsilon=1e-6):
         gradient_scaling = T.sqrt(acc_new + epsilon)
         g = g / gradient_scaling
         updates.append((acc, acc_new))
-        updates.append((p, p - (lr * delta * g)))
+        updates.append((p, p + (lr * delta * g)))
     return updates
 
 
@@ -84,10 +84,13 @@ class RLNeuralNetwork(object):
         batch_size=32
         self._w_h = init_weights((n_in, hidden_size))
         self._b_h = init_b_weights((1,hidden_size))
+        # self._b_h = init_b_weights((hidden_size,))
         self._w_h2 = init_weights((hidden_size, hidden_size))
         self._b_h2 = init_b_weights((1,hidden_size))
+        # self._b_h2 = init_b_weights((hidden_size,))
         self._w_o = init_tanh(hidden_size, n_out)
         self._b_o = init_b_weights((1,n_out))
+        # self._b_o = init_b_weights((n_out,))
         
         self.updateTargetModel()
         self._w_h = init_weights((n_in, hidden_size))
@@ -150,8 +153,9 @@ class RLNeuralNetwork(object):
 
         params = [self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o]
         # updates = sgd(bellman_cost, params, lr=self._learning_rate)
-        updates = rlTDSGD(q_func, T.mean(delta), params, lr=self._learning_rate)
+        # updates = rlTDSGD(q_func, T.mean(delta), params, lr=self._learning_rate)
         # updates = RMSprop(bellman_cost, params, lr=self._learning_rate)
+        updates = RMSpropRL(bellman_cost, T.mean(delta), params, lr=self._learning_rate)
         
         self._train = theano.function(inputs=[State, Action, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)
         self._predict = theano.function(inputs=[State], outputs=y_pred, allow_input_downcast=True)
