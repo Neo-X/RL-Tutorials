@@ -91,13 +91,13 @@ class RLLogisticRegression(object):
         self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
         
         q_val = self.model(State, self._w, self._b)
-        q_func = T.mean((self.model(State, self._w, self._b))[T.arange(T.arange(Action.shape[0])), Action.reshape((-1,))].reshape((-1, 1)))
+        q_func = T.mean((self.model(State, self._w, self._b))[T.arange(Action.shape[0]), Action.reshape((-1,))].reshape((-1, 1)))
         action_pred = T.argmax(q_val, axis=0)
         
         # bellman error, delta error
         # 32x1 + ( scalar * 32x1) - 32x1
         delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState, self._w_old, self._b_old), axis=1, keepdims=True)) ) -
-                  (self.model(State, self._w, self._b))[T.arange(T.arange(Action.shape[0])), Action.reshape((-1,))].reshape((-1, 1)))
+                  (self.model(State, self._w, self._b))[T.arange(Action.shape[0]), Action.reshape((-1,))].reshape((-1, 1)))
         # delta = ((Reward + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - T.max(self.model(State), axis=1,  keepdims=True))
         
         self._L2_reg= 0.01

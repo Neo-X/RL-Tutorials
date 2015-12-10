@@ -88,7 +88,8 @@ class RLNeuralNetwork(object):
         self._w_h2 = init_weights((hidden_size, hidden_size))
         self._b_h2 = init_b_weights((1,hidden_size))
         # self._b_h2 = init_b_weights((hidden_size,))
-        self._w_o = init_tanh(hidden_size, n_out)
+        # self._w_o = init_tanh(hidden_size, n_out)
+        self._w_o = init_weights((hidden_size, n_out))
         self._b_o = init_b_weights((1,n_out))
         # self._b_o = init_b_weights((n_out,))
         
@@ -122,7 +123,7 @@ class RLNeuralNetwork(object):
         # self._model = theano.function(inputs=[State], outputs=model, allow_input_downcast=True)
         py_x = self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.0, 0.0)
         y_pred = T.argmax(py_x, axis=1)
-        q_func = T.mean((self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.0, 0.0))[T.arange(T.arange(Action.shape[0])), Action.reshape((-1,))].reshape((-1, 1)))
+        q_func = T.mean((self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.0, 0.0))[T.arange(batch_size), Action.reshape((-1,))].reshape((-1, 1)))
         # q_val = py_x
         # noisey_q_val = self.model(ResultState, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5)
         
@@ -147,7 +148,7 @@ class RLNeuralNetwork(object):
         # delta = ((Reward.reshape((-1, 1)) + (self._discount_factor * T.max(self.model(ResultState), axis=1, keepdims=True)) ) - self.model(State))
         delta = ((Reward + (self._discount_factor * 
                             T.max(self.model(ResultState, self._w_h_old, self._b_h_old, self._w_h2_old, self._b_h2_old, self._w_o_old, self._b_o_old, 0.2, 0.5), axis=1, keepdims=True)) ) - 
-                            (self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5))[T.arange(T.arange(Action.shape[0])), Action.reshape((-1,))].reshape((-1, 1)))
+                            (self.model(State, self._w_h, self._b_h, self._w_h2, self._b_h2, self._w_o, self._b_o, 0.2, 0.5))[T.arange(Action.shape[0]), Action.reshape((-1,))].reshape((-1, 1)))
         # bellman_cost = T.mean( 0.5 * ((delta) ** 2 ))
         bellman_cost = T.mean( 0.5 * ((delta) ** 2 )) + ( self._L2_reg * self._L2) + ( self._L1_reg * self._L1)
 
@@ -155,7 +156,7 @@ class RLNeuralNetwork(object):
         # updates = sgd(bellman_cost, params, lr=self._learning_rate)
         updates = rlTDSGD(q_func, T.mean(delta), params, lr=self._learning_rate)
         # updates = RMSprop(bellman_cost, params, lr=self._learning_rate)
-        updates = RMSpropRL(bellman_cost, T.mean(delta), params, lr=self._learning_rate)
+        # updates = RMSpropRL(bellman_cost, T.mean(delta), params, lr=self._learning_rate)
         
         self._train = theano.function(inputs=[State, Action, Reward, ResultState], outputs=bellman_cost, updates=updates, allow_input_downcast=True)
         self._predict = theano.function(inputs=[State], outputs=y_pred, allow_input_downcast=True)
@@ -171,7 +172,8 @@ class RLNeuralNetwork(object):
         h2 = rectify(T.dot(h, w_h2) + b_h2)
     
         h2 = dropout(h2, p_drop_hidden)
-        q_val_x = T.tanh(T.dot(h2, w_o) + b_o)
+        # q_val_x = T.tanh(T.dot(h2, w_o) + b_o)
+        q_val_x = rectify(T.dot(h2, w_o) + b_o)
         # q_val_x = T.nnet.sigmoid(T.dot(h2, w_o) + b_o)
         return q_val_x
     
