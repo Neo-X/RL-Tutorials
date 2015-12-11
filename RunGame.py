@@ -8,7 +8,8 @@ import json
 from RLLogisticRegression import RLLogisticRegression
 from NeuralNet import NeuralNet 
 from ExperienceMemory import ExperienceMemory
-from RLNeuralNetwork import RLNeuralNetwork 
+from RLNeuralNetwork import RLNeuralNetwork
+from RLNeuralNetworkDQ import RLNeuralNetworkDQ 
 import sys
 
 from RL_visualizing import *
@@ -67,6 +68,9 @@ if __name__ == "__main__":
     elif settings['agent_name'] == "Deep":
         print "Creating Deep agent"
         model = RLNeuralNetwork(states, n_in=2, n_out=8)
+    elif settings['agent_name'] == "Deep_DQ":
+        print "Creating Deep agent"
+        model = RLNeuralNetworkDQ(states, n_in=2, n_out=8)
     else:
         print "Unrecognized model: " + str(settings['agent_name'])
     """ 
@@ -82,9 +86,12 @@ if __name__ == "__main__":
         game.reset()
         # reduces random action select probability
         p = (rounds - round) / float(rounds)
+        t=0
         print "Random Action selection Pr(): " + str(p)
         while not game.reachedTarget():
-            # game.reset()
+            if (t > 20):
+                game.reset()
+                t=0
             state = game.getState()
             action = random.choice(action_selection)
             pa = model.predict([norm_state(state, max_state)])[0]
@@ -94,14 +101,16 @@ if __name__ == "__main__":
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
             # Everything should be normalized to be between -1 and 1
-            # reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
-            reward_ = (reward)/(max_reward)
+            reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
+            # reward_ = (reward)/(max_reward)
+            # reward_ = (reward+max_reward)/(max_reward)
             experience.insert(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward_])
             # Update agent on screen
             # game.update()
             # X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
             # game.updatePolicy(U, V, Q)
-            i +=1
+            i += 1
+            t += 1
             # print "Reward: " + str(reward_)
             # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
             # print model.q_values([tup._state])
