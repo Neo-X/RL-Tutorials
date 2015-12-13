@@ -31,8 +31,10 @@ def get_policy_visual_data(model_, max_state, game):
         t_q = []
         for j in range(16):
             state = np.array([X[i][j],Y[i][j]])
-            pa = model_.predict([norm_state(state,max_state)])[0]
-            q = np.max(model_.q_values([norm_state(state,max_state)])) 
+            pa = model_.predict([norm_state(state,max_state)])
+            # pa = model_.predict([norm_state(state,max_state)])
+            q = np.max(model_.q_values([norm_state(state,max_state)]))
+            # q=0 
             move = game.move(pa)
             t_u.append(move[0])
             t_v.append(move[1])

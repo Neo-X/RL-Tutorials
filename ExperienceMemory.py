@@ -28,10 +28,11 @@ class ExperienceMemory(object):
         self._history_update_index+=1
         if ( (self._history_update_index % (self._history_size-1) ) == 0):
             self._history_update_index=0
-        self._state_history[self._history_update_index] = np.asarray(state)
-        self._action_history[self._history_update_index] = np.asarray(action)
-        self._nextState_history[self._history_update_index] = np.asarray(nextState)
-        self._reward_history[self._history_update_index] = np.asarray(reward)
+        # print "Tuple: " + str(state) + ", " + str(action) + ", " + str(nextState) + ", " + str(reward)
+        self._state_history[self._history_update_index] = np.array(state)
+        self._action_history[self._history_update_index] = np.array(action)
+        self._nextState_history[self._history_update_index] = np.array(nextState)
+        self._reward_history[self._history_update_index] = np.array(reward)
         
     def samples(self):
         return self._inserts
@@ -57,7 +58,7 @@ class ExperienceMemory(object):
         # print c
         # print experience[indices]
         state = np.array(state)
-        action = np.array(action)
+        action = np.array(action, dtype='int32')
         resultState = np.array(resultState)
         reward = np.array(reward)
          

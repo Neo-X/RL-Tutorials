@@ -9,7 +9,8 @@ from RLLogisticRegression import RLLogisticRegression
 from NeuralNet import NeuralNet 
 from ExperienceMemory import ExperienceMemory
 from RLNeuralNetwork import RLNeuralNetwork
-from RLNeuralNetworkDQ import RLNeuralNetworkDQ 
+from RLNeuralNetworkDQ import RLNeuralNetworkDQ
+from RLDeepNet import RLDeepNet 
 import sys
 
 from RL_visualizing import *
@@ -71,6 +72,9 @@ if __name__ == "__main__":
     elif settings['agent_name'] == "Deep_DQ":
         print "Creating Deep agent"
         model = RLNeuralNetworkDQ(states, n_in=2, n_out=8)
+    elif settings['agent_name'] == "Deep_NN":
+        print "Creating Deep agent"
+        model = RLDeepNet(states, n_in=2, n_out=8)
     else:
         print "Unrecognized model: " + str(settings['agent_name'])
     """ 
@@ -94,8 +98,8 @@ if __name__ == "__main__":
                 t=0
             state = game.getState()
             action = random.choice(action_selection)
-            pa = model.predict([norm_state(state, max_state)])[0]
-            # print "policy action: " + str(pa) + " Q-values: " + str(model._q_values([(state-max_state)/max_state]))
+            pa = model.predict([norm_state(state, max_state)])
+            # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
             action = eGreedy(pa, action, epsilon * p)
             reward = game.act(action)
             resultState = game.getState()

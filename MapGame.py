@@ -46,7 +46,7 @@ class Map(object):
             5: [1,-1],
             6: [0,-1],
             7: [-1,-1],
-            }.get(action, 0) 
+            }.get(action, [-1,0]) 
             
     def act(self, action):
         move = np.array(self.move(action))
