@@ -14,6 +14,7 @@ from RLDeepNet import RLDeepNet
 import sys
 
 from RL_visualizing import *
+from RLVisualize import RLVisualize
 
 def eGreedy(pa1, ra2, e):
     """
@@ -81,21 +82,73 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         file_name=sys.argv[1]
         model = cPickle.load(open(file_name))
-        """ 
+    """
+    
+    values = []
+    discounted_values = []
+    bellman_error = []
+    reward_over_epoc = []
+    
+    trainData = {}
+    trainData["mean_reward"]=[]
+    trainData["std_reward"]=[]
+    trainData["mean_bellman_error"]=[]
+    trainData["std_bellman_error"]=[]
+    trainData["mean_discount_error"]=[]
+    trainData["std_discount_error"]=[]
+    rlv = RLVisualize(title=str(settings['agent_name']))
+    rlv.setInteractive()
+    rlv.init()
+     
     best_error=10000000.0
     X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
     game.init(U, V, Q)    
     experience = ExperienceMemory(2, 1, 5000)
+    bellman_errors = []
+    reward_over_epocs = []
+    values = []
     for round in range(rounds):
         game.reset()
         # reduces random action select probability
         p = (rounds - round) / float(rounds)
         t=0
         print "Random Action selection Pr(): " + str(p)
+        discounted_values = []
+        bellman_errors = []
+        reward_over_epocs = []
+        values = []
+        states = [] 
+        actions = []
+        rewards = []
+        result_states = []
+        discounted_sum = 0;
+        reward_sum=0
+        state_num=0
+        state_ = game.getState()
+        q_values = model.q_values([norm_state(state_, max_state)])
+        action_ = model.predict([norm_state(state_, max_state)])
+        # print "q_values: " + str(q_values) + " Action: " + str(action_)
+        original_val = q_values[action_]
+        values.append(original_val)
         while not game.reachedTarget():
-            if (t > 20):
+            if (t > 31):
                 game.reset()
                 t=0
+                reward_over_epocs.append(reward_sum)
+                discounted_values.append(discounted_sum)
+                
+                error = model.bellman_error(np.array(states), np.array(actions), 
+                            np.array(rewards), np.array(result_states))
+                # states, actions, result_states, rewards = experience.get_batch(64)
+                # error = model.bellman_error(states, actions, rewards, result_states)
+                error = np.mean(np.fabs(error))
+                bellman_errors.append(error)
+                
+                states = [] 
+                actions = []
+                rewards = []
+                result_states = []
+                
             state = game.getState()
             action = random.choice(action_selection)
             pa = model.predict([norm_state(state, max_state)])
@@ -118,6 +171,12 @@ if __name__ == "__main__":
             # print "Reward: " + str(reward_)
             # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
             # print model.q_values([tup._state])
+            actions.append([action])
+            result_states.append(resultState)
+            rewards.append([reward_])
+            states.append(state)
+            reward_sum+=reward_
+            discounted_sum += (math.pow(0.8,t) * reward)
             if experience.samples() > batch_size:
                 _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
                 cost = model.train(_states, _actions, _rewards, _result_states)
@@ -127,10 +186,43 @@ if __name__ == "__main__":
                 X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
                 game.update()
                 game.updatePolicy(U, V, Q)
-                states, actions, result_states, rewards = experience.get_batch(32)
-                error = model.bellman_error(states, actions, rewards, result_states)
+                states_, actions_, result_states_, rewards_ = experience.get_batch(32)
+                error = model.bellman_error(states_, actions_, rewards_, result_states_)
                 error = np.mean(np.fabs(error))
                 print "Iteration: " + str(i) + " Cost: " + str(cost) + " Bellman Error: " + str(error)
+                
+                mean_reward = np.mean(reward_over_epocs)
+                std_reward = np.std(reward_over_epocs)
+                mean_bellman_error = np.mean(bellman_errors)
+                std_bellman_error = np.std(bellman_errors)
+                mean_discount_error = np.mean(np.array(discounted_values) - np.array(values))
+                std_discount_error = np.std(np.array(discounted_values) - np.array(values))
+                
+                trainData["mean_reward"].append(mean_reward)
+                # print "Mean Rewards: " + str(mean_rewards)
+                trainData["std_reward"].append(std_reward)
+                trainData["mean_bellman_error"].append(mean_bellman_error)
+                trainData["std_bellman_error"].append(std_bellman_error)
+                trainData["mean_discount_error"].append(mean_discount_error)
+                trainData["std_discount_error"].append(std_discount_error)
+                
+                rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
+                rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
+                rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
+                rlv.redraw()
+                
+        reward_over_epocs.append(reward_sum)
+        discounted_values.append(discounted_sum)
+        
+        # error = model.bellman_error(np.array(states), np.array(actions), 
+        #          np.array(rewards), np.array(result_states))
+        # error = np.mean(np.fabs(error))
+        bellman_errors.append(0)
+        
+        states = [] 
+        actions = []
+        rewards = []
+        result_states = []
     
         print ""
         # X,Y = np.mgrid[0:16,0:16]
