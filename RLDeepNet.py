@@ -70,7 +70,7 @@ class RLDeepNet(object):
         self._learning_rate = 0.00025
         self._discount_factor= 0.99
         self._rho = 0.95
-        self._rms_epsilon = 0.01
+        self._rms_epsilon = 0.005
         
         self._weight_update_steps=5000
         self._updates=0
@@ -118,7 +118,7 @@ class RLDeepNet(object):
         updates = lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho,
                                              self._rms_epsilon)
         # TD update
-        #updates = lasagne.updates.rmsprop(T.mean(self._q_func), params, self._learning_rate * -T.mean(diff), self._rho,
+        # updates = lasagne.updates.rmsprop(T.mean(self._q_func), params, self._learning_rate * -T.mean(diff), self._rho,
         #                                      self._rms_epsilon)
         
         
@@ -132,8 +132,13 @@ class RLDeepNet(object):
         
     def updateTargetModel(self):
         print "Updating target Model"
-        all_params = lasagne.layers.helper.get_all_param_values(self._l_outA)
-        lasagne.layers.helper.set_all_param_values(self._l_outB, all_params) 
+        """
+            Double Q learning
+        """
+        all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
+        # all_paramsB = lasagne.layers.helper.get_all_param_values(self._l_outB)
+        lasagne.layers.helper.set_all_param_values(self._l_outB, all_paramsA)
+        # lasagne.layers.helper.set_all_param_values(self._l_outA, all_paramsB) 
     
     def train(self, states, actions, rewards, result_states):
         self._states_shared.set_value(states)
