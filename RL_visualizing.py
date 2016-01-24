@@ -48,6 +48,35 @@ def get_policy_visual_data(model_, max_state, game):
     return (X, Y, U, V, Q)
 
 
+def get_continuous_policy_visual_data(model_, max_state, game):
+    X,Y = np.mgrid[0:16,0:16]
+    U = []
+    V = []
+    Q = []
+    for i in range(16):
+        t_u = []
+        t_v = []
+        t_q = []
+        for j in range(16):
+            state = np.array([X[i][j],Y[i][j]])
+            pa = model_.predict([norm_state(state,max_state)])
+            # pa = model_.predict([norm_state(state,max_state)])
+            q = (model_.q_value([norm_state(state,max_state)]))
+            # q=0 
+            move = pa
+            t_u.append(move[0])
+            t_v.append(move[1])
+            t_q.append(q)
+        U.append(t_u)
+        V.append(t_v)
+        Q.append(t_q)
+    
+    U = np.array(U)*1.0
+    V = np.array(V)*1.0
+    return (X, Y, U, V, Q)
+
+
+
 class RLVisulize(object):
     
     def __init__(self, map):
