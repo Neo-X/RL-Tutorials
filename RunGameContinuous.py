@@ -57,7 +57,7 @@ if __name__ == "__main__":
     print "Max State: " + str(max_state)
     
     game = Map(map)
-    steps = 1000
+    steps = 100
     max_expereince = 10000
     # for i in range(steps):
     print action_selection
@@ -142,7 +142,7 @@ if __name__ == "__main__":
             state = game.getState()
             
             pa = model.predict([norm_state(state, max_state)])
-            action = randomExporation(0.2, pa)
+            action = randomExporation(0.1, pa)
             # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
             action = eGreedy(pa, action, epsilon * p)
             reward = game.actContinuous(action)
@@ -208,7 +208,7 @@ if __name__ == "__main__":
         # error = model.bellman_error(np.array(states), np.array(actions), 
         #          np.array(rewards), np.array(result_states))
         # error = np.mean(np.fabs(error))
-        bellman_errors.append(0)
+        # bellman_errors.append(0)
         
         states = [] 
         actions = []

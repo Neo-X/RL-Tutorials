@@ -18,7 +18,7 @@ def rlTDSGD(cost, delta, params, lr=0.05):
     return updates
 
 # For debugging
-theano.config.mode='FAST_COMPILE'
+# theano.config.mode='FAST_COMPILE'
 
 class DeepCACLA(object):
     
@@ -159,10 +159,10 @@ class DeepCACLA(object):
                     self._learning_rate * -T.mean(diff), self._rho, self._rms_epsilon)
         
         
-        target = (Action - self._q_valsActB)
-        actDiff = target - self._q_valsActA
-        actLoss = 0.5 * actDiff ** 2 + (1e-6 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
-        actLoss = T.mean(actLoss)
+        actTarget = (Action - self._q_valsActB) #TODO is this correct?
+        actDiff = actTarget - (Action - self._q_valsActA)
+        actLoss = 0.5 * actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
+        actLoss = actLoss/float(batch_size)
         
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
             (1e-6 * lasagne.regularization.regularize_network_params(
@@ -203,14 +203,18 @@ class DeepCACLA(object):
         diff_ = self._bellman_error(states, rewards, result_states)
         # print "Diff"
         # print diff_
+        
         for i in range(len(diff_)):
             # print "Performing Actor trainning update"
+            
             if ( diff_[i] > 0.0):
-                self._states_shared.set_value(states[i])
-                self._next_states_shared.set_value(result_states[i])
-                self._actions_shared.set_value(actions[i])
-                self._rewards_shared.set_value(rewards[i])
+                # print states[i]
+                self._states_shared.set_value([states[i]])
+                self._next_states_shared.set_value([result_states[i]])
+                self._actions_shared.set_value([actions[i]])
+                self._rewards_shared.set_value([rewards[i]])
                 lossActor, _ = self._trainActor()
+                
         return np.sqrt(loss)
     
     def predict(self, state):

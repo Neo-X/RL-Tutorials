@@ -13,6 +13,9 @@ class ExperienceMemory(object):
         self._history_size=memory_length
         self._history_update_index=0 # where the next experience should write
         self._inserts=0
+        self._state_length = state_length
+        self._action_length = action_length
+        
         # self._state_history = theano.shared(np.zeros((self._history_size, state_length)))
         # self._action_history = theano.shared(np.zeros((self._history_size, action_length)))
         # self._nextState_history = theano.shared(np.zeros((self._history_size, state_length)))
@@ -58,7 +61,10 @@ class ExperienceMemory(object):
         # print c
         # print experience[indices]
         state = np.array(state)
-        action = np.array(action, dtype='int32')
+        if (self._action_length > 1):
+            action = np.array(action)
+        else:
+            action = np.array(action, dtype='int32')
         resultState = np.array(resultState)
         reward = np.array(reward)
          
