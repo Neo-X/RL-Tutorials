@@ -30,7 +30,7 @@ def randomExporation(explorationRate, actionV):
     out = []
     
     for i in range(len(actionV)):
-        out.append(random.gauss(actionV[i], explorationRate))
+        out.append(actionV[i] + random.gauss(actionV[i], explorationRate))
     
     return out
     

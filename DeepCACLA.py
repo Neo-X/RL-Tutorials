@@ -160,14 +160,15 @@ class DeepCACLA(object):
         
         
         actTarget = (Action - self._q_valsActB) #TODO is this correct?
-        actDiff = actTarget - (Action - self._q_valsActA)
+        actDiff = (actTarget - (Action - self._q_valsActA))/float(batch_size)
         actLoss = 0.5 * actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
-        actLoss = actLoss/float(batch_size)
+        actLoss = T.mean(actLoss)
         
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
             (1e-6 * lasagne.regularization.regularize_network_params(
                 self._l_outActA, lasagne.regularization.l2)), actionParams, 
                     self._learning_rate * -T.mean(actDiff), self._rho, self._rms_epsilon)
+        
         
         
         
@@ -201,8 +202,8 @@ class DeepCACLA(object):
         loss, _ = self._train()
         
         diff_ = self._bellman_error(states, rewards, result_states)
-        # print "Diff"
-        # print diff_
+        print "Diff"
+        print diff_
         
         for i in range(len(diff_)):
             # print "Performing Actor trainning update"
