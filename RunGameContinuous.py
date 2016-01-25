@@ -33,6 +33,19 @@ def randomExporation(explorationRate, actionV):
         out.append(actionV[i] + random.gauss(actionV[i], explorationRate))
     
     return out
+
+def clampAction(actionV, bounds):
+    """
+    bounds[0] is lower bounds
+    bounds[1] is upper bounds
+    """
+    for i in range(len(actionV)):
+        if actionV[i] < bounds[0][i]:
+            actionV[i] = bounds[0][i]
+        elif actionV[i] > bounds[1][i]:
+            actionV[i] = bounds[1][i]
+    return actionV
+    
     
     
 if __name__ == "__main__":
@@ -62,9 +75,10 @@ if __name__ == "__main__":
     # for i in range(steps):
     print action_selection
     i=0
+    action_bounds = settings['action_bounds']
     states = np.array([[0,0]])
     if settings['agent_name'] == "Deep_CACLA":
-        print "Creating Logistic agent"
+        print "Creating " + str(settings['agent_name']) + " agent"
         model = DeepCACLA(n_in=2, n_out=2)
     else:
         print "Unrecognized model: " + str(settings['agent_name'])
@@ -117,7 +131,7 @@ if __name__ == "__main__":
         state_ = game.getState()
         q_value = model.q_value([norm_state(state_, max_state)])
         action_ = model.predict([norm_state(state_, max_state)])
-        # print "q_values: " + str(q_values) + " Action: " + str(action_)
+        print "q_values: " + str(q_value) + " Action: " + str(action_) + " State: " + str([norm_state(state_, max_state)])
         original_val = q_value
         values.append(original_val)
         while not game.reachedTarget():
@@ -134,6 +148,10 @@ if __name__ == "__main__":
                 error = np.mean(np.fabs(error))
                 bellman_errors.append(error)
                 
+                discounted_sum = 0;
+                reward_sum=0
+                state_num=0
+                
                 states = [] 
                 actions = []
                 rewards = []
@@ -145,6 +163,8 @@ if __name__ == "__main__":
             action = randomExporation(0.1, pa)
             # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
             action = eGreedy(pa, action, epsilon * p)
+            action = clampAction(action, action_bounds)
+            # print "Action: " + str(action)
             reward = game.actContinuous(action)
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
@@ -173,7 +193,7 @@ if __name__ == "__main__":
                 cost = model.train(_states, _actions, _rewards, _result_states)
                 # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 
-            if i % steps == 0:
+            if (i % steps == 0) and not (i == 0):
                 X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
                 game.update()
                 game.updatePolicy(U, V, Q)

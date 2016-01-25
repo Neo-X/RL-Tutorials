@@ -62,7 +62,7 @@ class DeepCACLA(object):
     
         self._l_outActA = lasagne.layers.DenseLayer(
                 l_hid3ActA, num_units=n_out,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=lasagne.nonlinearities.tanh)
         # self._b_o = init_b_weights((n_out,))
         
         # self.updateTargetModel()
@@ -90,7 +90,7 @@ class DeepCACLA(object):
         
         self._l_outActB = lasagne.layers.DenseLayer(
                 l_hid3ActB, num_units=n_out,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=lasagne.nonlinearities.tanh)
 
         
         # print "Initial W " + str(self._w_o.get_value()) 
@@ -202,8 +202,8 @@ class DeepCACLA(object):
         loss, _ = self._train()
         
         diff_ = self._bellman_error(states, rewards, result_states)
-        print "Diff"
-        print diff_
+        # print "Diff"
+        # print diff_
         
         for i in range(len(diff_)):
             # print "Performing Actor trainning update"
