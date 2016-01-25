@@ -95,7 +95,7 @@ class DeepCACLA(object):
         
         # print "Initial W " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.00025
+        self._learning_rate = 0.001
         self._discount_factor= 0.8
         self._rho = 0.95
         self._rms_epsilon = 0.001
@@ -151,7 +151,7 @@ class DeepCACLA(object):
         }
         
         # SGD update
-        #updates = lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho,
+        #updates_ = lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho,
         #                                    self._rms_epsilon)
         # TD update
         updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + (1e-6 * lasagne.regularization.regularize_network_params(
@@ -167,7 +167,7 @@ class DeepCACLA(object):
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
             (1e-6 * lasagne.regularization.regularize_network_params(
                 self._l_outActA, lasagne.regularization.l2)), actionParams, 
-                    self._learning_rate * -T.mean(actDiff), self._rho, self._rms_epsilon)
+                    self._learning_rate * 10.0 * -T.mean(actDiff), self._rho, self._rms_epsilon)
         
         
         

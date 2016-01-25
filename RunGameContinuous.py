@@ -26,6 +26,23 @@ def eGreedy(pa1, ra2, e):
     else:
         return pa1
     
+def eOmegaGreedy(pa1, ra1, ra2, e, omega):
+    """
+        epsilon greedy action select
+        pa1 is best action from policy
+        ra1 is the noisy policy action action
+        ra2 is the random action
+        e is proabilty to select random action
+        0 <= e < omega < 1.0
+    """
+    r = random.random()
+    if r < e:
+        return ra2
+    elif r < omega:
+        return ra1
+    else:
+        return pa1
+    
 def randomExporation(explorationRate, actionV):
     out = []
     
@@ -33,6 +50,7 @@ def randomExporation(explorationRate, actionV):
         out.append(actionV[i] + random.gauss(actionV[i], explorationRate))
     
     return out
+
 
 def clampAction(actionV, bounds):
     """
@@ -56,7 +74,8 @@ if __name__ == "__main__":
     file.close()
     batch_size=32
     rounds = 1000
-    epsilon = 0.8
+    epsilon = 0.7
+    omega = 0.8
     map = loadMap()
     # Normalization constants for data
     max_reward = math.sqrt(16**2 * 2) + 5.0
@@ -161,8 +180,9 @@ if __name__ == "__main__":
             
             pa = model.predict([norm_state(state, max_state)])
             action = randomExporation(0.1, pa)
+            randomAction = randomExporation(0.3, [0.0,0.0]) # Completely random action
             # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
-            action = eGreedy(pa, action, epsilon * p)
+            action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
             action = clampAction(action, action_bounds)
             # print "Action: " + str(action)
             reward = game.actContinuous(action)
