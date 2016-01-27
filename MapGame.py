@@ -198,3 +198,7 @@ class Map(object):
         a=(self._agent - self._target)
         d = np.sqrt((a*a).sum(axis=0))
         return d <= 0.4
+
+    def saveVisual(self, fileName):
+        # plt.savefig(fileName+".svg")
+        self._fig.savefig(fileName+".svg")

@@ -15,7 +15,10 @@ class RLVisualize(object):
             average reward
             discounted reward error
         """
+        
         self._title=title
+        
+        """
         self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(3, 1, sharey=False, sharex=True)
         self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
         self._bellman_error_std = self._bellman_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
@@ -32,6 +35,7 @@ class RLVisualize(object):
         plt.xlabel("Iteration")
         
         self._fig.set_size_inches(8.0, 12.5, forward=True)
+        """
         
     def init(self):
         """
@@ -95,6 +99,12 @@ class RLVisualize(object):
         
     def setInteractive(self):
         plt.ion()
+        
+    def setInteractiveOff(self):
+        plt.ioff()
+        
+    def saveVisual(self, fileName):
+        plt.savefig(fileName+".svg")
         
 if __name__ == "__main__":
     

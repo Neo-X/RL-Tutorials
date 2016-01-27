@@ -119,13 +119,15 @@ if __name__ == "__main__":
     trainData["std_bellman_error"]=[]
     trainData["mean_discount_error"]=[]
     trainData["std_discount_error"]=[]
-    rlv = RLVisualize(title=str(settings['agent_name']))
-    rlv.setInteractive()
-    rlv.init()
      
     best_error=10000000.0
     X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
-    game.init(U, V, Q)    
+    game.init(U, V, Q)
+    
+    rlv = RLVisualize(title=str(settings['agent_name']))
+    rlv.setInteractive()
+    rlv.init()
+        
     experience = ExperienceMemory(2, 2, 5000)
     bellman_errors = []
     reward_over_epocs = []
@@ -254,11 +256,16 @@ if __name__ == "__main__":
         actions = []
         rewards = []
         result_states = []
-    
+
+        rlv.setInteractiveOff()
+        rlv.saveVisual("trainingGraph")
+        rlv.setInteractive()
+            
         print ""
         # X,Y = np.mgrid[0:16,0:16]
         X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
         game.updatePolicy(U, V, Q)
+        game.saveVisual("gameState")
         """
         states, actions, result_states, rewards = get_batch(experience, len(experience))
         error = model.bellman_error(states, actions, rewards, result_states)
