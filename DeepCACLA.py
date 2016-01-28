@@ -62,7 +62,7 @@ class DeepCACLA(object):
     
         self._l_outActA = lasagne.layers.DenseLayer(
                 l_hid3ActA, num_units=n_out,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=lasagne.nonlinearities.tanh)
         # self._b_o = init_b_weights((n_out,))
         
         # self.updateTargetModel()
@@ -90,7 +90,7 @@ class DeepCACLA(object):
         
         self._l_outActB = lasagne.layers.DenseLayer(
                 l_hid3ActB, num_units=n_out,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=lasagne.nonlinearities.tanh)
 
         
         # print "Initial W " + str(self._w_o.get_value()) 
@@ -100,7 +100,7 @@ class DeepCACLA(object):
         self._rho = 0.95
         self._rms_epsilon = 0.001
         
-        self._weight_update_steps=8000
+        self._weight_update_steps=5000
         self._updates=0
         
         self._states_shared = theano.shared(
@@ -159,21 +159,21 @@ class DeepCACLA(object):
                     self._learning_rate * -T.mean(diff), self._rho, self._rms_epsilon)
         
         
-        # actTarget = (Action - self._q_valsActB) #TODO is this correct?
-        # actDiff = (actTarget - (Action - self._q_valsActA))/float(batch_size)
+        # actDiff1 = (Action - self._q_valsActB) #TODO is this correct?
+        # actDiff = (actDiff1 - (Action - self._q_valsActA))
         actDiff = ((Action - self._q_valsActA)) # Target network does not work well here?
         actLoss = 0.5 * actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
         actLoss = T.sum(actLoss)/float(batch_size)
         
         # actionUpdates = lasagne.updates.rmsprop(actLoss + 
-        #   (1e-6 * lasagne.regularization.regularize_network_params(
-        #       self._l_outActA, lasagne.regularization.l2)), actionParams, 
-        #           self._learning_rate * 0.1 * (-T.sum(actDiff)/float(batch_size)), self._rho, self._rms_epsilon)
+        #    (1e-4 * lasagne.regularization.regularize_network_params(
+        #        self._l_outActA, lasagne.regularization.l2)), actionParams, 
+        #            self._learning_rate * 0.01 * (-actLoss), self._rho, self._rms_epsilon)
         
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
-           (1e-6 * lasagne.regularization.regularize_network_params(
-               self._l_outActA, lasagne.regularization.l2)), actionParams, 
-                   self._learning_rate * 10.0 * (-T.sum(actDiff)/float(batch_size)), self._rho, self._rms_epsilon)
+          (1e-4 * lasagne.regularization.regularize_network_params(
+              self._l_outActA, lasagne.regularization.l2)), actionParams, 
+                  self._learning_rate * 0.5 * (-T.sum(actDiff)/float(batch_size)), self._rho, self._rms_epsilon)
         
         
         
@@ -184,6 +184,7 @@ class DeepCACLA(object):
         self._q_action = theano.function([], self._q_valsActA,
                                        givens={State: self._states_shared})
         self._bellman_error = theano.function(inputs=[State, Reward, ResultState], outputs=diff, allow_input_downcast=True)
+        # self._diffs = theano.function(input=[State])
         
     def updateTargetModel(self):
         print "Updating target Model"
@@ -229,6 +230,7 @@ class DeepCACLA(object):
             self._actions_shared.set_value(tmp_actions)
             self._rewards_shared.set_value(tmp_rewards)
             lossActor, _ = self._trainActor()
+            # print "Length of positive actions: " + str(len(tmp_actions))
             # return np.sqrt(lossActor);
         return loss
     

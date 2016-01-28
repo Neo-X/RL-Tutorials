@@ -65,6 +65,34 @@ def clampAction(actionV, bounds):
     return actionV
     
     
+def collectExperience(experience, action_bounds):
+    i = 0
+    while i < experience.history_size():
+        game.reset()
+        t=0
+        while not game.reachedTarget():
+            if (t > 31):
+                game.reset()
+                t=0
+                
+            state = game.getState()
+            
+            randomAction = randomExporation(0.35, [0.0,0.0]) # Completely random action
+            action = clampAction(randomAction, action_bounds)
+            reward = game.actContinuous(randomAction)
+            resultState = game.getState()
+            # tup = ExperienceTuple(state, [action], resultState, [reward])
+            # Everything should be normalized to be between -1 and 1
+            reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
+            # reward_ = (reward)/(max_reward)
+            # reward_ = (reward+max_reward)/(max_reward)
+            experience.insert(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward_])
+            i+=1
+            t+=1
+
+    print "Done collecting experience from " + str(experience.samples()) + " samples."
+    return experience    
+
     
 if __name__ == "__main__":
     
@@ -89,7 +117,7 @@ if __name__ == "__main__":
     print "Max State: " + str(max_state)
     
     game = Map(map)
-    steps = 100
+    steps = 500
     max_expereince = 10000
     # for i in range(steps):
     print action_selection
@@ -129,6 +157,7 @@ if __name__ == "__main__":
     rlv.init()
         
     experience = ExperienceMemory(2, 2, 5000)
+    experience = collectExperience(experience, action_bounds)
     bellman_errors = []
     reward_over_epocs = []
     values = []

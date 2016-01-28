@@ -39,6 +39,9 @@ class ExperienceMemory(object):
         
     def samples(self):
         return self._inserts
+    
+    def history_size(self):
+        return self._history_size
         
     def get_batch(self, batch_size=32):
         """
