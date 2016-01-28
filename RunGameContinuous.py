@@ -102,7 +102,7 @@ if __name__ == "__main__":
     file.close()
     batch_size=32
     rounds = 1000
-    epsilon = 0.7
+    epsilon = 0.45 # It is important to have some space between these values especially now that the experience buffer starts loaded with random actions
     omega = 0.8
     map = loadMap()
     # Normalization constants for data
