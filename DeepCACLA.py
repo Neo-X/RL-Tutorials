@@ -62,7 +62,7 @@ class DeepCACLA(object):
     
         self._l_outActA = lasagne.layers.DenseLayer(
                 l_hid3ActA, num_units=n_out,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
         
         # self.updateTargetModel()
@@ -90,7 +90,7 @@ class DeepCACLA(object):
         
         self._l_outActB = lasagne.layers.DenseLayer(
                 l_hid3ActB, num_units=n_out,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=lasagne.nonlinearities.linear)
 
         
         # print "Initial W " + str(self._w_o.get_value()) 
