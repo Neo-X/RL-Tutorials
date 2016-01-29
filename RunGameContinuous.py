@@ -102,6 +102,8 @@ if __name__ == "__main__":
     file.close()
     batch_size=32
     rounds = 1000
+    max_training_steps=2000000
+    
     epsilon = 0.45 # It is important to have some space between these values especially now that the experience buffer starts loaded with random actions
     omega = 0.8
     map = loadMap()
@@ -161,10 +163,11 @@ if __name__ == "__main__":
     bellman_errors = []
     reward_over_epocs = []
     values = []
-    for round in range(rounds):
+    step=0
+    while step < max_training_steps:
         game.reset()
         # reduces random action select probability
-        p = (rounds - round) / float(rounds)
+        p = (max_training_steps - step) / float(max_training_steps)
         t=0
         print "Random Action selection Pr(): " + str(p)
         discounted_values = []
@@ -185,6 +188,7 @@ if __name__ == "__main__":
         original_val = q_value
         values.append(original_val)
         while not game.reachedTarget():
+            step+=1
             if (t > 31):
                 game.reset()
                 t=0
