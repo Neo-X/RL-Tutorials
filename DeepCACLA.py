@@ -195,6 +195,16 @@ class DeepCACLA(object):
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         lasagne.layers.helper.set_all_param_values(self._l_outB, all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsActA) 
+        
+
+    def getNetworkParameters(self):
+        all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
+        params = []
+        for params_ in all_paramsA:
+            params_ = np.reshape(params_, (params_.size,1))
+            params.extend(params_)
+        print len(params)
+        return params
     
     def train(self, states, actions, rewards, result_states):
         self._states_shared.set_value(states)
