@@ -20,7 +20,7 @@ def rlTDSGD(cost, delta, params, lr=0.05):
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 
-class DeepCACLA(object):
+class DeepDPG(object):
     
     def __init__(self, n_in, n_out):
 
@@ -82,16 +82,16 @@ class DeepCACLA(object):
 
         inputLayerB = lasagne.layers.InputLayer((None, state_length), State)
         concatLayerB = lasagne.layers.ConcatLayer([inputLayerB, self._l_outActB])
-        l_hid2A = lasagne.layers.DenseLayer(
+        l_hid2B = lasagne.layers.DenseLayer(
                 concatLayerB, num_units=64,
                 nonlinearity=lasagne.nonlinearities.rectify)
         
-        l_hid3A = lasagne.layers.DenseLayer(
-                l_hid2A, num_units=32,
+        l_hid3B = lasagne.layers.DenseLayer(
+                l_hid2B, num_units=32,
                 nonlinearity=lasagne.nonlinearities.rectify)
     
-        self._l_outA = lasagne.layers.DenseLayer(
-                l_hid3A, num_units=1,
+        self._l_outB = lasagne.layers.DenseLayer(
+                l_hid3B, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
             
         # print "Initial W " + str(self._w_o.get_value()) 
@@ -120,11 +120,19 @@ class DeepCACLA(object):
             np.zeros((batch_size, n_out), dtype=theano.config.floatX),
             )
         
-        self._q_valsA = lasagne.layers.get_output(self._l_outA, State)
-        self._q_valsB = lasagne.layers.get_output(self._l_outB, ResultState)
+        inputs_ = {
+            State: self._states_shared,
+            Action: lasagne.layers.get_output(self._l_outActA),
+        }
+        self._q_valsA = lasagne.layers.get_output(self._l_outA, inputs_)
+        inputs_ = {
+            ResultState: self._next_states_shared,
+            Action: lasagne.layers.get_output(self._l_outActB),
+        }
+        self._q_valsB = lasagne.layers.get_output(self._l_outB, inputs_)
         
         self._q_valsActA = lasagne.layers.get_output(self._l_outActA, State)
-        self._q_valsActB = lasagne.layers.get_output(self._l_outActB, State)
+        self._q_valsActB = lasagne.layers.get_output(self._l_outActB, ResultState)
         
         self._q_func = self._q_valsA
         self._q_funcAct = self._q_valsActA
@@ -132,7 +140,7 @@ class DeepCACLA(object):
         
         target = (Reward + self._discount_factor * self._q_valsB)
         diff = target - self._q_valsA
-        loss = 0.5 * diff ** 2 + (1e-6 * lasagne.regularization.regularize_network_params(
+        loss = 0.5 * diff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params(
         self._l_outA, lasagne.regularization.l2))
         loss = T.mean(loss)
         
@@ -142,7 +150,7 @@ class DeepCACLA(object):
             State: self._states_shared,
             ResultState: self._next_states_shared,
             Reward: self._rewards_shared,
-            # Action: self._actions_shared,
+            Action: self._actions_shared,
         }
         actGivens = {
             State: self._states_shared,

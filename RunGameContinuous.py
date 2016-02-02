@@ -5,7 +5,8 @@ import math
 import cPickle
 import json
 
-from DeepCACLA import DeepCACLA 
+from DeepCACLA import DeepCACLA
+from DeepDPG import DeepDPG 
 import sys
 
 from RL_visualizing import *
@@ -125,12 +126,17 @@ if __name__ == "__main__":
     print action_selection
     i=0
     action_bounds = settings['action_bounds']
+    data_folder = settings['data_folder']
     states = np.array([[0,0]])
     if settings['agent_name'] == "Deep_CACLA":
         print "Creating " + str(settings['agent_name']) + " agent"
         model = DeepCACLA(n_in=2, n_out=2)
+    elif settings['agent_name'] == "Deep_DPG":
+        print "Creating " + str(settings['agent_name']) + " agent"
+        model = DeepDPG(n_in=2, n_out=2)
     else:
         print "Unrecognized model: " + str(settings['agent_name'])
+        sys.exit()
     """ 
     if len(sys.argv) > 1:
         file_name=sys.argv[1]
@@ -214,7 +220,7 @@ if __name__ == "__main__":
             state = game.getState()
             
             pa = model.predict([norm_state(state, max_state)])
-            action = randomExporation(0.1, pa)
+            action = randomExporation(0.25, pa)
             randomAction = randomExporation(0.3, [0.0,0.0]) # Completely random action
             # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
             action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
@@ -291,14 +297,14 @@ if __name__ == "__main__":
         result_states = []
 
         rlv.setInteractiveOff()
-        rlv.saveVisual("trainingGraph")
+        rlv.saveVisual(data_folder+"trainingGraph")
         rlv.setInteractive()
             
         print ""
         # X,Y = np.mgrid[0:16,0:16]
         X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
         game.updatePolicy(U, V, Q)
-        game.saveVisual("gameState")
+        game.saveVisual(data_folder+"gameState")
         """
         states, actions, result_states, rewards = get_batch(experience, len(experience))
         error = model.bellman_error(states, actions, rewards, result_states)
