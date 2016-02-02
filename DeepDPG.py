@@ -18,7 +18,7 @@ def rlTDSGD(cost, delta, params, lr=0.05):
     return updates
 
 # For debugging
-# theano.config.mode='FAST_COMPILE'
+theano.config.mode='FAST_COMPILE'
 
 class DeepDPG(object):
     
@@ -120,19 +120,19 @@ class DeepDPG(object):
             np.zeros((batch_size, n_out), dtype=theano.config.floatX),
             )
         
+        self._q_valsActA = lasagne.layers.get_output(self._l_outActA, State)
+        self._q_valsActB = lasagne.layers.get_output(self._l_outActB, ResultState)
         inputs_ = {
             State: self._states_shared,
-            Action: lasagne.layers.get_output(self._l_outActA),
+            # Action: self._q_valsActA,
         }
-        self._q_valsA = lasagne.layers.get_output(self._l_outA, inputs_)
+        self._q_valsA = lasagne.layers.get_output(self._l_outA, State)
         inputs_ = {
             ResultState: self._next_states_shared,
-            Action: lasagne.layers.get_output(self._l_outActB),
+            Action: self._q_valsActB,
         }
         self._q_valsB = lasagne.layers.get_output(self._l_outB, inputs_)
         
-        self._q_valsActA = lasagne.layers.get_output(self._l_outActA, State)
-        self._q_valsActB = lasagne.layers.get_output(self._l_outActB, ResultState)
         
         self._q_func = self._q_valsA
         self._q_funcAct = self._q_valsActA
@@ -150,7 +150,7 @@ class DeepDPG(object):
             State: self._states_shared,
             ResultState: self._next_states_shared,
             Reward: self._rewards_shared,
-            Action: self._actions_shared,
+            # Action: self._actions_shared,
         }
         actGivens = {
             State: self._states_shared,
@@ -192,7 +192,12 @@ class DeepDPG(object):
                                        givens={State: self._states_shared})
         self._q_action = theano.function([], self._q_valsActA,
                                        givens={State: self._states_shared})
-        self._bellman_error = theano.function(inputs=[State, Reward, ResultState], outputs=diff, allow_input_downcast=True)
+        inputs_ = [
+                   State, 
+                   Reward, 
+                   ResultState
+                   ]
+        self._bellman_error = theano.function(inputs=inputs_, outputs=diff, allow_input_downcast=True)
         # self._diffs = theano.function(input=[State])
         
     def updateTargetModel(self):

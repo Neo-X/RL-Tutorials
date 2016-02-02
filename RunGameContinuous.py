@@ -220,7 +220,7 @@ if __name__ == "__main__":
             state = game.getState()
             
             pa = model.predict([norm_state(state, max_state)])
-            action = randomExporation(0.25, pa)
+            action = randomExporation(0.12, pa)
             randomAction = randomExporation(0.3, [0.0,0.0]) # Completely random action
             # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
             action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
