@@ -37,20 +37,6 @@ class DeepCACLA(object):
         Action = T.dmatrix("Action")
         Action.tag.test_value = np.random.rand(batch_size, action_length)
         # create a small convolutional neural network
-        inputLayerA = lasagne.layers.InputLayer((None, state_length), State)
-
-        l_hid2A = lasagne.layers.DenseLayer(
-                inputLayerA, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
-        
-        l_hid3A = lasagne.layers.DenseLayer(
-                l_hid2A, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
-    
-        self._l_outA = lasagne.layers.DenseLayer(
-                l_hid3A, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
-        # self._b_o = init_b_weights((n_out,))
         inputLayerActA = lasagne.layers.InputLayer((None, state_length), State)
         l_hid2ActA = lasagne.layers.DenseLayer(
                 inputLayerActA, num_units=64,
@@ -63,22 +49,24 @@ class DeepCACLA(object):
         self._l_outActA = lasagne.layers.DenseLayer(
                 l_hid3ActA, num_units=n_out,
                 nonlinearity=lasagne.nonlinearities.linear)
-        # self._b_o = init_b_weights((n_out,))
         
-        # self.updateTargetModel()
-        inputLayerB = lasagne.layers.InputLayer((None, state_length), State)
-        l_hid2B = lasagne.layers.DenseLayer(
-                inputLayerB, num_units=64,
+        inputLayerA = lasagne.layers.InputLayer((None, state_length), State)
+
+        concatLayer = lasagne.layers.ConcatLayer([inputLayerA, self._l_outActA])
+        l_hid2A = lasagne.layers.DenseLayer(
+                concatLayer, num_units=64,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        
+        l_hid3A = lasagne.layers.DenseLayer(
+                l_hid2A, num_units=32,
                 nonlinearity=lasagne.nonlinearities.rectify)
     
-        l_hid3B = lasagne.layers.DenseLayer(
-                l_hid2B, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
-        
-        self._l_outB = lasagne.layers.DenseLayer(
-                l_hid3B, num_units=1,
+        self._l_outA = lasagne.layers.DenseLayer(
+                l_hid3A, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
-        
+        # self._b_o = init_b_weights((n_out,))
+
+        # self.updateTargetModel()
         inputLayerActB = lasagne.layers.InputLayer((None, state_length), State)
         l_hid2ActB = lasagne.layers.DenseLayer(
                 inputLayerActB, num_units=64,
@@ -92,7 +80,20 @@ class DeepCACLA(object):
                 l_hid3ActB, num_units=n_out,
                 nonlinearity=lasagne.nonlinearities.linear)
 
+        inputLayerB = lasagne.layers.InputLayer((None, state_length), State)
+        concatLayerB = lasagne.layers.ConcatLayer([inputLayerB, self._l_outActB])
+        l_hid2A = lasagne.layers.DenseLayer(
+                concatLayerB, num_units=64,
+                nonlinearity=lasagne.nonlinearities.rectify)
         
+        l_hid3A = lasagne.layers.DenseLayer(
+                l_hid2A, num_units=32,
+                nonlinearity=lasagne.nonlinearities.rectify)
+    
+        self._l_outA = lasagne.layers.DenseLayer(
+                l_hid3A, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)
+            
         # print "Initial W " + str(self._w_o.get_value()) 
         
         self._learning_rate = 0.001
@@ -206,32 +207,10 @@ class DeepCACLA(object):
             self.updateTargetModel()
         self._updates += 1
         loss, _ = self._train()
-        
-        diff_ = self._bellman_error(states, rewards, result_states)
+        lossActor, _ = self._trainActor()
+        # diff_ = self._bellman_error(states, rewards, result_states)
         # print "Diff"
         # print diff_
-        tmp_states=[]
-        tmp_result_states=[]
-        tmp_actions=[]
-        tmp_rewards=[]
-        for i in range(len(diff_)):
-            # print "Performing Actor trainning update"
-            
-            if ( diff_[i] > 0.0):
-                # print states[i]
-                tmp_states.append(states[i])
-                tmp_result_states.append(result_states[i])
-                tmp_actions.append(actions[i])
-                tmp_rewards.append(rewards[i])
-                
-        if (len(tmp_actions) > 0):
-            self._states_shared.set_value(np.array(tmp_states))
-            self._next_states_shared.set_value(tmp_result_states)
-            self._actions_shared.set_value(tmp_actions)
-            self._rewards_shared.set_value(tmp_rewards)
-            lossActor, _ = self._trainActor()
-            # print "Length of positive actions: " + str(len(tmp_actions))
-            # return np.sqrt(lossActor);
         return loss
     
     def predict(self, state):
