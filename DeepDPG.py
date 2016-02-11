@@ -96,7 +96,7 @@ class DeepDPG(object):
             
         # print "Initial W " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.001
+        self._learning_rate = 0.0001
         self._discount_factor= 0.8
         self._rho = 0.95
         self._rms_epsilon = 0.001
@@ -122,6 +122,7 @@ class DeepDPG(object):
         
         self._q_valsActA = lasagne.layers.get_output(self._l_outActA, State)
         self._q_valsActB = lasagne.layers.get_output(self._l_outActB, ResultState)
+        self._q_valsActB2 = lasagne.layers.get_output(self._l_outActB, State)
         inputs_ = {
             State: self._states_shared,
             Action: self._q_valsActA,
@@ -170,6 +171,7 @@ class DeepDPG(object):
         
         # actDiff1 = (Action - self._q_valsActB) #TODO is this correct?
         # actDiff = (actDiff1 - (Action - self._q_valsActA))
+        # actDiff = ((Action - self._q_valsActB2)) # Target network does not work well here?
         actDiff = ((Action - self._q_valsActA)) # Target network does not work well here?
         actLoss = 0.5 * actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
         actLoss = T.sum(actLoss)/float(batch_size)
@@ -182,7 +184,7 @@ class DeepDPG(object):
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
           (1e-4 * lasagne.regularization.regularize_network_params(
               self._l_outActA, lasagne.regularization.l2)), actionParams, 
-                  self._learning_rate * 0.5 * (-T.sum(actDiff)/float(batch_size)), self._rho, self._rms_epsilon)
+                  self._learning_rate * 0.1 * (-T.sum(actDiff)/float(batch_size)), self._rho, self._rms_epsilon)
         
         
         
