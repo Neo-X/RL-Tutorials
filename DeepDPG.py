@@ -174,7 +174,7 @@ class DeepDPG(object):
         # actDiff = ((Action - self._q_valsActB2)) # Target network does not work well here?
         actDiff = ((Action - self._q_valsActA)) # Target network does not work well here?
         actLoss = 0.5 * actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
-        actLoss = T.sum(actLoss)/float(batch_size)
+        actLoss = T.mean(actLoss)
         
         # actionUpdates = lasagne.updates.rmsprop(actLoss + 
         #    (1e-4 * lasagne.regularization.regularize_network_params(
@@ -184,7 +184,7 @@ class DeepDPG(object):
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
           (1e-4 * lasagne.regularization.regularize_network_params(
               self._l_outActA, lasagne.regularization.l2)), actionParams, 
-                  self._learning_rate * 0.1 * (-T.sum(actDiff)/float(batch_size)), self._rho, self._rms_epsilon)
+                  self._learning_rate * 0.1 * (-T.mean(actDiff)), self._rho, self._rms_epsilon)
         
         
         
