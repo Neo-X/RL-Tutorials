@@ -18,7 +18,7 @@ def rlTDSGD(cost, delta, params, lr=0.05):
     return updates
 
 # For debugging
-theano.config.mode='FAST_COMPILE'
+# theano.config.mode='FAST_COMPILE'
 
 class DeepDPG(object):
     
@@ -124,9 +124,9 @@ class DeepDPG(object):
         self._q_valsActB = lasagne.layers.get_output(self._l_outActB, ResultState)
         inputs_ = {
             State: self._states_shared,
-            # Action: self._q_valsActA,
+            Action: self._q_valsActA,
         }
-        self._q_valsA = lasagne.layers.get_output(self._l_outA, State)
+        self._q_valsA = lasagne.layers.get_output(self._l_outA, inputs_)
         inputs_ = {
             ResultState: self._next_states_shared,
             Action: self._q_valsActB,
@@ -148,7 +148,7 @@ class DeepDPG(object):
         actionParams = lasagne.layers.helper.get_all_params(self._l_outActA)
         givens_ = {
             State: self._states_shared,
-            ResultState: self._next_states_shared,
+            # ResultState: self._next_states_shared,
             Reward: self._rewards_shared,
             # Action: self._actions_shared,
         }
@@ -195,7 +195,7 @@ class DeepDPG(object):
         inputs_ = [
                    State, 
                    Reward, 
-                   ResultState
+                   # ResultState
                    ]
         self._bellman_error = theano.function(inputs=inputs_, outputs=diff, allow_input_downcast=True)
         # self._diffs = theano.function(input=[State])
@@ -238,4 +238,5 @@ class DeepDPG(object):
         self._states_shared.set_value(state)
         return self._q_val()[0]
     def bellman_error(self, state, action, reward, result_state):
-        return self._bellman_error(state, reward, result_state)
+        # return self._bellman_error(state, reward, result_state)
+        return self._bellman_error(state, reward)

@@ -4,6 +4,7 @@ import numpy as np
 import math
 import cPickle
 import json
+import os
 
 from DeepCACLA import DeepCACLA
 from DeepDPG import DeepDPG 
@@ -163,6 +164,9 @@ if __name__ == "__main__":
     rlv = RLVisualize(title=str(settings['agent_name']))
     rlv.setInteractive()
     rlv.init()
+    
+    if not os.path.exists(data_folder):
+        os.makedirs(data_folder)
         
     experience = ExperienceMemory(2, 2, 5000)
     experience = collectExperience(experience, action_bounds)
