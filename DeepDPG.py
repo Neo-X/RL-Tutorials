@@ -101,7 +101,7 @@ class DeepDPG(object):
         self._rho = 0.95
         self._rms_epsilon = 0.001
         
-        self._weight_update_steps=5000
+        self._weight_update_steps=5
         self._updates=0
         
         self._states_shared = theano.shared(
@@ -201,14 +201,30 @@ class DeepDPG(object):
         # self._diffs = theano.function(input=[State])
         
     def updateTargetModel(self):
-        print "Updating target Model"
+        # print "Updating target Model"
         """
             Target model updates
         """
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
+        all_paramsB = lasagne.layers.helper.get_all_param_values(self._l_outB)
+        lerp_weight = 0.001 
+        # print "param Values"
+        all_params = []
+        for paramsA, paramsB in zip(all_paramsA, all_paramsB):
+            # print "paramsA: " + str(paramsA)
+            # print "paramsB: " + str(paramsB)
+            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+            all_params.append(params)
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
-        lasagne.layers.helper.set_all_param_values(self._l_outB, all_paramsA)
-        lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsActA) 
+        all_paramsActB = lasagne.layers.helper.get_all_param_values(self._l_outActB)
+        all_paramsAct = []
+        for paramsA, paramsB in zip(all_paramsActA, all_paramsActB):
+            # print "paramsA: " + str(paramsA)
+            # print "paramsB: " + str(paramsB)
+            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+            all_paramsAct.append(params)
+        lasagne.layers.helper.set_all_param_values(self._l_outB, all_params)
+        lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
     
     def train(self, states, actions, rewards, result_states):
         self._states_shared.set_value(states)
