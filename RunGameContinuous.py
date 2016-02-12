@@ -6,6 +6,11 @@ import cPickle
 import json
 import os
 
+from RLLogisticRegression import RLLogisticRegression
+from NeuralNet import NeuralNet 
+from RLNeuralNetwork import RLNeuralNetwork
+from RLNeuralNetworkDQ import RLNeuralNetworkDQ
+from RLDeepNet import RLDeepNet 
 from DeepCACLA import DeepCACLA
 from DeepDPG import DeepDPG 
 import sys
@@ -66,8 +71,7 @@ def clampAction(actionV, bounds):
             actionV[i] = bounds[1][i]
     return actionV
     
-    
-def collectExperience(experience, action_bounds):
+def collectExperienceActionsContinuous(experience, action_bounds):
     i = 0
     while i < experience.history_size():
         game.reset()
@@ -93,7 +97,7 @@ def collectExperience(experience, action_bounds):
             t+=1
 
     print "Done collecting experience from " + str(experience.samples()) + " samples."
-    return experience    
+    return experience  
 
     
 if __name__ == "__main__":
@@ -129,12 +133,32 @@ if __name__ == "__main__":
     action_bounds = settings['action_bounds']
     data_folder = settings['data_folder']
     states = np.array([[0,0]])
-    if settings['agent_name'] == "Deep_CACLA":
+    action_space_continuous=False
+    if settings['agent_name'] == "logistic":
+        print "Creating Logistic agent"
+        model = RLLogisticRegression(states, n_in=2, n_out=8)
+    elif settings['agent_name'] == "NN":
+        print "Creating NN agent"
+        model = NeuralNet(states, n_in=2, n_out=8)
+    elif settings['agent_name'] == "Deep":
+        print "Creating Deep agent"
+        model = RLNeuralNetwork(states, n_in=2, n_out=8)
+    elif settings['agent_name'] == "Deep_DQ":
+        print "Creating Deep agent"
+        model = RLNeuralNetworkDQ(states, n_in=2, n_out=8)
+    elif settings['agent_name'] == "Deep_NN":
+        print "Creating Deep agent"
+        model = RLDeepNet(states, n_in=2, n_out=8)
+        max_training_steps = settings['max_training_steps']
+        epsilon = settings['epsilon']
+    elif settings['agent_name'] == "Deep_CACLA":
         print "Creating " + str(settings['agent_name']) + " agent"
         model = DeepCACLA(n_in=2, n_out=2)
+        action_space_continuous=True
     elif settings['agent_name'] == "Deep_DPG":
         print "Creating " + str(settings['agent_name']) + " agent"
         model = DeepDPG(n_in=2, n_out=2)
+        action_space_continuous=True
     else:
         print "Unrecognized model: " + str(settings['agent_name'])
         sys.exit()
@@ -158,7 +182,10 @@ if __name__ == "__main__":
     trainData["std_discount_error"]=[]
      
     best_error=10000000.0
-    X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
+    if action_space_continuous:
+        X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
+    else:
+        X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
     game.init(U, V, Q)
     
     rlv = RLVisualize(title=str(settings['agent_name']))
@@ -167,9 +194,11 @@ if __name__ == "__main__":
     
     if not os.path.exists(data_folder):
         os.makedirs(data_folder)
-        
-    experience = ExperienceMemory(2, 2, 5000)
-    experience = collectExperience(experience, action_bounds)
+    if action_space_continuous:
+        experience = ExperienceMemory(2, 2, 5000)
+        experience = collectExperienceActionsContinuous(experience, action_bounds)
+    else: 
+        experience = ExperienceMemory(2, 1, 5000)
     bellman_errors = []
     reward_over_epocs = []
     values = []
@@ -222,15 +251,21 @@ if __name__ == "__main__":
                 result_states = []
                 
             state = game.getState()
-            
             pa = model.predict([norm_state(state, max_state)])
-            action = randomExporation(0.12, pa)
-            randomAction = randomExporation(0.3, [0.0,0.0]) # Completely random action
-            # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
-            action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
-            action = clampAction(action, action_bounds)
+            
+            if action_space_continuous:
+                action = randomExporation(0.12, pa)
+                randomAction = randomExporation(0.3, [0.0,0.0]) # Completely random action
+                # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
+                action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
+                action = clampAction(action, action_bounds)
+                reward = game.actContinuous(action)
+            elif not action_space_continuous:
+                action = random.choice(action_selection)
+                action = eGreedy(pa, action, epsilon * p)
+                reward = game.act(action)
+                
             # print "Action: " + str(action)
-            reward = game.actContinuous(action)
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
             # Everything should be normalized to be between -1 and 1
@@ -259,7 +294,10 @@ if __name__ == "__main__":
                 # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 
             if (i % steps == 0) and not (i == 0):
-                X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
+                if action_space_continuous:
+                    X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
+                else:
+                    X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
                 game.update()
                 game.updatePolicy(U, V, Q)
                 states_, actions_, result_states_, rewards_ = experience.get_batch(32)
@@ -306,7 +344,10 @@ if __name__ == "__main__":
             
         print ""
         # X,Y = np.mgrid[0:16,0:16]
-        X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
+        if action_space_continuous:
+            X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
+        else:
+            X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
         game.updatePolicy(U, V, Q)
         game.saveVisual(data_folder+"gameState")
         """
@@ -320,7 +361,7 @@ if __name__ == "__main__":
     
     # print "Experience: " + str(experience)
     print "Found target after " + str(i) + " actions"
-    file_name="navigator_agent_"+str(settings['agent_name'])+".pkl"
+    file_name=data_folder+"navigator_agent_"+str(settings['agent_name'])+".pkl"
     f = open(file_name, 'w')
     cPickle.dump(model, f)
     f.close()

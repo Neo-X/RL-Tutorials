@@ -152,9 +152,19 @@ class RLDeepNet(object):
         loss, _ = self._train()
         return np.sqrt(loss)
     
+    def q_value(self, state):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        q_values = self.q_values(state)
+        action_ = self.predict(state)
+        # print "q_values: " + str(q_values) + " Action: " + str(action_)
+        original_val = q_values[action_]
+        return original_val
+    
     def predict(self, state):
         q_vals = self.q_values(state)
         return np.argmax(q_vals)
+    
     def q_values(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
