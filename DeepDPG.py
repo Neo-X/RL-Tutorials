@@ -164,6 +164,7 @@ class DeepDPG(object):
         #updates_ = lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho,
         #                                    self._rms_epsilon)
         # TD update
+        # minimize Value function error
         updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + (1e-6 * lasagne.regularization.regularize_network_params(
         self._l_outA, lasagne.regularization.l2)), params, 
                     self._learning_rate * -T.mean(diff), self._rho, self._rms_epsilon)
@@ -181,15 +182,17 @@ class DeepDPG(object):
         #        self._l_outActA, lasagne.regularization.l2)), actionParams, 
         #            self._learning_rate * 0.01 * (-actLoss), self._rho, self._rms_epsilon)
         
+        # Maximize wrt q function
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
           (1e-4 * lasagne.regularization.regularize_network_params(
               self._l_outActA, lasagne.regularization.l2)), actionParams, 
-                  self._learning_rate * 0.1 * (-T.mean(actDiff)), self._rho, self._rms_epsilon)
+                  self._learning_rate * -0.1, self._rho, self._rms_epsilon)
         
         
         
-        self._train = theano.function([], [loss, self._q_valsA], updates=updates_, givens=givens_)
-        self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
+        self._train = theano.function([], [loss, self._q_func], updates=updates_, givens=givens_)
+        # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
+        self._trainActor = theano.function([], [actLoss, self._q_valsA], updates=actionUpdates, givens=actGivens)
         self._q_val = theano.function([], self._q_valsA,
                                        givens={State: self._states_shared})
         self._q_action = theano.function([], self._q_valsActA,
