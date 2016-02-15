@@ -20,7 +20,7 @@ def rlTDSGD(cost, delta, params, lr=0.05):
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 
-class DeepCACLA(object):
+class DeepDPG(object):
     
     def __init__(self, n_in, n_out):
 
@@ -37,20 +37,6 @@ class DeepCACLA(object):
         Action = T.dmatrix("Action")
         Action.tag.test_value = np.random.rand(batch_size, action_length)
         # create a small convolutional neural network
-        inputLayerA = lasagne.layers.InputLayer((None, state_length), State)
-
-        l_hid2A = lasagne.layers.DenseLayer(
-                inputLayerA, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
-        
-        l_hid3A = lasagne.layers.DenseLayer(
-                l_hid2A, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
-    
-        self._l_outA = lasagne.layers.DenseLayer(
-                l_hid3A, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
-        # self._b_o = init_b_weights((n_out,))
         inputLayerActA = lasagne.layers.InputLayer((None, state_length), State)
         l_hid2ActA = lasagne.layers.DenseLayer(
                 inputLayerActA, num_units=64,
@@ -63,22 +49,24 @@ class DeepCACLA(object):
         self._l_outActA = lasagne.layers.DenseLayer(
                 l_hid3ActA, num_units=n_out,
                 nonlinearity=lasagne.nonlinearities.linear)
-        # self._b_o = init_b_weights((n_out,))
         
-        # self.updateTargetModel()
-        inputLayerB = lasagne.layers.InputLayer((None, state_length), State)
-        l_hid2B = lasagne.layers.DenseLayer(
-                inputLayerB, num_units=64,
+        inputLayerA = lasagne.layers.InputLayer((None, state_length), State)
+
+        concatLayer = lasagne.layers.ConcatLayer([inputLayerA, self._l_outActA])
+        l_hid2A = lasagne.layers.DenseLayer(
+                concatLayer, num_units=64,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        
+        l_hid3A = lasagne.layers.DenseLayer(
+                l_hid2A, num_units=32,
                 nonlinearity=lasagne.nonlinearities.rectify)
     
-        l_hid3B = lasagne.layers.DenseLayer(
-                l_hid2B, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
-        
-        self._l_outB = lasagne.layers.DenseLayer(
-                l_hid3B, num_units=1,
+        self._l_outA = lasagne.layers.DenseLayer(
+                l_hid3A, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
-        
+        # self._b_o = init_b_weights((n_out,))
+
+        # self.updateTargetModel()
         inputLayerActB = lasagne.layers.InputLayer((None, state_length), State)
         l_hid2ActB = lasagne.layers.DenseLayer(
                 inputLayerActB, num_units=64,
@@ -92,15 +80,28 @@ class DeepCACLA(object):
                 l_hid3ActB, num_units=n_out,
                 nonlinearity=lasagne.nonlinearities.linear)
 
+        inputLayerB = lasagne.layers.InputLayer((None, state_length), State)
+        concatLayerB = lasagne.layers.ConcatLayer([inputLayerB, self._l_outActB])
+        l_hid2B = lasagne.layers.DenseLayer(
+                concatLayerB, num_units=64,
+                nonlinearity=lasagne.nonlinearities.rectify)
         
+        l_hid3B = lasagne.layers.DenseLayer(
+                l_hid2B, num_units=32,
+                nonlinearity=lasagne.nonlinearities.rectify)
+    
+        self._l_outB = lasagne.layers.DenseLayer(
+                l_hid3B, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)
+            
         # print "Initial W " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.001
+        self._learning_rate = 0.0001
         self._discount_factor= 0.8
         self._rho = 0.95
         self._rms_epsilon = 0.001
         
-        self._weight_update_steps=5000
+        self._weight_update_steps=5
         self._updates=0
         
         self._states_shared = theano.shared(
@@ -119,11 +120,20 @@ class DeepCACLA(object):
             np.zeros((batch_size, n_out), dtype=theano.config.floatX),
             )
         
-        self._q_valsA = lasagne.layers.get_output(self._l_outA, State)
-        self._q_valsB = lasagne.layers.get_output(self._l_outB, ResultState)
-        
         self._q_valsActA = lasagne.layers.get_output(self._l_outActA, State)
-        self._q_valsActB = lasagne.layers.get_output(self._l_outActB, State)
+        self._q_valsActB = lasagne.layers.get_output(self._l_outActB, ResultState)
+        self._q_valsActB2 = lasagne.layers.get_output(self._l_outActB, State)
+        inputs_ = {
+            State: self._states_shared,
+            Action: self._q_valsActA,
+        }
+        self._q_valsA = lasagne.layers.get_output(self._l_outA, inputs_)
+        inputs_ = {
+            ResultState: self._next_states_shared,
+            Action: self._q_valsActB,
+        }
+        self._q_valsB = lasagne.layers.get_output(self._l_outB, inputs_)
+        
         
         self._q_func = self._q_valsA
         self._q_funcAct = self._q_valsActA
@@ -131,7 +141,7 @@ class DeepCACLA(object):
         
         target = (Reward + self._discount_factor * self._q_valsB)
         diff = target - self._q_valsA
-        loss = 0.5 * diff ** 2 + (1e-6 * lasagne.regularization.regularize_network_params(
+        loss = 0.5 * diff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params(
         self._l_outA, lasagne.regularization.l2))
         loss = T.mean(loss)
         
@@ -139,7 +149,7 @@ class DeepCACLA(object):
         actionParams = lasagne.layers.helper.get_all_params(self._l_outActA)
         givens_ = {
             State: self._states_shared,
-            ResultState: self._next_states_shared,
+            # ResultState: self._next_states_shared,
             Reward: self._rewards_shared,
             # Action: self._actions_shared,
         }
@@ -161,9 +171,10 @@ class DeepCACLA(object):
         
         # actDiff1 = (Action - self._q_valsActB) #TODO is this correct?
         # actDiff = (actDiff1 - (Action - self._q_valsActA))
+        # actDiff = ((Action - self._q_valsActB2)) # Target network does not work well here?
         actDiff = ((Action - self._q_valsActA)) # Target network does not work well here?
         actLoss = 0.5 * actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
-        actLoss = T.sum(actLoss)/float(batch_size)
+        actLoss = T.mean(actLoss)
         
         # actionUpdates = lasagne.updates.rmsprop(actLoss + 
         #    (1e-4 * lasagne.regularization.regularize_network_params(
@@ -173,7 +184,7 @@ class DeepCACLA(object):
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
           (1e-4 * lasagne.regularization.regularize_network_params(
               self._l_outActA, lasagne.regularization.l2)), actionParams, 
-                  self._learning_rate * 0.5 * (-T.sum(actDiff)/float(batch_size)), self._rho, self._rms_epsilon)
+                  self._learning_rate * 0.1 * (-T.mean(actDiff)), self._rho, self._rms_epsilon)
         
         
         
@@ -183,28 +194,39 @@ class DeepCACLA(object):
                                        givens={State: self._states_shared})
         self._q_action = theano.function([], self._q_valsActA,
                                        givens={State: self._states_shared})
-        self._bellman_error = theano.function(inputs=[State, Reward, ResultState], outputs=diff, allow_input_downcast=True)
+        inputs_ = [
+                   State, 
+                   Reward, 
+                   # ResultState
+                   ]
+        self._bellman_error = theano.function(inputs=inputs_, outputs=diff, allow_input_downcast=True)
         # self._diffs = theano.function(input=[State])
         
     def updateTargetModel(self):
-        print "Updating target Model"
+        # print "Updating target Model"
         """
             Target model updates
         """
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
+        all_paramsB = lasagne.layers.helper.get_all_param_values(self._l_outB)
+        lerp_weight = 0.001 
+        # print "param Values"
+        all_params = []
+        for paramsA, paramsB in zip(all_paramsA, all_paramsB):
+            # print "paramsA: " + str(paramsA)
+            # print "paramsB: " + str(paramsB)
+            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+            all_params.append(params)
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
-        lasagne.layers.helper.set_all_param_values(self._l_outB, all_paramsA)
-        lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsActA) 
-        
-
-    def getNetworkParameters(self):
-        all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
-        params = []
-        for params_ in all_paramsA:
-            params_ = np.reshape(params_, (params_.size,1))
-            params.extend(params_)
-        print len(params)
-        return params
+        all_paramsActB = lasagne.layers.helper.get_all_param_values(self._l_outActB)
+        all_paramsAct = []
+        for paramsA, paramsB in zip(all_paramsActA, all_paramsActB):
+            # print "paramsA: " + str(paramsA)
+            # print "paramsB: " + str(paramsB)
+            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+            all_paramsAct.append(params)
+        lasagne.layers.helper.set_all_param_values(self._l_outB, all_params)
+        lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
     
     def train(self, states, actions, rewards, result_states):
         self._states_shared.set_value(states)
@@ -216,32 +238,10 @@ class DeepCACLA(object):
             self.updateTargetModel()
         self._updates += 1
         loss, _ = self._train()
-        
-        diff_ = self._bellman_error(states, rewards, result_states)
+        lossActor, _ = self._trainActor()
+        # diff_ = self._bellman_error(states, rewards, result_states)
         # print "Diff"
         # print diff_
-        tmp_states=[]
-        tmp_result_states=[]
-        tmp_actions=[]
-        tmp_rewards=[]
-        for i in range(len(diff_)):
-            # print "Performing Actor trainning update"
-            
-            if ( diff_[i] > 0.0):
-                # print states[i]
-                tmp_states.append(states[i])
-                tmp_result_states.append(result_states[i])
-                tmp_actions.append(actions[i])
-                tmp_rewards.append(rewards[i])
-                
-        if (len(tmp_actions) > 0):
-            self._states_shared.set_value(np.array(tmp_states))
-            self._next_states_shared.set_value(tmp_result_states)
-            self._actions_shared.set_value(tmp_actions)
-            self._rewards_shared.set_value(tmp_rewards)
-            lossActor, _ = self._trainActor()
-            # print "Length of positive actions: " + str(len(tmp_actions))
-            # return np.sqrt(lossActor);
         return loss
     
     def predict(self, state):
@@ -256,4 +256,5 @@ class DeepCACLA(object):
         self._states_shared.set_value(state)
         return self._q_val()[0]
     def bellman_error(self, state, action, reward, result_state):
-        return self._bellman_error(state, reward, result_state)
+        # return self._bellman_error(state, reward, result_state)
+        return self._bellman_error(state, reward)

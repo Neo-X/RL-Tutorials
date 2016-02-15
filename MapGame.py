@@ -50,8 +50,8 @@ class Map(object):
             
     def act(self, action):
         move = np.array(self.move(action))
-        loc = self._agent + (move * random.uniform(0.5,1.0))
-        # loc = self._agent + (move)
+        # loc = self._agent + (move * random.uniform(0.5,1.0))
+        loc = self._agent + (move)
         
         if ((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
             (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])):
@@ -66,8 +66,8 @@ class Map(object):
     
     def actContinuous(self, action):
         move = np.array(action)
-        loc = self._agent + (move * random.uniform(0.5,1.0))
-        # loc = self._agent + (move)
+        # loc = self._agent + (move * random.uniform(0.5,1.0))
+        loc = self._agent + (move)
         
         if ((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
             (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])):
@@ -98,6 +98,9 @@ class Map(object):
     
     def getState(self):
         return self._agent
+    
+    def setState(self, st):
+        self._agent = st
     
     def init(self, U, V, Q):
         colours = ['gray','black','blue']
