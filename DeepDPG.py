@@ -139,21 +139,21 @@ class DeepDPG(object):
         self._q_funcAct = self._q_valsActA
         # self._q_funcAct = theano.function(inputs=[State], outputs=self._q_valsActA, allow_input_downcast=True)
         
-        target = (Reward + self._discount_factor * self._q_valsB)
-        diff = target - self._q_valsA
-        loss = 0.5 * diff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params(
-        self._l_outA, lasagne.regularization.l2))
-        loss = T.mean(loss)
+        self._target = (Reward + self._discount_factor * self._q_valsB)
+        self._diff = self._target - self._q_valsA
+        self._loss = 0.5 * self._diff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params(
+                self._l_outA, lasagne.regularization.l2))
+        self._loss = T.mean(self._loss)
         
-        params = lasagne.layers.helper.get_all_params(self._l_outA)
-        actionParams = lasagne.layers.helper.get_all_params(self._l_outActA)
-        givens_ = {
+        self._params = lasagne.layers.helper.get_all_params(self._l_outA)
+        self._actionParams = lasagne.layers.helper.get_all_params(self._l_outActA)
+        self._givens_ = {
             State: self._states_shared,
             # ResultState: self._next_states_shared,
             Reward: self._rewards_shared,
             # Action: self._actions_shared,
         }
-        actGivens = {
+        self._actGivens = {
             State: self._states_shared,
             # ResultState: self._next_states_shared,
             # Reward: self._rewards_shared,
@@ -165,17 +165,17 @@ class DeepDPG(object):
         #                                    self._rms_epsilon)
         # TD update
         # minimize Value function error
-        updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + (1e-6 * lasagne.regularization.regularize_network_params(
-        self._l_outA, lasagne.regularization.l2)), params, 
-                    self._learning_rate * -T.mean(diff), self._rho, self._rms_epsilon)
+        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + (1e-6 * lasagne.regularization.regularize_network_params(
+        self._l_outA, lasagne.regularization.l2)), self._params, 
+                    self._learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
         
         # actDiff1 = (Action - self._q_valsActB) #TODO is this correct?
         # actDiff = (actDiff1 - (Action - self._q_valsActA))
         # actDiff = ((Action - self._q_valsActB2)) # Target network does not work well here?
-        actDiff = ((Action - self._q_valsActA)) # Target network does not work well here?
-        actLoss = 0.5 * actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
-        actLoss = T.mean(actLoss)
+        self._actDiff = ((Action - self._q_valsActA)) # Target network does not work well here?
+        self._actLoss = 0.5 * self._actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
+        self._actLoss = T.mean(self._actLoss)
         
         # actionUpdates = lasagne.updates.rmsprop(actLoss + 
         #    (1e-4 * lasagne.regularization.regularize_network_params(
@@ -185,14 +185,14 @@ class DeepDPG(object):
         # Maximize wrt q function
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
           (1e-4 * lasagne.regularization.regularize_network_params(
-              self._l_outActA, lasagne.regularization.l2)), actionParams, 
+              self._l_outActA, lasagne.regularization.l2)), self._actionParams, 
                   self._learning_rate * -0.1, self._rho, self._rms_epsilon)
         
         
         
-        self._train = theano.function([], [loss, self._q_func], updates=updates_, givens=givens_)
+        self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
-        self._trainActor = theano.function([], [actLoss, self._q_valsA], updates=actionUpdates, givens=actGivens)
+        self._trainActor = theano.function([], [self._actLoss, self._q_valsA], updates=actionUpdates, givens=self._actGivens)
         self._q_val = theano.function([], self._q_valsA,
                                        givens={State: self._states_shared})
         self._q_action = theano.function([], self._q_valsActA,
@@ -202,25 +202,51 @@ class DeepDPG(object):
                    Reward, 
                    # ResultState
                    ]
-        self._bellman_error = theano.function(inputs=inputs_, outputs=diff, allow_input_downcast=True)
+        self._bellman_error = theano.function(inputs=inputs_, outputs=self._diff, allow_input_downcast=True)
         # self._diffs = theano.function(input=[State])
         
     def _trainOneActions(self, states, actions, rewards, result_states):
         print "Training action"
         # lossActor, _ = self._trainActor()
+        State = T.dmatrix("State")
+        # State.tag.test_value = np.random.rand(batch_size,state_length)
+        #ResultState = T.dmatrix("ResultState")
+        #ResultState.tag.test_value = np.random.rand(batch_size,state_length)
+        #Reward = T.col("Reward")
+        #Reward.tag.test_value = np.random.rand(batch_size,1)
+        Action = T.dmatrix("Action")
+        #Action.tag.test_value = np.random.rand(batch_size, action_length)
+        
         
         for state, action, reward, result_state in zip(states, actions, rewards, result_states):
-            print state
-            print action
+            # print state
+            # print action
             self._states_shared.set_value([state])
             self._next_states_shared.set_value([result_state])
             self._actions_shared.set_value([action])
             self._rewards_shared.set_value([reward])
-            print "Q value for state and action: " + str(self.q_value([state]))
-            all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
-            print "Network length: " + str(len(all_paramsA))
-            print "weights: " + str(all_paramsA[7])
-            lossActor, _ = self._trainActor()
+            # print "Q value for state and action: " + str(self.q_value([state]))
+            # all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
+            # print "Network length: " + str(len(all_paramsA))
+            # print "weights: " + str(all_paramsA[0])
+            # lossActor, _ = self._trainActor()
+            _params = lasagne.layers.helper.get_all_params(self._l_outA)
+            # print _params[0].get_value()
+            inputs_ = {
+                State: self._states_shared,
+                Action: self._q_valsActA,
+            }
+            self._q_valsA = lasagne.layers.get_output(self._l_outA, inputs_)
+            
+            
+            updates_ = lasagne.updates.rmsprop(T.mean(self._q_valsA) + (1e-6 * lasagne.regularization.regularize_network_params(
+                self._l_outA, lasagne.regularization.l2)), _params, 
+                self._learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
+            
+            ind = 0
+            print "Update: " + str (updates_.items())
+            print "Updates length: " + str (len(updates_.items()[ind][0].get_value())) 
+            print " Updates: " + str(updates_.items()[ind][0].get_value())
             
             
     def updateTargetModel(self):
