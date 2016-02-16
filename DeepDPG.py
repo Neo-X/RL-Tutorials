@@ -205,6 +205,24 @@ class DeepDPG(object):
         self._bellman_error = theano.function(inputs=inputs_, outputs=diff, allow_input_downcast=True)
         # self._diffs = theano.function(input=[State])
         
+    def _trainOneActions(self, states, actions, rewards, result_states):
+        print "Training action"
+        # lossActor, _ = self._trainActor()
+        
+        for state, action, reward, result_state in zip(states, actions, rewards, result_states):
+            print state
+            print action
+            self._states_shared.set_value([state])
+            self._next_states_shared.set_value([result_state])
+            self._actions_shared.set_value([action])
+            self._rewards_shared.set_value([reward])
+            print "Q value for state and action: " + str(self.q_value([state]))
+            all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
+            print "Network length: " + str(len(all_paramsA))
+            print "weights: " + str(all_paramsA[7])
+            lossActor, _ = self._trainActor()
+            
+            
     def updateTargetModel(self):
         # print "Updating target Model"
         """
@@ -241,7 +259,7 @@ class DeepDPG(object):
             self.updateTargetModel()
         self._updates += 1
         loss, _ = self._train()
-        lossActor, _ = self._trainActor()
+        self._trainOneActions(states, actions, rewards, result_states)
         # diff_ = self._bellman_error(states, rewards, result_states)
         # print "Diff"
         # print diff_
