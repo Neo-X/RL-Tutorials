@@ -55,11 +55,11 @@ class DeepDPG(object):
         concatLayer = lasagne.layers.ConcatLayer([inputLayerA, self._l_outActA])
         l_hid2A = lasagne.layers.DenseLayer(
                 concatLayer, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid3A = lasagne.layers.DenseLayer(
                 l_hid2A, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._l_outA = lasagne.layers.DenseLayer(
                 l_hid3A, num_units=1,
@@ -84,11 +84,11 @@ class DeepDPG(object):
         concatLayerB = lasagne.layers.ConcatLayer([inputLayerB, self._l_outActB])
         l_hid2B = lasagne.layers.DenseLayer(
                 concatLayerB, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid3B = lasagne.layers.DenseLayer(
                 l_hid2B, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._l_outB = lasagne.layers.DenseLayer(
                 l_hid3B, num_units=1,
@@ -157,7 +157,7 @@ class DeepDPG(object):
             State: self._states_shared,
             # ResultState: self._next_states_shared,
             # Reward: self._rewards_shared,
-            Action: self._actions_shared,
+            # Action: self._actions_shared,
         }
         
         # SGD update
@@ -173,9 +173,9 @@ class DeepDPG(object):
         # actDiff1 = (Action - self._q_valsActB) #TODO is this correct?
         # actDiff = (actDiff1 - (Action - self._q_valsActA))
         # actDiff = ((Action - self._q_valsActB2)) # Target network does not work well here?
-        self._actDiff = ((Action - self._q_valsActA)) # Target network does not work well here?
-        self._actLoss = 0.5 * self._actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
-        self._actLoss = T.mean(self._actLoss)
+        #self._actDiff = ((Action - self._q_valsActA)) # Target network does not work well here?
+        #self._actLoss = 0.5 * self._actDiff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params( self._l_outActA, lasagne.regularization.l2))
+        #self._actLoss = T.mean(self._actLoss)
         
         # actionUpdates = lasagne.updates.rmsprop(actLoss + 
         #    (1e-4 * lasagne.regularization.regularize_network_params(
@@ -183,7 +183,7 @@ class DeepDPG(object):
         #            self._learning_rate * 0.01 * (-actLoss), self._rho, self._rms_epsilon)
         
         # Maximize wrt q function
-        actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct) + 
+        actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_func) + 
           (1e-4 * lasagne.regularization.regularize_network_params(
               self._l_outActA, lasagne.regularization.l2)), self._actionParams, 
                   self._learning_rate * -0.1, self._rho, self._rms_epsilon)
@@ -192,7 +192,7 @@ class DeepDPG(object):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
-        self._trainActor = theano.function([], [self._actLoss, self._q_valsA], updates=actionUpdates, givens=self._actGivens)
+        self._trainActor = theano.function([], [self._q_func], updates=actionUpdates, givens=self._actGivens)
         self._q_val = theano.function([], self._q_valsA,
                                        givens={State: self._states_shared})
         self._q_action = theano.function([], self._q_valsActA,
@@ -285,7 +285,8 @@ class DeepDPG(object):
             self.updateTargetModel()
         self._updates += 1
         loss, _ = self._train()
-        self._trainOneActions(states, actions, rewards, result_states)
+        # self._trainOneActions(states, actions, rewards, result_states)
+        self._trainActor()
         # diff_ = self._bellman_error(states, rewards, result_states)
         # print "Diff"
         # print diff_
