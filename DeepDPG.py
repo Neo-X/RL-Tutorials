@@ -101,7 +101,7 @@ class DeepDPG(object):
         self._rho = 0.95
         self._rms_epsilon = 0.001
         
-        self._weight_update_steps=5
+        self._weight_update_steps=1
         self._updates=0
         
         self._states_shared = theano.shared(
@@ -137,6 +137,9 @@ class DeepDPG(object):
         
         self._q_func = self._q_valsA
         self._q_funcAct = self._q_valsActA
+        self._q_funcB = self._q_valsB
+        self._q_funcActB = self._q_valsActB
+        
         # self._q_funcAct = theano.function(inputs=[State], outputs=self._q_valsActA, allow_input_downcast=True)
         
         self._target = (Reward + self._discount_factor * self._q_valsB)
@@ -194,7 +197,7 @@ class DeepDPG(object):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
-        self._trainActor = theano.function([], [self._q_func], updates=actionUpdates, givens=self._actGivens)
+        self._trainActor = theano.function([], [self._q_funcB], updates=actionUpdates, givens=self._actGivens)
         self._q_val = theano.function([], self._q_valsA,
                                        givens={State: self._states_shared})
         self._q_action = theano.function([], self._q_valsActA,
@@ -258,7 +261,7 @@ class DeepDPG(object):
         """
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._l_outB)
-        lerp_weight = 0.01
+        lerp_weight = 0.0001
         # print "param Values"
         all_params = []
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):

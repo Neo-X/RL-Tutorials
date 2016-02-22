@@ -52,10 +52,14 @@ def eOmegaGreedy(pa1, ra1, ra2, e, omega):
     
 def randomExporation(explorationRate, actionV):
     out = []
-    
     for i in range(len(actionV)):
         out.append(actionV[i] + random.gauss(actionV[i], explorationRate))
-    
+    return out
+
+def randomUniformExporation(bounds):
+    out = []
+    for i in range(len(bounds[0])):
+        out.append(np.random.uniform(bounds[0][i],bounds[1][i],1)[0])
     return out
 
 
@@ -83,7 +87,7 @@ def collectExperienceActionsContinuous(experience, action_bounds):
                 
             state = game.getState()
             
-            randomAction = randomExporation(0.35, [0.0,0.0]) # Completely random action
+            randomAction = randomUniformExporation(action_bounds) # Completely random action
             action = clampAction(randomAction, action_bounds)
             reward = game.actContinuous(randomAction)
             resultState = game.getState()
@@ -255,10 +259,10 @@ if __name__ == "__main__":
             
             if action_space_continuous:
                 action = randomExporation(0.12, pa)
-                randomAction = randomExporation(0.3, [0.0,0.0]) # Completely random action
+                randomAction = randomUniformExporation(action_bounds) # Completely random action
                 # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
                 action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
-                action = clampAction(action, action_bounds)
+                # action = clampAction(action, action_bounds)
                 reward = game.actContinuous(action)
             elif not action_space_continuous:
                 action = random.choice(action_selection)
