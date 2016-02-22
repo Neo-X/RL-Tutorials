@@ -96,7 +96,7 @@ class DeepDPG(object):
             
         # print "Initial W " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.0001
+        self._learning_rate = 0.001
         self._discount_factor= 0.8
         self._rho = 0.95
         self._rms_epsilon = 0.001
@@ -165,7 +165,7 @@ class DeepDPG(object):
         #                                    self._rms_epsilon)
         # TD update
         # minimize Value function error
-        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + (1e-6 * lasagne.regularization.regularize_network_params(
+        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + (1e-3 * lasagne.regularization.regularize_network_params(
         self._l_outA, lasagne.regularization.l2)), self._params, 
                     self._learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
@@ -183,10 +183,12 @@ class DeepDPG(object):
         #            self._learning_rate * 0.01 * (-actLoss), self._rho, self._rms_epsilon)
         
         # Maximize wrt q function
+        
+        # theano.gradient.grad_clip(x, lower_bound, upper_bound) # // TODO
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_func) + 
-          (1e-4 * lasagne.regularization.regularize_network_params(
+          (1e-3 * lasagne.regularization.regularize_network_params(
               self._l_outActA, lasagne.regularization.l2)), self._actionParams, 
-                  self._learning_rate * -0.1, self._rho, self._rms_epsilon)
+                  self._learning_rate * 0.01, self._rho, self._rms_epsilon)
         
         
         
@@ -256,7 +258,7 @@ class DeepDPG(object):
         """
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._l_outB)
-        lerp_weight = 0.001 
+        lerp_weight = 0.01
         # print "param Values"
         all_params = []
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):
