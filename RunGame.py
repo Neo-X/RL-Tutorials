@@ -86,9 +86,9 @@ def collectExperienceActionsContinuous(experience, action_bounds):
                 t=0
                 
             state = game.getState()
-            
-            randomAction = randomUniformExporation(action_bounds) # Completely random action
-            action = clampAction(randomAction, action_bounds)
+            action = game.move(random.choice(action_selection))
+            # randomAction = randomUniformExporation(action_bounds) # Should select from 8 original actions
+            # action = clampAction(randomAction, action_bounds)
             reward = game.actContinuous(randomAction)
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
