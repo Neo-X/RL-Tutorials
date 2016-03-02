@@ -1,6 +1,11 @@
 
 import numpy as np
 
+def funct(loc, goal, max):
+    a=(loc - goal)
+    d = np.sqrt((a*a).sum(axis=0))
+    return max - d
+
 if __name__ == "__main__":
     
     batch_size=32
@@ -19,3 +24,19 @@ if __name__ == "__main__":
     
     print np.append(x1, x2, axis=0)
     print np.max(np.append(x1, x2, axis=0),axis=0)
+    
+    
+    map = np.zeros((16,16))
+    max = 11
+    goal = np.array([8,8])
+    print map
+    
+    for row in range(len(map)):
+        for col in range(len(map[0])):
+            map[row,col] = funct(np.array([row,col]), goal, max)
+    
+    
+    
+    print map/max
+    
+    
