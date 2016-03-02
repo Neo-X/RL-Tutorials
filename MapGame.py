@@ -4,6 +4,7 @@ import matplotlib
 import numpy as np
 # import matplotlib.animation as animation
 import random
+import math
 
 def loadMap():
     dataset="map.json"
@@ -44,6 +45,15 @@ class Map(object):
     def reset(self):
         self._agent = np.array([random.randint(0,15),random.randint(0,15)])
         
+    def getAgentLocalState(self):
+        """
+            Returns a vector of value [-1,1]
+        """
+        
+        st_ = self._map[(self._agent[0]-1)::2, (self._agent[1]-1)::2] # submatrix around agent location
+        st_ = np.reshape(st_, (1,)) # Make vector
+        return st_
+        
     def move(self, action):
         """
         action in [0,1,2,3,4,5,6,7]
@@ -66,7 +76,8 @@ class Map(object):
         
         if (((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
             (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])) or
-            self.collision(loc)):
+            self.collision(loc) or
+            self.fall(loc)):
             # Can't move ouloct of map
             return self.reward() + -8
             
@@ -83,7 +94,8 @@ class Map(object):
         
         if (((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
             (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])) or
-            self.collision(loc)):
+            self.collision(loc) or
+            self.fall(loc)):
             # Can't move out of map
             return self.reward() + -8
             
@@ -95,7 +107,8 @@ class Map(object):
     
     def fall(self, loc):
         # Check to see if collision at loc with any obstacles
-        if self._map[loc[0], loc[1]] < 0:
+        # print int(math.floor(loc[0])), int(math.floor(loc[1]))
+        if self._map[int(math.floor(loc[0]))][ int(math.floor(loc[1]))] < 0:
             return True
         return False
     
@@ -115,7 +128,7 @@ class Map(object):
         d = np.sqrt((a*a).sum(axis=0))
         if d < 0.3:
             return 16.0
-        return -d
+        return 0
     
     def reward2(self):
         # 1 for reaching target
@@ -158,7 +171,7 @@ class Map(object):
         img1 = self._map_ax.imshow(self._map,interpolation='nearest',
                             cmap = cmap2,
                             origin='lower')
-        img2 = self._policy_ax.imshow(self._map,interpolation='nearest',
+        img2 = self._policy_ax.imshow(np.array(self._map)*0.0,interpolation='nearest',
                             cmap = cmap2,
                             origin='lower')
         
