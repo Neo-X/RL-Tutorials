@@ -28,7 +28,18 @@ class Map(object):
         self._target = np.array([8,8])
         # self._map[self._target[0]][self._target[1]] = 1
         
+        obstacles = []
+        obstacles.append([2, 3])
+        obstacles.append([3, 7])
+        obstacles.append([-4, 6])
+        obstacles.append([-7, -6])
+        obstacles.append([-6, -6])
+        
+        self._obstacles = np.array(obstacles)+8.0 # shift coordinates
+        
         self._bounds = np.array([[0,0], [15,15]])
+        
+        self._markerSize = 25
         
     def reset(self):
         self._agent = np.array([random.randint(0,15),random.randint(0,15)])
@@ -53,9 +64,10 @@ class Map(object):
         # loc = self._agent + (move * random.uniform(0.5,1.0))
         loc = self._agent + (move)
         
-        if ((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
-            (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])):
-            # Can't move out of map
+        if (((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
+            (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])) or
+            self.collision(loc)):
+            # Can't move ouloct of map
             return self.reward() + -5
             
         # if self._map[loc[0]-1][loc[1]-1] == 1:
@@ -69,8 +81,9 @@ class Map(object):
         # loc = self._agent + (move * random.uniform(0.5,1.0))
         loc = self._agent + (move)
         
-        if ((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
-            (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])):
+        if (((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
+            (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])) or
+            self.collision(loc)):
             # Can't move out of map
             return self.reward() + -5
             
@@ -79,6 +92,16 @@ class Map(object):
         #     return self.reward() +-5
         self._agent = loc
         return self.reward()
+    
+    def collision(self, loc):
+        # Check to see if collision at loc with any obstacles
+        for obs in self._obstacles:
+            a=(loc - obs)
+            d = np.sqrt((a*a).sum(axis=0))
+            if d < 0.3:
+                # print "Found collision"
+                return True
+        return False
     
     def reward(self):
         # More like a cost function for distance away from target
@@ -115,9 +138,11 @@ class Map(object):
         self._fig, (self._map_ax, self._policy_ax) = plt.subplots(1, 2, sharey=False)
         self._fig.set_size_inches(18.5, 10.5, forward=True)
         self._map_ax.set_title('Map')
-        self._particles, = self._map_ax.plot([self._agent[0]], [self._agent[1]], 'bo', ms=10)
+        self._particles, = self._map_ax.plot([self._agent[0]], [self._agent[1]], 'bo', ms=self._markerSize)
         
-        self._map_ax.plot([self._target[0]], [self._target[1]], 'ro', ms=10)
+        self._map_ax.plot([self._target[0]], [self._target[1]], 'ro', ms=self._markerSize)
+        
+        self._map_ax.plot(self._obstacles[:,0], self._obstacles[:,1], 'gs', ms=28)
         # self._line1, = self._ax.plot(x, y, 'r-') # Returns a tuple of line objects, thus the comma        
         
         cmap2 = matplotlib.colors.LinearSegmentedColormap.from_list('my_colormap',
@@ -170,7 +195,7 @@ class Map(object):
         # self._agent = self._agent + np.array([0.1,0.1])
         # print "Agent loc: " + str(self._agent)
         self._particles.set_data(self._agent[0], self._agent[1] )
-        self._particles.set_markersize(10)
+        self._particles.set_markersize(self._markerSize)
         # self._line1.set_ydata(np.sin(x + phase))
         self._fig.canvas.draw()
         
