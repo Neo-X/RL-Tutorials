@@ -8,6 +8,8 @@ This work is done to help understand the full Reiforcement Learning pipeline. I 
  2. pip install Theano
  3. pip install matplotlib
  4. pip install Lasagne==0.1
+ 5. sudo apt-get install python-pyode
+ 6. sudo apt-get install python-opengl
 
 ## Using
 
