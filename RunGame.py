@@ -89,7 +89,7 @@ def collectExperienceActionsContinuous(experience, action_bounds):
             action = game.move(random.choice(action_selection))
             # randomAction = randomUniformExporation(action_bounds) # Should select from 8 original actions
             # action = clampAction(randomAction, action_bounds)
-            reward = game.actContinuous(randomAction)
+            reward = game.actContinuous(action)
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
             # Everything should be normalized to be between -1 and 1
