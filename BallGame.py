@@ -1,279 +1,168 @@
-# pyODE example 3: Collision detection
+"""
+Animation of Elastic collisions with Gravity
 
-# Originally by Matthias Baas.
-# Updated by Pierre Gay to work without pygame or cgkit.
+author: Jake Vanderplas
+email: vanderplas@astro.washington.edu
+website: http://jakevdp.github.com
+license: BSD
+https://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
+Please feel free to use and modify this, but keep the above information. Thanks!
+"""
+import numpy as np
+from scipy.spatial.distance import pdist, squareform
 
-import sys, os, random, time
-from math import *
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
+import matplotlib.pyplot as plt
+import scipy.integrate as integrate
+import matplotlib.animation as animation
 
-import ode
+class ParticleBox:
+    """Orbits class
+    
+    init_state is an [N x 4] array, where N is the number of particles:
+       [[x1, y1, vx1, vy1],
+        [x2, y2, vx2, vy2],
+        ...               ]
 
-# geometric utility functions
-def scalp (vec, scal):
-    vec[0] *= scal
-    vec[1] *= scal
-    vec[2] *= scal
-
-def length (vec):
-    return sqrt (vec[0]**2 + vec[1]**2 + vec[2]**2)
-
-# prepare_GL
-def prepare_GL():
-    """Prepare drawing.
+    bounds is the size of the box: [xmin, xmax, ymin, ymax]
     """
+    def __init__(self,
+                 init_state = [[1, 0, 0, -1],
+                               [-0.5, 0.5, 0.5, 0.5],
+                               [-0.5, -0.5, -0.5, 0.5]],
+                 bounds = [-2, 2, -2, 2],
+                 size = 0.04,
+                 M = 0.05,
+                 G = 9.8):
+        self.init_state = np.asarray(init_state, dtype=float)
+        self.M = M * np.ones(self.init_state.shape[0])
+        self.size = size
+        self.state = self.init_state.copy()
+        self.time_elapsed = 0
+        self.bounds = bounds
+        self.G = G
 
-    # Viewport
-    glViewport(0,0,640,480)
+    def step(self, dt):
+        """step once by dt seconds"""
+        self.time_elapsed += dt
+        
+        # update positions
+        self.state[:, :2] += dt * self.state[:, 2:]
 
-    # Initialize
-    glClearColor(0.8,0.8,0.9,0)
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST)
-    glDisable(GL_LIGHTING)
-    glEnable(GL_LIGHTING)
-    glEnable(GL_NORMALIZE)
-    glShadeModel(GL_FLAT)
+        # find pairs of particles undergoing a collision
+        D = squareform(pdist(self.state[:, :2]))
+        ind1, ind2 = np.where(D < 2 * self.size)
+        unique = (ind1 < ind2)
+        ind1 = ind1[unique]
+        ind2 = ind2[unique]
 
-    # Projection
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    gluPerspective (45,1.3333,0.2,20)
+        # update velocities of colliding pairs
+        for i1, i2 in zip(ind1, ind2):
+            # mass
+            m1 = self.M[i1]
+            m2 = self.M[i2]
 
-    # Initialize ModelView matrix
-    glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
+            # location vector
+            r1 = self.state[i1, :2]
+            r2 = self.state[i2, :2]
 
-    # Light source
-    glLightfv(GL_LIGHT0,GL_POSITION,[0,0,1,0])
-    glLightfv(GL_LIGHT0,GL_DIFFUSE,[1,1,1,1])
-    glLightfv(GL_LIGHT0,GL_SPECULAR,[1,1,1,1])
-    glEnable(GL_LIGHT0)
+            # velocity vector
+            v1 = self.state[i1, 2:]
+            v2 = self.state[i2, 2:]
 
-    # View transformation
-    gluLookAt (2.4, 3.6, 4.8, 0.5, 0.5, 0, 0, 1, 0)
+            # relative location & velocity vectors
+            r_rel = r1 - r2
+            v_rel = v1 - v2
 
-# draw_body
-def draw_body(body):
-    """Draw an ODE body.
-    """
+            # momentum vector of the center of mass
+            v_cm = (m1 * v1 + m2 * v2) / (m1 + m2)
 
-    x,y,z = body.getPosition()
-    R = body.getRotation()
-    rot = [R[0], R[3], R[6], 0.,
-           R[1], R[4], R[7], 0.,
-           R[2], R[5], R[8], 0.,
-           x, y, z, 1.0]
-    glPushMatrix()
-    glMultMatrixd(rot)
-    if body.shape=="box":
-        sx,sy,sz = body.boxsize
-        glScalef(sx, sy, sz)
-        glutSolidCube(1)
-    glPopMatrix()
+            # collisions of spheres reflect v_rel over r_rel
+            rr_rel = np.dot(r_rel, r_rel)
+            vr_rel = np.dot(v_rel, r_rel)
+            v_rel = 2 * r_rel * vr_rel / rr_rel - v_rel
 
+            # assign new velocities
+            self.state[i1, 2:] = v_cm + v_rel * m2 / (m1 + m2)
+            self.state[i2, 2:] = v_cm - v_rel * m1 / (m1 + m2) 
 
-# create_box
-def create_box(world, space, density, lx, ly, lz):
-    """Create a box body and its corresponding geom."""
+        # check for crossing boundary
+        crossed_x1 = (self.state[:, 0] < self.bounds[0] + self.size)
+        crossed_x2 = (self.state[:, 0] > self.bounds[1] - self.size)
+        crossed_y1 = (self.state[:, 1] < self.bounds[2] + self.size)
+        crossed_y2 = (self.state[:, 1] > self.bounds[3] - self.size)
 
-    # Create body
-    body = ode.Body(world)
-    M = ode.Mass()
-    M.setBox(density, lx, ly, lz)
-    body.setMass(M)
+        self.state[crossed_x1, 0] = self.bounds[0] + self.size
+        self.state[crossed_x2, 0] = self.bounds[1] - self.size
 
-    # Set parameters for drawing the body
-    body.shape = "box"
-    body.boxsize = (lx, ly, lz)
+        self.state[crossed_y1, 1] = self.bounds[2] + self.size
+        self.state[crossed_y2, 1] = self.bounds[3] - self.size
 
-    # Create a box geom for collision detection
-    geom = ode.GeomBox(space, lengths=body.boxsize)
-    geom.setBody(body)
+        self.state[crossed_x1 | crossed_x2, 2] *= -1
+        self.state[crossed_y1 | crossed_y2, 3] *= -1
 
-    return body, geom
-
-# drop_object
-def drop_object():
-    """Drop an object into the scene."""
-
-    global bodies, geom, counter, objcount
-
-    body, geom = create_box(world, space, 1000, 1.0,0.2,0.2)
-    body.setPosition( (random.gauss(0,0.1),3.0,random.gauss(0,0.1)) )
-    theta = random.uniform(0,2*pi)
-    ct = cos (theta)
-    st = sin (theta)
-    body.setRotation([ct, 0., -st, 0., 1., 0., st, 0., ct])
-    bodies.append(body)
-    geoms.append(geom)
-    counter=0
-    objcount+=1
-
-# explosion
-def explosion():
-    """Simulate an explosion.
-
-    Every object is pushed away from the origin.
-    The force is dependent on the objects distance from the origin.
-    """
-    global bodies
-
-    for b in bodies:
-        l=b.getPosition ()
-        d = length (l)
-        a = max(0, 40000*(1.0-0.2*d*d))
-        l = [l[0] / 4, l[1], l[2] /4]
-        scalp (l, a / length (l))
-        b.addForce(l)
-
-# pull
-def pull():
-    """Pull the objects back to the origin.
-
-    Every object will be pulled back to the origin.
-    Every couple of frames there'll be a thrust upwards so that
-    the objects won't stick to the ground all the time.
-    """
-    global bodies, counter
-
-    for b in bodies:
-        l=list (b.getPosition ())
-        scalp (l, -1000 / length (l))
-        b.addForce(l)
-        if counter%60==0:
-            b.addForce((0,10000,0))
-
-# Collision callback
-def near_callback(args, geom1, geom2):
-    """Callback function for the collide() method.
-
-    This function checks if the given geoms do collide and
-    creates contact joints if they do.
-    """
-
-    # Check if the objects do collide
-    contacts = ode.collide(geom1, geom2)
-
-    # Create contact joints
-    world,contactgroup = args
-    for c in contacts:
-        c.setBounce(0.2)
-        c.setMu(5000)
-        j = ode.ContactJoint(world, contactgroup, c)
-        j.attach(geom1.getBody(), geom2.getBody())
+        # add gravity
+        self.state[:, 3] -= self.M * self.G * dt
 
 
+#------------------------------------------------------------
+# set up initial state
+np.random.seed(0)
+init_state = -0.5 + np.random.random((50, 4))
+init_state[:, :2] *= 3.9
 
-######################################################################
+init_state = [[-2,0,1,0]]
 
-# Initialize Glut
-glutInit ([])
-
-# Open a window
-glutInitDisplayMode (GLUT_RGB | GLUT_DOUBLE)
-
-x = 0
-y = 0
-width = 640
-height = 480
-glutInitWindowPosition (x, y);
-glutInitWindowSize (width, height);
-glutCreateWindow ("testode")
-
-# Create a world object
-world = ode.World()
-world.setGravity( (0,-9.81,0) )
-world.setERP(0.8)
-world.setCFM(1E-5)
-
-# Create a space object
-space = ode.Space()
-
-# Create a plane geom which prevent the objects from falling forever
-floor = ode.GeomPlane(space, (0,1,0), 0)
-
-# A list with ODE bodies
-bodies = []
-
-# The geoms for each of the bodies
-geoms = []
-
-# A joint group for the contact joints that are generated whenever
-# two bodies collide
-contactgroup = ode.JointGroup()
-
-# Some variables used inside the simulation loop
-fps = 50
-dt = 1.0/fps
-running = True
-state = 0
-counter = 0
-objcount = 0
-lasttime = time.time()
+box = ParticleBox(init_state, size=0.04)
+dt = 1. / 60 # 30fps
 
 
-# keyboard callback
-def _keyfunc (c, x, y):
-    sys.exit (0)
+#------------------------------------------------------------
+# set up figure and animation
+fig = plt.figure()
+fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+ax = fig.add_subplot(111, aspect='equal', autoscale_on=False,
+                     xlim=(-3.2, 3.2), ylim=(-2.4, 2.4))
 
-glutKeyboardFunc (_keyfunc)
+# particles holds the locations of the particles
+particles, = ax.plot([], [], 'bo', ms=6)
 
-# draw callback
-def _drawfunc ():
-    # Draw the scene
-    prepare_GL()
-    for b in bodies:
-        draw_body(b)
+# rect is the box edge
+rect = plt.Rectangle(box.bounds[::2],
+                     box.bounds[1] - box.bounds[0],
+                     box.bounds[3] - box.bounds[2],
+                     ec='none', lw=2, fc='none')
+ax.add_patch(rect)
 
-    glutSwapBuffers ()
+def init():
+    """initialize animation"""
+    global box, rect
+    particles.set_data([], [])
+    rect.set_edgecolor('none')
+    return particles, rect
 
-glutDisplayFunc (_drawfunc)
+def animate(i):
+    """perform animation step"""
+    global box, rect, dt, ax, fig
+    box.step(dt)
 
-# idle callback
-def _idlefunc ():
-    global counter, state, lasttime
+    ms = int(fig.dpi * 2 * box.size * fig.get_figwidth()
+             / np.diff(ax.get_xbound())[0])
+    
+    # update pieces of the animation
+    rect.set_edgecolor('k')
+    particles.set_data(box.state[:, 0], box.state[:, 1])
+    particles.set_markersize(ms)
+    return particles, rect
 
-    t = dt - (time.time() - lasttime)
-    if (t > 0):
-        time.sleep(t)
+ani = animation.FuncAnimation(fig, animate, frames=600,
+                              interval=10, blit=True, init_func=init)
 
-    counter += 1
 
-    if state==0:
-        if counter==20:
-            drop_object()
-        if objcount==30:
-            state=1
-            counter=0
-    # State 1: Explosion and pulling back the objects
-    elif state==1:
-        if counter==100:
-            explosion()
-        if counter>300:
-            pull()
-        if counter==500:
-            counter=20
+# save the animation as an mp4.  This requires ffmpeg or mencoder to be
+# installed.  The extra_args ensure that the x264 codec is used, so that
+# the video can be embedded in html5.  You may need to adjust this for
+# your system: for more information, see
+# http://matplotlib.sourceforge.net/api/animation_api.html
+#ani.save('particle_box.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
-    glutPostRedisplay ()
-
-    # Simulate
-    n = 2
-
-    for i in range(n):
-        # Detect collisions and create contact joints
-        space.collide((world,contactgroup), near_callback)
-
-        # Simulation step
-        world.step(dt/n)
-
-        # Remove all contact joints
-        contactgroup.empty()
-
-    lasttime = time.time()
-
-glutIdleFunc (_idlefunc)
-
-glutMainLoop ()
+plt.show()
