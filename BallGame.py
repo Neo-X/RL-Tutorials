@@ -12,8 +12,8 @@ import numpy as np
 from scipy.spatial.distance import pdist, squareform
 
 import matplotlib.pyplot as plt
-import scipy.integrate as integrate
-import matplotlib.animation as animation
+# import scipy.integrate as integrate
+# import matplotlib.animation as animation
 
 class ParticleBox:
     """Orbits class
