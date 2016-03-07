@@ -130,14 +130,6 @@ class Map(object):
             return 16.0
         return 0
     
-    def reward2(self):
-        # 1 for reaching target
-        a=(self._agent - self._target)
-        d = np.sqrt((a*a).sum(axis=0))
-        if d < 0.3:
-            return 1.0
-        return 0.0
-    
     def getState(self):
         return self._agent
     

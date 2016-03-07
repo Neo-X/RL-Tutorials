@@ -33,7 +33,7 @@ class ParticleBox:
                  size = 0.04,
                  M = 0.05,
                  G = 9.8):
-        self.init_state = np.asarray(init_state, dtype=float)
+        self.init_state = np.array(init_state, dtype=float)
         self.M = M * np.ones(self.init_state.shape[0])
         self.size = size
         self.state = self.init_state.copy()
@@ -119,7 +119,7 @@ class BallGame(object):
         init_state = -0.5 + np.random.random((50, 4))
         init_state[:, :2] *= 3.9
         
-        init_state = [[-2,0,1,0]]
+        init_state = [[0,-2,1,0]]
         
         self._box = ParticleBox(init_state, size=0.04)
         self._dt = 1. / 60 # 30fps
@@ -141,8 +141,31 @@ class BallGame(object):
                              self._box.bounds[3] - self._box.bounds[2],
                              ec='none', lw=2, fc='none')
         self._ax.add_patch(self._rect)
+        self.setTarget(np.array([0,-2]))
 
-    def init(self):
+    def reset(self):
+        self._box.state[0][0] = np.random.uniform(self._box.bounds[0],self._box.bounds[1],1)[0]
+        self._box.state[0][1] = self._box.bounds[2]
+        self._box.state[0][3] = 0
+        self._box.state[0][2] = 0
+        
+    def move(self, action):
+        """
+        action in [0,1,2,3,4,5,6,7]
+        Used for initial bootstrapping
+        """
+        return {
+            0: [-1,1],
+            1: [-0.8,1],
+            2: [-0.66,1],
+            3: [-0.33,1],
+            4: [0.0,1],
+            5: [0.33,1],
+            6: [0.66,1],
+            7: [1,1],
+            }.get(action, [-1,0]) 
+        
+    def init(self, U, V, Q):
         """initialize animation"""
         self._particles.set_data([], [])
         self._rect.set_edgecolor('none')
@@ -165,7 +188,7 @@ class BallGame(object):
         return out
     
         
-    def act(self, action):
+    def actContinuous(self, action):
         run = True
         print "Acting: " + str(action)
         self._box.state[0][3] = action[1]
@@ -173,9 +196,46 @@ class BallGame(object):
         for i in range(500):
             run = self.animate(i)
             # print box.state
-            self._fig.canvas.draw()
             if not run:
                 return False
+            
+    def reward(self):
+        # More like a cost function for distance away from target
+        a=(self._agent - self._target)
+        d = np.sqrt((a*a).sum(axis=0))
+        if d < 0.3:
+            return 16.0
+        return 0
+    
+    def update(self):
+        """perform animation step"""
+        # update pieces of the animation
+        # self._agent = self._agent + np.array([0.1,0.1])
+        # print "Agent loc: " + str(self._agent)
+        self._fig.canvas.draw()
+        # self._line1.set_ydata(np.sin(x + phase))
+        self._fig.canvas.draw()
+        
+    def updatePolicy(self, U, V, Q):
+        # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
+        textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+    
+    def getState(self):
+        return self._box.state[0,:2]
+    
+    def setState(self, st):
+        self._agent = st
+        
+    def setTarget(self, st):
+        self._target = st
+        
+    def reachedTarget(self):
+        # Might be a little touchy because floats are used
+        return False
+
+    def saveVisual(self, fileName):
+        # plt.savefig(fileName+".svg")
+        self._fig.savefig(fileName+".svg")
 
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
@@ -192,7 +252,7 @@ class BallGame(object):
 
 ballGame = BallGame()
 
-ballGame.init()
+ballGame.init([],[],[])
 
 for i in range(10):
-    ballGame.act([1,1])
+    ballGame.actContinuous([1,1])
