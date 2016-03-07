@@ -294,8 +294,8 @@ class DeepDPG(object):
         self._updates += 1
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         loss, _ = self._train()
-        # This undoes the parameter updates as a result of the Critic update.
-        lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsActA)
+        # This undoes the Actor parameter updates as a result of the Critic update.
+        lasagne.layers.helper.set_all_param_values(self._l_outActA, all_paramsActA)
         # self._trainOneActions(states, actions, rewards, result_states)
         self._trainActor()
         # diff_ = self._bellman_error(states, rewards, result_states)
