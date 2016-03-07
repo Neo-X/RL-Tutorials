@@ -197,11 +197,13 @@ class BallGame(object):
             run = self.animate(i)
             # print box.state
             if not run:
-                return False
+                return self.reward()
+            
+        self.reward()
             
     def reward(self):
         # More like a cost function for distance away from target
-        a=(self._agent - self._target)
+        a=(self._box.state[0,:2] - self._target)
         d = np.sqrt((a*a).sum(axis=0))
         if d < 0.3:
             return 16.0
@@ -223,8 +225,8 @@ class BallGame(object):
     def getState(self):
         return self._box.state[0,:2]
     
-    def setState(self, st):
-        self._agent = st
+    #def setState(self, st):
+    #    self._agent = st
         
     def setTarget(self, st):
         self._target = st
