@@ -99,9 +99,15 @@ class ParticleBox:
 
         self.state[crossed_x1 | crossed_x2, 2] *= -1
         self.state[crossed_y1 | crossed_y2, 3] *= -1
+        if (crossed_y1[0] ):
+            # Crosses ground boundary
+            # print "Bounce Ground"
+            # print crossed_y1, crossed_y2
+            return False
 
         # add gravity
         self.state[:, 3] -= self.M * self.G * dt
+        return True
 
 
 #------------------------------------------------------------
@@ -143,7 +149,7 @@ def init():
 def animate(i):
     """perform animation step"""
     global box, rect, dt, ax, fig
-    box.step(dt)
+    out = box.step(dt)
 
     ms = int(fig.dpi * 2 * box.size * fig.get_figwidth()
              / np.diff(ax.get_xbound())[0])
@@ -152,10 +158,23 @@ def animate(i):
     rect.set_edgecolor('k')
     particles.set_data(box.state[:, 0], box.state[:, 1])
     particles.set_markersize(ms)
-    return particles, rect
+    # return particles, rect
+    return out
 
-ani = animation.FuncAnimation(fig, animate, frames=600,
-                              interval=10, blit=True, init_func=init)
+    
+def act(action):
+    run = True
+    print "Acting"
+    box.state[0][3] = action[1]
+    for i in range(500):
+        run = animate(i)
+        print box.state
+        fig.canvas.draw()
+        if not run:
+            return False
+
+#ani = animation.FuncAnimation(fig, animate, frames=600,
+#                               interval=10, blit=True, init_func=init)
 
 
 # save the animation as an mp4.  This requires ffmpeg or mencoder to be
@@ -165,4 +184,11 @@ ani = animation.FuncAnimation(fig, animate, frames=600,
 # http://matplotlib.sourceforge.net/api/animation_api.html
 #ani.save('particle_box.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
+# plt.show()
+
+plt.ion()
 plt.show()
+init()
+
+for i in range(10):
+    act([0,1])
