@@ -148,7 +148,7 @@ class DeepDPG(object):
                 self._l_outA, lasagne.regularization.l2))
         self._loss = T.mean(self._loss)
         
-        self._params = lasagne.layers.helper.get_all_params(self._l_outA)
+        self._params = lasagne.layers.helper.get_all_params(self._l_outA)[-6:]
         self._actionParams = lasagne.layers.helper.get_all_params(self._l_outActA)
         self._givens_ = {
             State: self._states_shared,
@@ -281,6 +281,7 @@ class DeepDPG(object):
         lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
         
         # print "l_out length: " + str(len(all_paramsA))
+        # print "l_out[5] length: " + str(len(all_paramsA[11]))
         # print "l_outAct length: " + str(len(all_paramsActA))
     
     def train(self, states, actions, rewards, result_states):
@@ -292,10 +293,12 @@ class DeepDPG(object):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
+        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         loss, _ = self._train()
         # This undoes the Actor parameter updates as a result of the Critic update.
-        lasagne.layers.helper.set_all_param_values(self._l_outActA, all_paramsActA)
+        #if all_paramsActA == self._l_outActA:
+        #    print "Parameters the same:"
+        # lasagne.layers.helper.set_all_param_values(self._l_outActA, all_paramsActA)
         # self._trainOneActions(states, actions, rewards, result_states)
         self._trainActor()
         # diff_ = self._bellman_error(states, rewards, result_states)
