@@ -191,7 +191,7 @@ class DeepDPG(object):
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_func) + 
           (1e-3 * lasagne.regularization.regularize_network_params(
               self._l_outActA, lasagne.regularization.l2)), self._actionParams, 
-                  self._learning_rate * 0.01, self._rho, self._rms_epsilon)
+                  self._learning_rate * 1, self._rho, self._rms_epsilon)
         
         
         
