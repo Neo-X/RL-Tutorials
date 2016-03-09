@@ -261,7 +261,7 @@ class DeepDPG(object):
         """
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._l_outB)
-        lerp_weight = 0.0001
+        lerp_weight = 0.001
         # print "param Values"
         all_params = []
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):
@@ -300,7 +300,8 @@ class DeepDPG(object):
         #    print "Parameters the same:"
         # lasagne.layers.helper.set_all_param_values(self._l_outActA, all_paramsActA)
         # self._trainOneActions(states, actions, rewards, result_states)
-        self._trainActor()
+        for i in range(10):
+            self._trainActor()
         # diff_ = self._bellman_error(states, rewards, result_states)
         # print "Diff"
         # print diff_
