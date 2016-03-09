@@ -23,6 +23,13 @@ def rlTDSGD(cost, delta, params, lr=0.05):
 class DeepDPG(object):
     
     def __init__(self, n_in, n_out):
+        """
+            In order to get this to work we need to be careful not to update the actor parameters
+            when updatating the critic. This can be an issue when the Concatenating networks together.
+            The first first network becomes a part of the second. Hoever you can still access the first
+            network by itself but an updates on the sencond network will effect the first network.
+            Care needs to be taken to make sure only the parameters of the second network are updated.
+        """
 
         batch_size=32
         state_length=n_in
@@ -101,7 +108,7 @@ class DeepDPG(object):
         self._rho = 0.95
         self._rms_epsilon = 0.001
         
-        self._weight_update_steps=1
+        self._weight_update_steps=5
         self._updates=0
         
         self._states_shared = theano.shared(
@@ -168,7 +175,7 @@ class DeepDPG(object):
         #                                    self._rms_epsilon)
         # TD update
         # minimize Value function error
-        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + (1e-3 * lasagne.regularization.regularize_network_params(
+        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + (1e-4 * lasagne.regularization.regularize_network_params(
         self._l_outA, lasagne.regularization.l2)), self._params, 
                     self._learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
@@ -189,15 +196,15 @@ class DeepDPG(object):
         
         # theano.gradient.grad_clip(x, lower_bound, upper_bound) # // TODO
         actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_func) + 
-          (1e-3 * lasagne.regularization.regularize_network_params(
+          (1e-4 * lasagne.regularization.regularize_network_params(
               self._l_outActA, lasagne.regularization.l2)), self._actionParams, 
-                  self._learning_rate * 1, self._rho, self._rms_epsilon)
+                  self._learning_rate * 0.1, self._rho, self._rms_epsilon)
         
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
-        self._trainActor = theano.function([], [self._q_funcB], updates=actionUpdates, givens=self._actGivens)
+        self._trainActor = theano.function([], [self._q_func], updates=actionUpdates, givens=self._actGivens)
         self._q_val = theano.function([], self._q_valsA,
                                        givens={State: self._states_shared})
         self._q_action = theano.function([], self._q_valsActA,
@@ -259,9 +266,19 @@ class DeepDPG(object):
         """
             Target model updates
         """
+        
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._l_outB)
         lerp_weight = 0.001
+        
+        # print "l_out length: " + str(len(all_paramsA))
+        # print "l_out length: " + str(all_paramsA[-6:])
+        # print "l_out[0] length: " + str(all_paramsA[0])
+        # print "l_out[4] length: " + str(all_paramsA[4])
+        # print "l_out[5] length: " + str(all_paramsA[5])
+        # print "l_out[6] length: " + str(all_paramsA[6])
+        # print "l_out[7] length: " + str(all_paramsA[7])
+        # print "l_out[11] length: " + str(all_paramsA[11])
         # print "param Values"
         all_params = []
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):
@@ -269,21 +286,22 @@ class DeepDPG(object):
             # print "paramsB: " + str(paramsB)
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_params.append(params)
+        """
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         all_paramsActB = lasagne.layers.helper.get_all_param_values(self._l_outActB)
+        # print "l_outAct[0] length: " + str(all_paramsActA[0])
+        # print "l_outAct[4] length: " + str(all_paramsActA[4])
+        # print "l_outAct[5] length: " + str(all_paramsActA[5])
         all_paramsAct = []
         for paramsA, paramsB in zip(all_paramsActA, all_paramsActB):
             # print "paramsA: " + str(paramsA)
             # print "paramsB: " + str(paramsB)
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_paramsAct.append(params)
+            """
         lasagne.layers.helper.set_all_param_values(self._l_outB, all_params)
-        lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
+        # lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
         
-        # print "l_out length: " + str(len(all_paramsA))
-        # print "l_out[5] length: " + str(len(all_paramsA[11]))
-        # print "l_outAct length: " + str(len(all_paramsActA))
-    
     def train(self, states, actions, rewards, result_states):
         self._states_shared.set_value(states)
         self._next_states_shared.set_value(result_states)
