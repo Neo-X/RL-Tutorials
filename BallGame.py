@@ -125,24 +125,6 @@ class BallGame(object):
         self._dt = 1. / 60 # 30fps
         
         
-        #------------------------------------------------------------
-        # set up figure and animation
-        self._fig = plt.figure()
-        self._fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
-        self._ax = self._fig.add_subplot(111, aspect='equal', autoscale_on=False,
-                             xlim=(-3.2, 3.2), ylim=(-2.4, 2.4))
-        
-        # particles holds the locations of the particles
-        self._particles, = self._ax.plot([], [], 'bo', ms=6)
-        self._targets, = self._ax.plot([], [], 'go', ms=8)
-        
-        # rect is the box edge
-        self._rect = plt.Rectangle(self._box.bounds[::2],
-                             self._box.bounds[1] - self._box.bounds[0],
-                             self._box.bounds[3] - self._box.bounds[2],
-                             ec='none', lw=2, fc='none')
-        self._ax.add_patch(self._rect)
-        self.setTarget(np.array([0,-2]))
 
     def reset(self):
         self._box.state[0][0] = np.random.uniform(self._box.bounds[0],self._box.bounds[1],1)[0]
@@ -168,6 +150,43 @@ class BallGame(object):
         
     def init(self, U, V, Q):
         """initialize animation"""
+         #------------------------------------------------------------
+        # set up figure and animation
+        self._fig, (self._map_ax, self._policy_ax) = plt.subplots(1, 2, sharey=False)
+        self._fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+        self._map_ax.set_title('Map')
+        
+        # particles holds the locations of the particles
+        self._particles, = self._map_ax.plot([], [], 'bo', ms=6)
+        self._targets, = self._map_ax.plot([], [], 'go', ms=8)
+        
+        # rect is the box edge
+        self._rect = plt.Rectangle(self._box.bounds[::2],
+                             self._box.bounds[1] - self._box.bounds[0],
+                             self._box.bounds[3] - self._box.bounds[2],
+                             ec='none', lw=2, fc='none')
+        self._map_ax.add_patch(self._rect)
+        
+        self._policy_ax.set_title('Policy')
+        
+        X,Y = np.mgrid[0:self._box.bounds[1][0]+1,0:self._box.bounds[1][0]+1]
+        print X,Y
+        # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
+        textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+        
+        # place a text box in upper left in axes coords
+        self._policyText = self._policy_ax.text(0.05, 0.95, textstr, transform=self._policy_ax.transAxes, fontsize=14,
+                verticalalignment='top', bbox=props)
+        q_max = np.max(Q)
+        q_min = np.min(Q)
+        Q = (Q - q_min)/ (q_max-q_min)
+        self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        
+        # self._policy_ax.set_aspect(1.)
+        self.setTarget(np.array([0,-2]))
+        
         self._particles.set_data([], [])
         self._rect.set_edgecolor('none')
         plt.ion()
