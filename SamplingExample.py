@@ -123,7 +123,7 @@ if __name__ == "__main__":
     game = BallGame()
     game.init([],[],[])
     action_space_continuous = True
-    max_training_steps = 10
+    max_training_steps = 100
     action_bounds = settings['action_bounds']
     action_bounds = [[-0.8,0.1],[0.8,1.0]]
     data_folder = settings['data_folder']
@@ -133,6 +133,7 @@ if __name__ == "__main__":
     init_state=[]
     result_state=[]
     action_path=[]
+    rewards=[]
     initial_state = [-1.5,-1.95]
     
     action=0
@@ -151,22 +152,51 @@ if __name__ == "__main__":
         action = randomUniformExporation(action_bounds) # Completely random action
         print action
         # action = [1,1]
-        reward = game.actContinuous(action)
+        # reward = game.actContinuous(action)
+        run = True
+        print "Acting: " + str(action)
+        action_path_tmp=[]
+        game._box.state[0][3] = action[1]
+        game._box.state[0][2] = action[0]
+        for i in range(1000):
+            run = game.animate(i)
+            # print box.state
+            # game.update()
+            action_path_tmp.append(copy.deepcopy(game.getState()))
+            if not run:
+                reward = game.rewardSmooth(4.0)
+                break
             
+        action_path.append(np.reshape(action_path_tmp, (-1,2) ) )    
         resultState = game.getState()
         # tup = ExperienceTuple(state, [action], resultState, [reward])
         # Everything should be normalized to be between -1 and 1
-        reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
+        # reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
         
         result_state.append(copy.deepcopy(resultState))
-        print result_state
+        rewards.append(reward)
+        # print result_state
         
     game.finish()
     init_state = np.array(init_state)
     result_state = np.array(result_state)
-    print init_state, result_state
+    action_path = np.array(action_path)
+    rewards = np.array(rewards)
+    # print init_state, result_state
     plt.plot(init_state[:,0],init_state[:,1],'bo', ms=6)
     plt.plot(result_state[:,0],result_state[:,1],'ro', ms=6)
+    # print "Action Paths: " + str(action_path)
+    # print "Action Paths[0]: " + str(action_path[0])
+    # print "Action Paths len: " + str(len(action_path))
+    print rewards
+    # scaled_rewards = (rewards/np.max(rewards))
+    # print scaled_rewards
+    rewards = np.power(rewards,4)
+    print rewards
+    for p in range(len(action_path)):
+        score = rewards[p]
+        colour=(score, 0.0, 1.0-score)
+        plt.plot(action_path[p][:,0],action_path[p][:,1], color=colour)
     
 
     plt.show()

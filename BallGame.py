@@ -134,6 +134,7 @@ class BallGame(object):
         
         # particles holds the locations of the particles
         self._particles, = self._ax.plot([], [], 'bo', ms=6)
+        self._targets, = self._ax.plot([], [], 'go', ms=8)
         
         # rect is the box edge
         self._rect = plt.Rectangle(self._box.bounds[::2],
@@ -184,6 +185,8 @@ class BallGame(object):
         self._rect.set_edgecolor('k')
         self._particles.set_data(self._box.state[:, 0], self._box.state[:, 1])
         self._particles.set_markersize(ms)
+        self._targets.set_data([self._target[0]], [self._target[1]])
+        self._targets.set_markersize(ms)
         # return particles, rect
         return out
     
@@ -210,6 +213,13 @@ class BallGame(object):
         if d < 0.3:
             return 16.0
         return 0
+    
+    def rewardSmooth(self, max_d):
+        # More like a cost function for distance away from target
+        a=(self._box.state[0,:2] - self._target)
+        d = np.sqrt((a*a).sum(axis=0))
+        out = 1-(d/max_d)
+        return out
     
     def update(self):
         """perform animation step"""
