@@ -29,7 +29,7 @@ class ParticleBox:
                  init_state = [[1, 0, 0, -1],
                                [-0.5, 0.5, 0.5, 0.5],
                                [-0.5, -0.5, -0.5, 0.5]],
-                 bounds = [-2, 2, -2, 2],
+                 bounds = [0, 4, 0, 4],
                  size = 0.04,
                  M = 0.05,
                  G = 9.8):
@@ -119,10 +119,10 @@ class BallGame(object):
         init_state = -0.5 + np.random.random((50, 4))
         init_state[:, :2] *= 3.9
         
-        init_state = [[0,-2,1,0]]
+        init_state = [[0,2,1,0]]
         
         self._box = ParticleBox(init_state, size=0.04)
-        self._dt = 1. / 60 # 30fps
+        self._dt = 1. / 30 # 30fps
         
         
 
@@ -158,7 +158,7 @@ class BallGame(object):
         self._map_ax.set_title('Map')
         
         # particles holds the locations of the particles
-        self._particles, = self._map_ax.plot([-2,2], [-2,2], 'bo', ms=4)
+        self._particles, = self._map_ax.plot([0,4], [0,4], 'bo', ms=4)
         self._targets, = self._map_ax.plot([], [], 'go', ms=4)
         
         # rect is the box edge
@@ -170,7 +170,7 @@ class BallGame(object):
         
         self._policy_ax.set_title('Policy')
         
-        scale =float(8.0)
+        scale =float(4.0)
         X,Y = np.mgrid[0:self._box.bounds[1]*scale,0:self._box.bounds[1]*scale]/float(scale)
         print X,Y
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
@@ -187,7 +187,7 @@ class BallGame(object):
         self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
         
         # self._policy_ax.set_aspect(1.)
-        self.setTarget(np.array([0,-2]))
+        self.setTarget(np.array([2,0]))
         
         self._particles.set_data([], [])
         self._rect.set_edgecolor('none')
@@ -232,8 +232,16 @@ class BallGame(object):
         a=(self._box.state[0,:2] - self._target)
         d = np.sqrt((a*a).sum(axis=0))
         if d < 0.3:
-            return 16.0
+            return 1.0
         return 0
+    
+    def reward2(self):
+        # More like a cost function for distance away from target
+        a=(self._box.state[0,:2] - self._target)
+        d = np.sqrt((a*a).sum(axis=0))
+        if d < 0.3:
+            return 1.0
+        return -d
     
     def rewardSmooth(self, max_d):
         # More like a cost function for distance away from target

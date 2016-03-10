@@ -118,10 +118,9 @@ if __name__ == "__main__":
     epsilon = 0.45 # It is important to have some space between these values especially now that the experience buffer starts loaded with random actions
     omega = 0.8
     p = 1.0
-    max_reward = math.sqrt(16**2 * 2) + 5.0
-    
+    max_reward = 1.0    
     game = BallGame()
-    game.init([],[],[])
+    game.init([1],[1],[1])
     action_space_continuous = True
     max_training_steps = 100
     action_bounds = settings['action_bounds']
@@ -134,7 +133,7 @@ if __name__ == "__main__":
     result_state=[]
     action_path=[]
     rewards=[]
-    initial_state = [-1.5,-1.95]
+    initial_state = [0.5,0.05]
     
     action=0
     reward=0

@@ -119,7 +119,7 @@ if __name__ == "__main__":
     omega = 0.8
     map = loadMap()
     # Normalization constants for data
-    max_reward = 16.0
+    max_reward = 1.0
     # max_reward = 1.0
     max_state = 2.0
     
@@ -275,7 +275,7 @@ if __name__ == "__main__":
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
             # Everything should be normalized to be between -1 and 1
-            reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
+            reward_ = reward
             # reward_ = (reward)/(max_reward)
             # reward_ = (reward+max_reward)/(max_reward)
             experience.insert(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward_])
@@ -296,7 +296,7 @@ if __name__ == "__main__":
             discounted_sum += (math.pow(0.8,t) * reward)
             if experience.samples() > batch_size:
                 _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
-                print _states
+                # print _states, _rewards
                 cost = model.train(_states, _actions, _rewards, _result_states)
                 # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 

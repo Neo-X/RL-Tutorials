@@ -20,6 +20,12 @@ def loadMap():
 def norm_state(state, max_state):
     return (state-max_state)/max_state
 
+def norm_state2(state, max_state):
+    """
+    For when the origin is in the centre of the enfironment
+    """
+    return (state)/max_state
+
 def get_policy_visual_data(model_, max_state, game):
     X,Y = np.mgrid[0:16,0:16]
     U = []
