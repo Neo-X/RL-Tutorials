@@ -103,7 +103,7 @@ class ParticleBox:
             # Crosses ground boundary
             # print "Bounce Ground"
             # print crossed_y1, crossed_y2
-            return False
+            return True
 
         # add gravity
         self.state[:, 3] -= self.M * self.G * dt
@@ -196,6 +196,8 @@ class BallGame(object):
         for i in range(500):
             run = self.animate(i)
             # print box.state
+            self.update()
+            
             if not run:
                 return self.reward()
             
@@ -216,7 +218,7 @@ class BallGame(object):
         # print "Agent loc: " + str(self._agent)
         self._fig.canvas.draw()
         # self._line1.set_ydata(np.sin(x + phase))
-        self._fig.canvas.draw()
+        # self._fig.canvas.draw()
         
     def updatePolicy(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
@@ -225,15 +227,20 @@ class BallGame(object):
     def getState(self):
         return self._box.state[0,:2]
     
-    #def setState(self, st):
-    #    self._agent = st
+    def setState(self, st):
+        self._agent = st
         
     def setTarget(self, st):
         self._target = st
+        self._box.state[0,0] = st[0]
+        self._box.state[0,1] = st[1]
         
     def reachedTarget(self):
         # Might be a little touchy because floats are used
         return False
+    
+    def finish(self):
+        plt.ioff()
 
     def saveVisual(self, fileName):
         # plt.savefig(fileName+".svg")
@@ -252,9 +259,10 @@ class BallGame(object):
 
 # plt.show()
 
-ballGame = BallGame()
-
-ballGame.init([],[],[])
-
-for i in range(10):
-    ballGame.actContinuous([1,1])
+if __name__ == '__main__':
+    ballGame = BallGame()
+    
+    ballGame.init([],[],[])
+    
+    for i in range(10):
+        ballGame.actContinuous([1,1])
