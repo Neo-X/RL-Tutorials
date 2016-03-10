@@ -6,6 +6,7 @@ import math
 import cPickle
 import json
 import os
+import copy
 
 from RLLogisticRegression import RLLogisticRegression
 from NeuralNet import NeuralNet 
@@ -132,22 +133,24 @@ if __name__ == "__main__":
     init_state=[]
     result_state=[]
     action_path=[]
+    initial_state = [-1.5,-1.95]
     
     action=0
     reward=0
     step=0
     while step < max_training_steps:
-        game.reset()
         step+=1
-            
+        game.reset()
+        game.setState(initial_state)
         state = game.getState()
-        init_state.append(state)
+        print "State: " + str(state)
+        init_state.append(copy.deepcopy(state))
         # pa = model.predict([norm_state(state, max_state)])
         pa = [0,0]
         
         action = randomUniformExporation(action_bounds) # Completely random action
         print action
-        action = [1,1]
+        # action = [1,1]
         reward = game.actContinuous(action)
             
         resultState = game.getState()
@@ -155,7 +158,8 @@ if __name__ == "__main__":
         # Everything should be normalized to be between -1 and 1
         reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
         
-        result_state.append(resultState)
+        result_state.append(copy.deepcopy(resultState))
+        print result_state
         
     game.finish()
     init_state = np.array(init_state)

@@ -103,7 +103,7 @@ class ParticleBox:
             # Crosses ground boundary
             # print "Bounce Ground"
             # print crossed_y1, crossed_y2
-            return True
+            return False
 
         # add gravity
         self.state[:, 3] -= self.M * self.G * dt
@@ -145,7 +145,7 @@ class BallGame(object):
 
     def reset(self):
         self._box.state[0][0] = np.random.uniform(self._box.bounds[0],self._box.bounds[1],1)[0]
-        self._box.state[0][1] = self._box.bounds[2]
+        self._box.state[0][1] = self._box.bounds[2]+0.05
         self._box.state[0][3] = 0
         self._box.state[0][2] = 0
         
@@ -229,11 +229,11 @@ class BallGame(object):
     
     def setState(self, st):
         self._agent = st
+        self._box.state[0,0] = st[0]
+        self._box.state[0,1] = st[1]
         
     def setTarget(self, st):
         self._target = st
-        self._box.state[0,0] = st[0]
-        self._box.state[0,1] = st[1]
         
     def reachedTarget(self):
         # Might be a little touchy because floats are used
