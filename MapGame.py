@@ -97,7 +97,7 @@ class Map(object):
             self.collision(loc) or
             self.fall(loc)):
             # Can't move out of map
-            return self.reward() + -8
+            return -8
             
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
@@ -124,8 +124,11 @@ class Map(object):
     
     def reward(self):
         # More like a cost function for distance away from target
+        # print "Agent Loc: " + str(self._agent)
+        # print "Target Loc: " + str(self._target)
         a=(self._agent - self._target)
         d = np.sqrt((a*a).sum(axis=0))
+        # print "Dist Vector: " + str(a) + " Distance: " + str(d)
         if d < 0.3:
             return 16.0
         return 0
