@@ -260,8 +260,26 @@ class BallGame(object):
         # self._fig.canvas.draw()
         
     def updatePolicy(self, U, V, Q):
-        # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
+                # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
         textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+        self._policyText.set_text(textstr)
+        q_max = np.max(Q)
+        q_min = np.min(Q)
+        Q = (Q - q_min)/ (q_max-q_min)
+        self._policy2.set_UVC(U, V, Q)
+        # self._policy2.set_vmin(1.0)
+        """
+        self._policy2.update_scalarmappable()
+        print "cmap " + str(self._policy2.cmap)  
+        print "Face colours" + str(self._policy2.get_facecolor())
+        colours = ['gray','black','blue']
+        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                   colours,
+                                                   256)
+        self._policy2.cmap._set_extremes()
+        """
+        self._policy.set_UVC(U, V)
+        self._fig.canvas.draw()
     
     def getState(self):
         return self._box.state[0,:2]
