@@ -153,12 +153,13 @@ class BallGame(object):
          #------------------------------------------------------------
         # set up figure and animation
         self._fig, (self._map_ax, self._policy_ax) = plt.subplots(1, 2, sharey=False)
-        self._fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+        # self._fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+        self._fig.set_size_inches(12.5, 6.5, forward=True)
         self._map_ax.set_title('Map')
         
         # particles holds the locations of the particles
-        self._particles, = self._map_ax.plot([], [], 'bo', ms=6)
-        self._targets, = self._map_ax.plot([], [], 'go', ms=8)
+        self._particles, = self._map_ax.plot([-2,2], [-2,2], 'bo', ms=4)
+        self._targets, = self._map_ax.plot([], [], 'go', ms=4)
         
         # rect is the box edge
         self._rect = plt.Rectangle(self._box.bounds[::2],
@@ -169,7 +170,8 @@ class BallGame(object):
         
         self._policy_ax.set_title('Policy')
         
-        X,Y = np.mgrid[0:self._box.bounds[1][0]+1,0:self._box.bounds[1][0]+1]
+        scale =float(8.0)
+        X,Y = np.mgrid[0:self._box.bounds[1]*scale,0:self._box.bounds[1]*scale]/float(scale)
         print X,Y
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
         textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
@@ -198,7 +200,7 @@ class BallGame(object):
         out = self._box.step(self._dt)
     
         ms = int(self._fig.dpi * 2 * self._box.size * self._fig.get_figwidth()
-                 / np.diff(self._ax.get_xbound())[0])
+                 / np.diff(self._map_ax.get_xbound())[0])
         
         # update pieces of the animation
         self._rect.set_edgecolor('k')
@@ -212,13 +214,13 @@ class BallGame(object):
         
     def actContinuous(self, action):
         run = True
-        print "Acting: " + str(action)
+        # print "Acting: " + str(action)
         self._box.state[0][3] = action[1]
         self._box.state[0][2] = action[0]
         for i in range(500):
             run = self.animate(i)
             # print box.state
-            self.update()
+            # self.update()
             
             if not run:
                 return self.reward()
@@ -291,7 +293,7 @@ class BallGame(object):
 if __name__ == '__main__':
     ballGame = BallGame()
     
-    ballGame.init([],[],[])
+    ballGame.init([1],[1],[1])
     
     for i in range(10):
         ballGame.actContinuous([1,1])

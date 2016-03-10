@@ -119,9 +119,9 @@ if __name__ == "__main__":
     omega = 0.8
     map = loadMap()
     # Normalization constants for data
-    max_reward = math.sqrt(16**2 * 2) + 5.0
+    max_reward = 16.0
     # max_reward = 1.0
-    max_state = 8.0
+    max_state = 2.0
     
     num_actions=8
     action_selection = range(num_actions)
@@ -296,6 +296,7 @@ if __name__ == "__main__":
             discounted_sum += (math.pow(0.8,t) * reward)
             if experience.samples() > batch_size:
                 _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
+                print _states
                 cost = model.train(_states, _actions, _rewards, _result_states)
                 # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 

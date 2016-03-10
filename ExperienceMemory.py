@@ -48,7 +48,7 @@ class ExperienceMemory(object):
         len(experience > batch_size
         """
         # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
-        indices = (random.sample(range(0, self._history_size), batch_size))
+        indices = (random.sample(range(0, min(self._history_size, self.samples())), batch_size))
         # print indices
 
         state = []
