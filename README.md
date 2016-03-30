@@ -23,4 +23,8 @@ This work is done to help understand the full Reiforcement Learning pipeline. I 
 
 
 ## Games
+ The different example games.
 
+### BallGame 1D
+
+python RunBallGame1D.py settings/BallGame1D/DeepCACLA.json

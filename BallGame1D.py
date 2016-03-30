@@ -129,10 +129,11 @@ class BallGame1D(object):
         
 
     def reset(self):
-        self._box.state[0][0] = np.random.uniform(self._box.bounds[0],self._box.bounds[1],1)[0]
+        self._box.state[0][0] = 2.0
         self._box.state[0][1] = self._box.bounds[2]+0.05
         self._box.state[0][3] = 0
         self._box.state[0][2] = 0
+        self.setTarget(np.array([2,2]))
         
     def move(self, action):
         """
