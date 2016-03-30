@@ -20,3 +20,7 @@ This work is done to help understand the full Reiforcement Learning pipeline. I 
 
  1. https://github.com/Newmu/Theano-Tutorials
  2. https://github.com/spragunr/deep_q_rl
+
+
+## Games
+

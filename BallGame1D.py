@@ -10,12 +10,13 @@ Please feel free to use and modify this, but keep the above information. Thanks!
 """
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
+import math
 
 import matplotlib.pyplot as plt
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
-class ParticleBox:
+class ParticleLine:
     """Orbits class
     
     init_state is an [N x 4] array, where N is the number of particles:
@@ -110,7 +111,7 @@ class ParticleBox:
         return True
 
 
-class BallGame(object):
+class BallGame1D(object):
 
     def __init__(self):
         #------------------------------------------------------------
@@ -118,11 +119,12 @@ class BallGame(object):
         np.random.seed(0)
         init_state = -0.5 + np.random.random((50, 4))
         init_state[:, :2] *= 3.9
+        # [y, v_y]
+        init_state = [[2, 0.1,0, 1]]
         
-        init_state = [[0,2,1,0]]
-        
-        self._box = ParticleBox(init_state, size=0.04)
+        self._box = ParticleLine(init_state, size=0.04)
         self._dt = 1. / 30 # 30fps
+        self._max_y = init_state[0][1]
         
         
 
@@ -215,11 +217,14 @@ class BallGame(object):
     def actContinuous(self, action):
         run = True
         # print "Acting: " + str(action)
-        self._box.state[0][3] = action[1]
-        self._box.state[0][2] = action[0]
+        # self._box.state[0][2] = action[0]
+        self._box.state[0][3] += action[1]
         for i in range(500):
             run = self.animate(i)
             # print box.state
+            if self._max_y < self._box.state[0][1]:
+                self._max_y = self._box.state[0][1]
+            # print "Max_y: " + str(self._max_y)
             self.update()
             
             if not run:
@@ -229,26 +234,9 @@ class BallGame(object):
             
     def reward(self):
         # More like a cost function for distance away from target
-        a=(self._box.state[0,:2] - self._target)
-        d = np.sqrt((a*a).sum(axis=0))
-        if d < 0.3:
-            return 1.0
-        return 0
-    
-    def reward2(self):
-        # More like a cost function for distance away from target
-        a=(self._box.state[0,:2] - self._target)
-        d = np.sqrt((a*a).sum(axis=0))
-        if d < 0.3:
-            return 1.0
+        d = math.fabs(self._max_y - self._target[1])
+        self._max_y = self._box.state[0][1]
         return -d
-    
-    def rewardSmooth(self, max_d):
-        # More like a cost function for distance away from target
-        a=(self._box.state[0,:2] - self._target)
-        d = np.sqrt((a*a).sum(axis=0))
-        out = 1-(d/max_d)
-        return out
     
     def update(self):
         """perform animation step"""
@@ -317,9 +305,14 @@ class BallGame(object):
 # plt.show()
 
 if __name__ == '__main__':
-    ballGame = BallGame()
+    ballGame = BallGame1D()
     
     ballGame.init(np.random.rand(256,1),np.random.rand(256,1),np.random.rand(256,1))
     
-    for i in range(10):
-        ballGame.actContinuous([1,1])
+    ballGame.setTarget(np.array([2,2]))
+    num_actions=10
+    actions = (np.random.rand(num_actions,2)-0.5) * 2.0
+    for action in actions:
+        print "Action: " + str(action)
+        reward = ballGame.actContinuous(action)
+        print "Reward: " + str(reward)
