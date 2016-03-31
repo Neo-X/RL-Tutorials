@@ -11,6 +11,7 @@ Please feel free to use and modify this, but keep the above information. Thanks!
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 import math
+import copy
 
 import matplotlib.pyplot as plt
 # import scipy.integrate as integrate
@@ -49,43 +50,10 @@ class ParticleLine:
         # update positions
         self.state[:, :2] += dt * self.state[:, 2:]
 
-        # find pairs of particles undergoing a collision
-        D = squareform(pdist(self.state[:, :2]))
-        ind1, ind2 = np.where(D < 2 * self.size)
-        unique = (ind1 < ind2)
-        ind1 = ind1[unique]
-        ind2 = ind2[unique]
 
-        # update velocities of colliding pairs
-        for i1, i2 in zip(ind1, ind2):
-            # mass
-            m1 = self.M[i1]
-            m2 = self.M[i2]
-
-            # location vector
-            r1 = self.state[i1, :2]
-            r2 = self.state[i2, :2]
-
-            # velocity vector
-            v1 = self.state[i1, 2:]
-            v2 = self.state[i2, 2:]
-
-            # relative location & velocity vectors
-            r_rel = r1 - r2
-            v_rel = v1 - v2
-
-            # momentum vector of the center of mass
-            v_cm = (m1 * v1 + m2 * v2) / (m1 + m2)
-
-            # collisions of spheres reflect v_rel over r_rel
-            rr_rel = np.dot(r_rel, r_rel)
-            vr_rel = np.dot(v_rel, r_rel)
-            v_rel = 2 * r_rel * vr_rel / rr_rel - v_rel
-
-            # assign new velocities
-            self.state[i1, 2:] = v_cm + v_rel * m2 / (m1 + m2)
-            self.state[i2, 2:] = v_cm - v_rel * m1 / (m1 + m2) 
-
+        """
+            TODO: Might be an issue where particle can not go outside boundary
+        """
         # check for crossing boundary
         crossed_x1 = (self.state[:, 0] < self.bounds[0] + self.size)
         crossed_x2 = (self.state[:, 0] > self.bounds[1] - self.size)
@@ -99,7 +67,8 @@ class ParticleLine:
         self.state[crossed_y2, 1] = self.bounds[3] - self.size
 
         self.state[crossed_x1 | crossed_x2, 2] *= -1
-        self.state[crossed_y1 | crossed_y2, 3] *= -1
+        # self.state[crossed_y1 | crossed_y2, 3] *= -1
+        self.state[crossed_y1, 3] *= -1
         if (crossed_y1[0] ):
             # Crosses ground boundary
             # print "Bounce Ground"
@@ -130,10 +99,13 @@ class BallGame1D(object):
 
     def reset(self):
         self._box.state[0][0] = 2.0
-        self._box.state[0][1] = self._box.bounds[2]+0.05
-        self._box.state[0][3] = 0
+        self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
-        self.setTarget(np.array([2,2]))
+        self._box.state[0][3] = 1
+        self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
+        
+    def resetTarget(self):
+        self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
         
     def move(self, action):
         """
@@ -219,14 +191,14 @@ class BallGame1D(object):
         run = True
         # print "Acting: " + str(action)
         # self._box.state[0][2] = action[0]
-        self._box.state[0][3] += action[1]
+        self._box.state[0][3] += action[0]
         for i in range(500):
             run = self.animate(i)
             # print box.state
             if self._max_y < self._box.state[0][1]:
                 self._max_y = self._box.state[0][1]
             # print "Max_y: " + str(self._max_y)
-            self.update()
+            # self.update()
             
             if not run:
                 return self.reward()
@@ -271,7 +243,11 @@ class BallGame1D(object):
         self._fig.canvas.draw()
     
     def getState(self):
-        return self._box.state[0,:2]
+        state = np.array([0.0,0.0], dtype=float)
+        state[0] = self._box.state[0,1]
+        state[0] = self._target[1] - state[1]
+        state[1] = self._box.state[0,3]
+        return state
     
     def setState(self, st):
         self._agent = st
@@ -314,6 +290,8 @@ if __name__ == '__main__':
     num_actions=10
     actions = (np.random.rand(num_actions,2)-0.5) * 2.0
     for action in actions:
+        state = ballGame.getState()
+        print "State: " + str(state)
         print "Action: " + str(action)
         reward = ballGame.actContinuous(action)
         print "Reward: " + str(reward)

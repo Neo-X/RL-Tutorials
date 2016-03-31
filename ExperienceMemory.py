@@ -7,7 +7,7 @@ import random
 
 class ExperienceMemory(object):
     
-    def __init__(self, state_length, action_length, memory_length):
+    def __init__(self, state_length, action_length, memory_length, continuous_actions=False):
         
         
         self._history_size=memory_length
@@ -25,6 +25,7 @@ class ExperienceMemory(object):
         self._action_history = (np.zeros((self._history_size, action_length)))
         self._nextState_history = (np.zeros((self._history_size, state_length)))
         self._reward_history = (np.zeros((self._history_size, 1)))
+        self._continuous_actions = continuous_actions
         
     def insert(self, state, action, nextState, reward):
         self._inserts+=1
@@ -64,7 +65,7 @@ class ExperienceMemory(object):
         # print c
         # print experience[indices]
         state = np.array(state)
-        if (self._action_length > 1):
+        if (self._continuous_actions):
             action = np.array(action)
         else:
             action = np.array(action, dtype='int32')
