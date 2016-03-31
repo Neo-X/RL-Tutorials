@@ -241,7 +241,7 @@ if __name__ == "__main__":
             step+=1
             if (((t % 32) == 0) and (t > 0) ):
                 game.reset()
-                print "Reward o epochs: " + str(reward_over_epocs)
+                # print "Reward o epochs: " + str(reward_over_epocs)
                 reward_over_epocs.append(reward_sum)
                 discounted_values.append(discounted_sum)
                 
