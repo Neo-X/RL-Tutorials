@@ -331,7 +331,7 @@ if __name__ == '__main__':
     ballGame.reset()
     ballGame.setTarget(np.array([2,2]))
     num_actions=10
-    scaling = 1.0
+    scaling = 2.0
     ballGame._box.state[0][1] = 0
     
     actions = (np.random.rand(num_actions,1)-0.5) * 2.0 * scaling
