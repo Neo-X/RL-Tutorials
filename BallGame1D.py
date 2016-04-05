@@ -14,6 +14,9 @@ import math
 import copy
 
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.animation as manimation
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
@@ -96,6 +99,7 @@ class BallGame1D(object):
         self._max_y = init_state[0][1]
         self._render=False
         self._simulate=True
+        self._saveVideo=False
         
         
 
@@ -170,6 +174,16 @@ class BallGame1D(object):
         self._rect.set_edgecolor('none')
         plt.ion()
         plt.show()
+        
+        if self._saveVideo:
+            FFMpegWriter = manimation.writers['ffmpeg']
+            metadata = dict(title='Movie Test', artist='Matplotlib',
+                            comment='Movie support!')
+            self._writer = FFMpegWriter(fps=30, metadata=metadata)
+            self._writer.setup(self._fig, "writer_test.mp4", 100)
+            # self._movieOut = open("moviee.mp4", 'wb')
+            # self._writer.fig = self._fig
+            # self._writer.fig = self._fig
         return self._particles, self._rect
     
     def animate(self, i):
@@ -227,6 +241,10 @@ class BallGame1D(object):
         # self._agent = self._agent + np.array([0.1,0.1])
         # print "Agent loc: " + str(self._agent)
         self._fig.canvas.draw()
+        if self._saveVideo:
+            self._writer.grab_frame()
+            # self._fig.savefig(self._movieOut, format='rgba',
+                # dpi=100)
         # self._line1.set_ydata(np.sin(x + phase))
         # self._fig.canvas.draw()
         
@@ -273,6 +291,9 @@ class BallGame1D(object):
     
     def finish(self):
         plt.ioff()
+        # self._movieOut.close()
+        self._writer.finish()
+        
 
     def saveVisual(self, fileName):
         # plt.savefig(fileName+".svg")
@@ -300,11 +321,13 @@ if __name__ == '__main__':
     
     np.random.seed(seed=10)
     ballGame = BallGame1D()
-    
+
+    ballGame.enableRender()
+    ballGame._simulate=True
+    ballGame._saveVideo=True
+        
     ballGame.init(np.random.rand(256,1),np.random.rand(256,1),np.random.rand(256,1))
     
-    # ballGame.enableRender()
-    ballGame._simulate=False
     ballGame.reset()
     ballGame.setTarget(np.array([2,2]))
     num_actions=10
@@ -318,3 +341,5 @@ if __name__ == '__main__':
         print "Action: " + str(action)
         reward = ballGame.actContinuous(action)
         print "Reward: " + str(reward)
+
+    ballGame.finish()

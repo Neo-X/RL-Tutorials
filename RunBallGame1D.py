@@ -322,7 +322,7 @@ if __name__ == "__main__":
             error = model.bellman_error(states_, actions_, rewards_, result_states_)
             error = np.mean(np.fabs(error))
             print "Iteration: " + str(i) + " Cost: " + str(cost) + " Bellman Error: " + str(error)
-            print "Reward over epochs: " + str(reward_over_epocs)
+            # print "Reward over epochs: " + str(reward_over_epocs)
             mean_reward = np.mean(reward_over_epocs)
             std_reward = np.std(reward_over_epocs)
             mean_bellman_error = np.mean(bellman_errors)
