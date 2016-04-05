@@ -28,6 +28,24 @@ class ExperienceMemory(object):
         self._continuous_actions = continuous_actions
         
     def insert(self, state, action, nextState, reward):
+        # print "Instert State: " + str(state)
+        # state = list(state)
+        """
+        state = list(state)
+        action = list(action)
+        nextState = list(nextState)
+        reward = list(reward)
+        nums = state+action+nextState+reward
+        if (None in nums): 
+            # don't insert this garbage
+            return
+        # print "Insert State: " + str(nextState)
+        # print "nums: " + str(nums)
+        for s in nums:
+            if not (float('-inf') < float(s) < float('inf')):
+                #more garbage: -inf, inf, nan
+                return
+        """
         self._inserts+=1
         self._history_update_index+=1
         if ( (self._history_update_index % (self._history_size-1) ) == 0):
