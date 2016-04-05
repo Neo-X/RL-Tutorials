@@ -133,6 +133,7 @@ if __name__ == "__main__":
         
         # game = Map(map)
         game = BallGame1D()
+        game._simulate=False
         steps = 500
         max_expereince = 20000
         # for i in range(steps):

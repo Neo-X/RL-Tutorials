@@ -103,7 +103,7 @@ class BallGame1D(object):
         self._box.state[0][0] = 2.0
         self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
-        self._box.state[0][3] = (np.random.rand(1)+1.25) # think this will be about middle, y = 2.0
+        self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
         self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
         
     def resetTarget(self):
@@ -205,14 +205,14 @@ class BallGame1D(object):
                     self.update()
                 
                 if not run:
-                    print "self._max_y: " + str(self._max_y)
+                    # print "self._max_y: " + str(self._max_y)
                     return self.reward()
         else:
             # self._max_y = self._box.state[0][1]
             init_v_squared = (self._box.state[0][3]*self._box.state[0][3])
             seconds_ = 2* (-self._box.G)
             self._max_y = (-init_v_squared)/seconds_
-            print "self._max_y: " + str(self._max_y)
+            # print "self._max_y: " + str(self._max_y)
         return self.reward()
             
     def reward(self):
@@ -254,7 +254,7 @@ class BallGame1D(object):
     
     def getState(self):
         state = np.array([0.0,0.0], dtype=float)
-        state[0] = self._box.state[0,1]
+        # state[0] = self._box.state[0,1]
         state[0] = self._target[1] - state[1]
         state[1] = self._box.state[0,3]
         return state
@@ -303,12 +303,15 @@ if __name__ == '__main__':
     
     ballGame.init(np.random.rand(256,1),np.random.rand(256,1),np.random.rand(256,1))
     
-    ballGame.setTarget(np.array([2,2]))
     # ballGame.enableRender()
+    ballGame._simulate=False
     ballGame.reset()
+    ballGame.setTarget(np.array([2,2]))
     num_actions=10
+    scaling = 1.0
+    ballGame._box.state[0][1] = 0
     
-    actions = (np.random.rand(num_actions,1)-0.5) * 2.0
+    actions = (np.random.rand(num_actions,1)-0.5) * 2.0 * scaling
     for action in actions:
         state = ballGame.getState()
         print "State: " + str(state)
