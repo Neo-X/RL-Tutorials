@@ -33,7 +33,7 @@ class ParticleLine:
                                [-0.5, -0.5, -0.5, 0.5]],
                  bounds = [0, 4, 0, 4],
                  size = 0.04,
-                 M = 0.05,
+                 M = 1.0,
                  G = 9.8):
         self.init_state = np.array(init_state, dtype=float)
         self.M = M * np.ones(self.init_state.shape[0])
@@ -66,7 +66,7 @@ class ParticleLine:
         self.state[crossed_y1, 1] = self.bounds[2] + self.size
         self.state[crossed_y2, 1] = self.bounds[3] - self.size
 
-        self.state[crossed_x1 | crossed_x2, 2] *= -1
+        # self.state[crossed_x1 | crossed_x2, 2] *= -1
         # self.state[crossed_y1 | crossed_y2, 3] *= -1
         self.state[crossed_y1, 3] *= -1
         if (crossed_y1[0] ):
@@ -94,6 +94,8 @@ class BallGame1D(object):
         self._box = ParticleLine(init_state, size=0.04)
         self._dt = 1. / 30 # 30fps
         self._max_y = init_state[0][1]
+        self._render=False
+        self._simulate=True
         
         
 
@@ -101,7 +103,7 @@ class BallGame1D(object):
         self._box.state[0][0] = 2.0
         self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
-        self._box.state[0][3] = 1
+        self._box.state[0][3] = (np.random.rand(1)+1.25) # think this will be about middle, y = 2.0
         self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
         
     def resetTarget(self):
@@ -147,7 +149,7 @@ class BallGame1D(object):
         
         scale =float(4.0)
         X,Y = np.mgrid[0:self._box.bounds[1]*scale,0:self._box.bounds[1]*scale]/float(scale)
-        print X,Y
+        # print X,Y
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
         textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
@@ -192,18 +194,26 @@ class BallGame1D(object):
         # print "Acting: " + str(action)
         # self._box.state[0][2] = action[0]
         self._box.state[0][3] += action[0]
-        for i in range(500):
-            run = self.animate(i)
-            # print box.state
-            if self._max_y < self._box.state[0][1]:
-                self._max_y = self._box.state[0][1]
-            # print "Max_y: " + str(self._max_y)
-            # self.update()
-            
-            if not run:
-                return self.reward()
-            
-        self.reward()
+        if self._simulate:
+            for i in range(500):
+                run = self.animate(i)
+                # print box.state
+                if self._max_y < self._box.state[0][1]:
+                    self._max_y = self._box.state[0][1]
+                # print "Max_y: " + str(self._max_y)
+                if self._render:
+                    self.update()
+                
+                if not run:
+                    print "self._max_y: " + str(self._max_y)
+                    return self.reward()
+        else:
+            # self._max_y = self._box.state[0][1]
+            init_v_squared = (self._box.state[0][3]*self._box.state[0][3])
+            seconds_ = 2* (-self._box.G)
+            self._max_y = (-init_v_squared)/seconds_
+            print "self._max_y: " + str(self._max_y)
+        return self.reward()
             
     def reward(self):
         # More like a cost function for distance away from target
@@ -267,6 +277,11 @@ class BallGame1D(object):
     def saveVisual(self, fileName):
         # plt.savefig(fileName+".svg")
         self._fig.savefig(fileName+".svg")
+        
+    def enableRender(self):
+        self._render=True
+    def disableRender(self):
+        self._render=False
 
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
@@ -282,13 +297,18 @@ class BallGame1D(object):
 # plt.show()
 
 if __name__ == '__main__':
+    
+    np.random.seed(seed=10)
     ballGame = BallGame1D()
     
     ballGame.init(np.random.rand(256,1),np.random.rand(256,1),np.random.rand(256,1))
     
     ballGame.setTarget(np.array([2,2]))
+    # ballGame.enableRender()
+    ballGame.reset()
     num_actions=10
-    actions = (np.random.rand(num_actions,2)-0.5) * 2.0
+    
+    actions = (np.random.rand(num_actions,1)-0.5) * 2.0
     for action in actions:
         state = ballGame.getState()
         print "State: " + str(state)
