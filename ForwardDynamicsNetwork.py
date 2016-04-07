@@ -74,19 +74,18 @@ class ForwardDynamicsNetwork(object):
             )
         
         inputs_ = {
-            State: self._states_shared,
-            Action: self._q_valsActA,
+            State: State,
+            Action: Action,
         }
         self._forward = lasagne.layers.get_output(self._l_out, inputs_)
         
         # self._target = (Reward + self._discount_factor * self._q_valsB)
-        self._diff = self._next_states_shared - self._forward
+        self._diff = ResultState - self._forward
         self._loss = 0.5 * self._diff ** 2 + (1e-4 * lasagne.regularization.regularize_network_params(
-                self._l_outA, lasagne.regularization.l2))
+                self._l_out, lasagne.regularization.l2))
         self._loss = T.mean(self._loss)
         
         self._params = lasagne.layers.helper.get_all_params(self._l_out)
-        self._actionParams = lasagne.layers.helper.get_all_params(self._l_outActA)
         self._givens_ = {
             State: self._states_shared,
             ResultState: self._next_states_shared,
@@ -113,7 +112,7 @@ class ForwardDynamicsNetwork(object):
         
         
         
-        self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
+        self._train = theano.function([], [self._loss], updates=self._updates_, givens=self._givens_)
         self._forwardDynamics = theano.function([], self._forward,
                                        givens={State: self._states_shared, Action: self._actions_shared})
         inputs_ = [
@@ -129,11 +128,11 @@ class ForwardDynamicsNetwork(object):
         self._next_states_shared.set_value(result_states)
         self._actions_shared.set_value(actions)
         # print "Performing Critic trainning update"
-        if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
+        #if (( self._updates % self._weight_update_steps) == 0):
+        #    self.updateTargetModel()
         self._updates += 1
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
-        loss, _ = self._train()
+        loss = self._train()
         # This undoes the Actor parameter updates as a result of the Critic update.
         #if all_paramsActA == self._l_outActA:
         #    print "Parameters the same:"
@@ -149,9 +148,9 @@ class ForwardDynamicsNetwork(object):
         # states[0, ...] = state
         self._states_shared.set_value(state)
         self._action_shared.set_value(action)
-        action_ = self._forwardDynamics()[0]
-        return action_
+        state_ = self._forwardDynamics()[0]
+        return state_
 
-    def bellman_error(self, state, action, reward, result_state):
+    def bellman_error(self, state, action, result_state):
         # return self._bellman_error(state, reward, result_state)
         return self._bellman_error(state, result_state, action)

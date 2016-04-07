@@ -14,10 +14,12 @@ from RLNeuralNetworkDQ import RLNeuralNetworkDQ
 from RLDeepNet import RLDeepNet 
 from DeepCACLA import DeepCACLA
 from DeepDPG import DeepDPG 
+from ForwardDynamicsNetwork import ForwardDynamicsNetwork
 import sys
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
+from NNVisualize import NNVisualize
 from ExperienceMemory import ExperienceMemory
 
 def eGreedy(pa1, ra2, e):
@@ -108,7 +110,7 @@ def collectExperienceActionsContinuous(experience, action_bounds):
 if __name__ == "__main__":
     
     # make a color map of fixed colors
-    try: 
+    #try: 
         file = open(sys.argv[1])
         settings = json.load(file)
         file.close()
@@ -179,6 +181,7 @@ if __name__ == "__main__":
             model = cPickle.load(open(file_name))
         """
         
+        forwardDynamicsModel = ForwardDynamicsNetwork(state_length=state_length,action_length=action_length)
         values = []
         discounted_values = []
         bellman_error = []
@@ -191,6 +194,8 @@ if __name__ == "__main__":
         trainData["std_bellman_error"]=[]
         trainData["mean_discount_error"]=[]
         trainData["std_discount_error"]=[]
+        trainData["mean_forward_dynamics_loss"]=[]
+        trainData["std_forward_dynamics_loss"]=[]
          
         best_error=10000000.0
         if action_space_continuous:
@@ -203,6 +208,9 @@ if __name__ == "__main__":
         rlv = RLVisualize(title=str(settings['agent_name']))
         rlv.setInteractive()
         rlv.init()
+        nlv = NNVisualize(title=str(settings['agent_name']))
+        nlv.setInteractive()
+        nlv.init()
         
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
@@ -224,6 +232,7 @@ if __name__ == "__main__":
             discounted_values = []
             bellman_errors = []
             reward_over_epocs = []
+            dynamicsLosses = []
             values = []
             states = [] 
             actions = []
@@ -246,13 +255,16 @@ if __name__ == "__main__":
                     # print "Reward o epochs: " + str(reward_over_epocs)
                     reward_over_epocs.append(reward_sum)
                     discounted_values.append(discounted_sum)
-                    
+                    # print "Actions: " + str(actions)
                     error = model.bellman_error(np.array(states), np.array(actions), 
                                 np.array(rewards), np.array(result_states))
+                    dynamicsLoss = forwardDynamicsModel.bellman_error(np.array(states), np.array(actions), np.array(result_states))
                     # states, actions, result_states, rewards = experience.get_batch(64)
                     # error = model.bellman_error(states, actions, rewards, result_states)
                     error = np.mean(np.fabs(error))
                     bellman_errors.append(error)
+                    dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
+                    dynamicsLosses.append(dynamicsLoss)
                     
                     discounted_sum = 0;
                     reward_sum=0
@@ -298,7 +310,7 @@ if __name__ == "__main__":
                 # print "Reward: " + str(reward_)
                 # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
                 # print model.q_values([tup._state])
-                actions.append([action])
+                actions.append(action)
                 result_states.append(resultState)
                 rewards.append([reward_])
                 states.append(state)
@@ -308,6 +320,7 @@ if __name__ == "__main__":
                     _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
                     # print _states, _rewards
                     cost = model.train(_states, _actions, _rewards, _result_states)
+                    dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states)
                     # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 i += 1
                 t += 1
@@ -321,7 +334,7 @@ if __name__ == "__main__":
             states_, actions_, result_states_, rewards_ = experience.get_batch(32)
             error = model.bellman_error(states_, actions_, rewards_, result_states_)
             error = np.mean(np.fabs(error))
-            print "Iteration: " + str(i) + " Cost: " + str(cost) + " Bellman Error: " + str(error)
+            print "Iteration: " + str(i) + "RL Loss: " + str(cost) + " Bellman Error: " + str(error) + " dynamicsLoss: " + str(dynamicsLoss)
             # print "Reward over epochs: " + str(reward_over_epocs)
             mean_reward = np.mean(reward_over_epocs)
             std_reward = np.std(reward_over_epocs)
@@ -329,6 +342,8 @@ if __name__ == "__main__":
             std_bellman_error = np.std(bellman_errors)
             mean_discount_error = np.mean(np.array(discounted_values) - np.array(values))
             std_discount_error = np.std(np.array(discounted_values) - np.array(values))
+            mean_dynamicsLosses = np.mean(dynamicsLosses)
+            std_dynamicsLosses = np.std(dynamicsLosses)
             
             trainData["mean_reward"].append(mean_reward)
             # print "Mean Rewards: " + str(trainData["mean_reward"])
@@ -337,11 +352,15 @@ if __name__ == "__main__":
             trainData["std_bellman_error"].append(std_bellman_error)
             trainData["mean_discount_error"].append(mean_discount_error)
             trainData["std_discount_error"].append(std_discount_error)
+            trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
+            trainData["std_forward_dynamics_loss"].append(mean_dynamicsLosses)
             
             rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
             rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
             rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
             rlv.redraw()
+            nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
+            nlv.redraw()
                     
             
             reward_over_epocs.append(reward_sum)
@@ -360,6 +379,9 @@ if __name__ == "__main__":
             rlv.setInteractiveOff()
             rlv.saveVisual(data_folder+"trainingGraph")
             rlv.setInteractive()
+            nlv.setInteractiveOff()
+            nlv.saveVisual(data_folder+"trainingGraphNN")
+            nlv.setInteractive()
                 
             print ""
             # X,Y = np.mgrid[0:16,0:16]
@@ -384,5 +406,6 @@ if __name__ == "__main__":
         f = open(file_name, 'w')
         cPickle.dump(model, f)
         f.close()
-    except Exception, e:
-        print "Error: " + str(e)
+    #except Exception, e:
+    #    print "Error: " + str(e)
+    #    raise e
