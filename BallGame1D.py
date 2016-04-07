@@ -12,6 +12,7 @@ import numpy as np
 from scipy.spatial.distance import pdist, squareform
 import math
 import copy
+import collections
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -100,6 +101,7 @@ class BallGame1D(object):
         self._render=False
         self._simulate=True
         self._saveVideo=False
+        self._targets=[]
         
         
 
@@ -108,13 +110,17 @@ class BallGame1D(object):
         self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
         self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
-        self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
+        num_future_targets=3
+        self._targets = collections.deque(list( ((np.random.rand(num_future_targets)-0.5) * 2.0) + 2))
+        self.setTarget(np.array([2,self._targets[0]]))
         
     def resetTarget(self):
         """
         y range is [1,3]
         """
-        self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
+        self._targets.append( ((np.random.rand(1)-0.5) * 2.0) + 2)
+        self._targets.popleft()
+        self.setTarget(np.array([2,self._targets[0]]))
         
     def move(self, action):
         """
@@ -223,14 +229,14 @@ class BallGame1D(object):
                     self.update()
                 
                 if not run:
-                    print "self._max_y: " + str(self._max_y)
+                    # print "self._max_y: " + str(self._max_y)
                     return self.reward()
         else:
             # self._max_y = self._box.state[0][1]
             init_v_squared = (self._box.state[0][3]*self._box.state[0][3])
             seconds_ = 2* (-self._box.G)
             self._max_y = (-init_v_squared)/seconds_
-            print "self._max_y: " + str(self._max_y)
+            # print "self._max_y: " + str(self._max_y)
         return self.reward()
             
     def reward(self):
@@ -275,10 +281,12 @@ class BallGame1D(object):
         self._fig.canvas.draw()
     
     def getState(self):
-        state = np.array([0.0,0.0], dtype=float)
+        state = np.array([0.0,0.0,0.0,0.0], dtype=float)
         # state[0] = self._box.state[0,1]
-        state[0] = self._target[1] - state[1]
-        state[1] = self._box.state[0,3]
+        state[0] = self._targets[0] - state[1]
+        state[1] = self._targets[1] - state[1]
+        state[2] = self._targets[2] - state[1]
+        state[3] = self._box.state[0,3]
         return state
     
     def setState(self, st):

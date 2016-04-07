@@ -1,0 +1,20 @@
+{
+"model_type": "Deep_CACLA",
+"agent_name": "Deep_CACLA",
+"data_folder": "Deep_CACLA2/",
+"epsilon": 1.0,
+"batch_size": 32,
+"learning_rate": 0.00025,
+"anchor_file": "../data/anchors32.json",
+"sim_config_file": "../data/pendulumDiscreteActions/trainDiscreteActions.ini",
+"hidden_layer_size": 36,
+"num_actions": -1,
+"exploration_rate": 0.15,
+"rounds": 5000,
+"epochs": 10,
+"num_states": 32,
+"discount_factor": 0.8,
+"max_reward": 5.0,
+"max_state": [4.0,4.0,4.0,2.0],
+"action_bounds": [[-2.0],[2.0]]
+}

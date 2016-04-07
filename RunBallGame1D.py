@@ -96,7 +96,7 @@ def scale_action(normed_action_, action_bounds_):
         Where 0 in the action will be mapped to the middle of the action bounds
         1 will correspond to the upper bound and -1 to the lower
     """
-    avg = (action_bounds_[0] + action_bounds_[1])/2
+    avg = (action_bounds_[0] + action_bounds_[1])/2.0
     return normed_action_ * (action_bounds_[1] - avg) + avg
     
 def collectExperienceActionsContinuous(experience, action_bounds):
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         # for i in range(steps):
         print action_selection
         i=0
-        action_bounds = settings['action_bounds']
+        action_bounds = np.array(settings['action_bounds'])
         action_length = len(action_bounds[0])
         data_folder = settings['data_folder']
         states = np.array([max_state])
@@ -236,10 +236,10 @@ if __name__ == "__main__":
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
         if action_space_continuous:
-            experience = ExperienceMemory(2, 1, max_expereince, continuous_actions=action_space_continuous)
+            experience = ExperienceMemory(state_length=state_length, action_length=action_length, memory_length=max_expereince, continuous_actions=action_space_continuous)
             # experience = collectExperienceActionsContinuous(experience, action_bounds)
         else: 
-            experience = ExperienceMemory(2, 1, max_expereince)
+            experience = ExperienceMemory(state_length=state_length, action_length=action_length, memory_length=max_expereince)
         bellman_errors = []
         reward_over_epocs = []
         values = []
@@ -306,7 +306,7 @@ if __name__ == "__main__":
                     randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
                     action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
-                    # action = clampAction(action, action_bounds)
+                    action = clampAction(action, action_bounds)
                     reward = game.actContinuous(action)
                 elif not action_space_continuous:
                     action = random.choice(action_selection)
