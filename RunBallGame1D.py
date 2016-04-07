@@ -77,6 +77,27 @@ def clampAction(actionV, bounds):
         elif actionV[i] > bounds[1][i]:
             actionV[i] = bounds[1][i]
     return actionV
+
+def norm_action(action_, action_bounds_):
+    """
+        
+        Normalizes the action 
+        Where the middle of the action bounds are mapped to 0
+        upper bound will correspond to 1 and -1 to the lower
+        from environment space to normalized space
+    """
+    avg = (action_bounds_[0] + action_bounds_[1])/2
+    return (action_ - (avg)) / (action_bounds_[1]-avg)
+
+def scale_action(normed_action_, action_bounds_):
+    """
+        from normalize space back to environment space
+        Normalizes the action 
+        Where 0 in the action will be mapped to the middle of the action bounds
+        1 will correspond to the upper bound and -1 to the lower
+    """
+    avg = (action_bounds_[0] + action_bounds_[1])/2
+    return normed_action_ * (action_bounds_[1] - avg) + avg
     
 def collectExperienceActionsContinuous(experience, action_bounds):
     i = 0
@@ -208,7 +229,7 @@ if __name__ == "__main__":
         rlv = RLVisualize(title=str(settings['agent_name']))
         rlv.setInteractive()
         rlv.init()
-        nlv = NNVisualize(title=str(settings['agent_name']))
+        nlv = NNVisualize(title=str("Forward Dynamics Model"))
         nlv.setInteractive()
         nlv.init()
         
@@ -280,6 +301,7 @@ if __name__ == "__main__":
                 pa = model.predict([norm_state(state, max_state)])
                 
                 if action_space_continuous:
+                    pa = scale_action(pa, action_bounds)
                     action = randomExporation(0.12, pa)
                     randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
@@ -301,7 +323,7 @@ if __name__ == "__main__":
                 # print "Reward: " + str(reward_)
                 # reward_ = (reward)/(max_reward)
                 # reward_ = (reward+max_reward)/(max_reward)
-                experience.insert(norm_state(state, max_state), action, norm_state(resultState, max_state), [reward_])
+                experience.insert(norm_state(state, max_state), norm_action(action, action_bounds), norm_state(resultState, max_state), [reward_])
                 game.resetTarget()
                 # Update agent on screen
                 # game.update()
@@ -375,7 +397,8 @@ if __name__ == "__main__":
             actions = []
             rewards = []
             result_states = []
-    
+            
+            rlv.redraw()
             rlv.setInteractiveOff()
             rlv.saveVisual(data_folder+"trainingGraph")
             rlv.setInteractive()

@@ -111,6 +111,9 @@ class BallGame1D(object):
         self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
         
     def resetTarget(self):
+        """
+        y range is [1,3]
+        """
         self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
         
     def move(self, action):
@@ -208,6 +211,7 @@ class BallGame1D(object):
         # print "Acting: " + str(action)
         # self._box.state[0][2] = action[0]
         self._box.state[0][3] += action[0]
+        self._box.state[0][1] =0
         if self._simulate:
             for i in range(500):
                 run = self.animate(i)
@@ -219,14 +223,14 @@ class BallGame1D(object):
                     self.update()
                 
                 if not run:
-                    # print "self._max_y: " + str(self._max_y)
+                    print "self._max_y: " + str(self._max_y)
                     return self.reward()
         else:
             # self._max_y = self._box.state[0][1]
             init_v_squared = (self._box.state[0][3]*self._box.state[0][3])
             seconds_ = 2* (-self._box.G)
             self._max_y = (-init_v_squared)/seconds_
-            # print "self._max_y: " + str(self._max_y)
+            print "self._max_y: " + str(self._max_y)
         return self.reward()
             
     def reward(self):
@@ -292,7 +296,8 @@ class BallGame1D(object):
     def finish(self):
         plt.ioff()
         # self._movieOut.close()
-        self._writer.finish()
+        if self._writer:
+            self._writer.finish()
         
 
     def saveVisual(self, fileName):
@@ -322,9 +327,9 @@ if __name__ == '__main__':
     np.random.seed(seed=10)
     ballGame = BallGame1D()
 
-    ballGame.enableRender()
-    ballGame._simulate=True
-    ballGame._saveVideo=True
+    # ballGame.enableRender()
+    # ballGame._simulate=True
+    # ballGame._saveVideo=True
         
     ballGame.init(np.random.rand(256,1),np.random.rand(256,1),np.random.rand(256,1))
     
@@ -336,6 +341,7 @@ if __name__ == '__main__':
     
     actions = (np.random.rand(num_actions,1)-0.5) * 2.0 * scaling
     for action in actions:
+        # ballGame.resetTarget()
         state = ballGame.getState()
         print "State: " + str(state)
         print "Action: " + str(action)

@@ -89,7 +89,7 @@ class NNVisualize(object):
         plt.ioff()
         
     def saveVisual(self, fileName):
-        plt.savefig(fileName+".svg")
+        self._fig.savefig(fileName+".svg")
         
 if __name__ == "__main__":
     

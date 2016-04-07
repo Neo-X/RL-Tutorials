@@ -16,5 +16,5 @@
 "discount_factor": 0.8,
 "max_reward": 5.0,
 "max_state": [4.0,10.0],
-"action_bounds": [[-1.0],[1.0]]
+"action_bounds": [[-2.0],[2.0]]
 }
