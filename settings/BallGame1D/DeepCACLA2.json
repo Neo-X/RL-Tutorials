@@ -2,6 +2,7 @@
 "model_type": "Deep_CACLA",
 "agent_name": "Deep_CACLA",
 "data_folder": "Deep_CACLA2/",
+"game_type": "BallGame1DFuture",
 "epsilon": 1.0,
 "batch_size": 32,
 "learning_rate": 0.00025,

@@ -1,12 +1,12 @@
-from MapGame import Map
-from BallGame1D import BallGame1D
 import random
 import numpy as np
 import math
 import cPickle
 import json
 import os
+import sys
 
+# Networks
 from RLLogisticRegression import RLLogisticRegression
 from NeuralNet import NeuralNet 
 from RLNeuralNetwork import RLNeuralNetwork
@@ -15,7 +15,11 @@ from RLDeepNet import RLDeepNet
 from DeepCACLA import DeepCACLA
 from DeepDPG import DeepDPG 
 from ForwardDynamicsNetwork import ForwardDynamicsNetwork
-import sys
+
+# Games
+from MapGame import Map
+from BallGame1D import BallGame1D
+from BallGame1DFuture import BallGame1DFuture
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
@@ -155,7 +159,16 @@ if __name__ == "__main__":
         
         
         # game = Map(map)
-        game = BallGame1D()
+        game = None
+        game_type = settings['game_type']
+        if game_type == 'BallGame1DFuture':
+            game = BallGame1DFuture()
+        elif game_type == 'BallGame1D':
+            game = BallGame1D()
+        else:
+            print "Unrecognized game: " + str(game_type)
+            sys.exit()
+            
         game._simulate=False
         steps = 500
         max_expereince = 20000
@@ -226,10 +239,10 @@ if __name__ == "__main__":
             X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
         game.init(U, V, Q)
         
-        rlv = RLVisualize(title=str(settings['agent_name']))
+        rlv = RLVisualize(title=str(settings['agent_name'] + " on " + str(game_type)))
         rlv.setInteractive()
         rlv.init()
-        nlv = NNVisualize(title=str("Forward Dynamics Model"))
+        nlv = NNVisualize(title=str("Forward Dynamics Model") + " on " + str(game_type))
         nlv.setInteractive()
         nlv.init()
         
