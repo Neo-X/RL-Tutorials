@@ -278,7 +278,7 @@ if __name__ == "__main__":
                     discounted_values.append(discounted_sum)
                     # print "Actions: " + str(actions)
                     # states, actions, result_states, rewards = experience.get_batch(batch_size)
-                    print "States: " + str(states)
+                    # print "States: " + str(states)
                     error = model.bellman_error(np.array(states), np.array(actions), 
                                 np.array(rewards), np.array(result_states))
                     dynamicsLoss = forwardDynamicsModel.bellman_error(np.array(states), np.array(actions), np.array(result_states))
