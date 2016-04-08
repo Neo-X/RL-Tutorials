@@ -447,6 +447,11 @@ if __name__ == "__main__":
         f = open(file_name, 'w')
         cPickle.dump(model, f)
         f.close()
+        
+        file_name_dynamics=data_folder+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
+        f = open(file_name_dynamics, 'w')
+        cPickle.dump(forwardDynamicsModel, f)
+        f.close()
     #except Exception, e:
     #    print "Error: " + str(e)
     #    raise e
