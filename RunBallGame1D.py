@@ -277,11 +277,14 @@ if __name__ == "__main__":
                     reward_over_epocs.append(reward_sum)
                     discounted_values.append(discounted_sum)
                     # print "Actions: " + str(actions)
+                    # states, actions, result_states, rewards = experience.get_batch(batch_size)
+                    print "States: " + str(states)
                     error = model.bellman_error(np.array(states), np.array(actions), 
                                 np.array(rewards), np.array(result_states))
                     dynamicsLoss = forwardDynamicsModel.bellman_error(np.array(states), np.array(actions), np.array(result_states))
                     # states, actions, result_states, rewards = experience.get_batch(64)
                     # error = model.bellman_error(states, actions, rewards, result_states)
+                    # print "Error: " + str(error)
                     error = np.mean(np.fabs(error))
                     bellman_errors.append(error)
                     dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
@@ -295,6 +298,7 @@ if __name__ == "__main__":
                     actions = []
                     rewards = []
                     result_states = []
+                    error = None
                     
                     
                 state = game.getState()
@@ -332,10 +336,10 @@ if __name__ == "__main__":
                 # print "Reward: " + str(reward_)
                 # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
                 # print model.q_values([tup._state])
-                actions.append(action)
-                result_states.append(resultState)
+                actions.append(norm_action(action, action_bounds))
+                result_states.append(norm_state(resultState, max_state))
                 rewards.append([reward_])
-                states.append(state)
+                states.append(norm_state(state, max_state))
                 reward_sum+=reward_
                 discounted_sum += (math.pow(0.8,t) * reward)
                 if experience.samples() > batch_size:
@@ -353,7 +357,7 @@ if __name__ == "__main__":
                 X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
             game.update()
             game.updatePolicy(U, V, Q)
-            states_, actions_, result_states_, rewards_ = experience.get_batch(32)
+            states_, actions_, result_states_, rewards_ = experience.get_batch(batch_size)
             error = model.bellman_error(states_, actions_, rewards_, result_states_)
             error = np.mean(np.fabs(error))
             print "Iteration: " + str(i) + "RL Loss: " + str(cost) + " Bellman Error: " + str(error) + " dynamicsLoss: " + str(dynamicsLoss)
@@ -371,6 +375,7 @@ if __name__ == "__main__":
             # print "Mean Rewards: " + str(trainData["mean_reward"])
             trainData["std_reward"].append(std_reward)
             trainData["mean_bellman_error"].append(mean_bellman_error)
+            # print "beelman error: " + str(trainData["mean_bellman_error"])
             trainData["std_bellman_error"].append(std_bellman_error)
             trainData["mean_discount_error"].append(mean_discount_error)
             trainData["std_discount_error"].append(std_discount_error)

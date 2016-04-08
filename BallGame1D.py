@@ -223,14 +223,14 @@ class BallGame1D(object):
                     self.update()
                 
                 if not run:
-                    print "self._max_y: " + str(self._max_y)
+                    # print "self._max_y: " + str(self._max_y)
                     return self.reward()
         else:
             # self._max_y = self._box.state[0][1]
             init_v_squared = (self._box.state[0][3]*self._box.state[0][3])
             seconds_ = 2* (-self._box.G)
             self._max_y = (-init_v_squared)/seconds_
-            print "self._max_y: " + str(self._max_y)
+            # print "self._max_y: " + str(self._max_y)
         return self.reward()
             
     def reward(self):
