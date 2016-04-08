@@ -199,25 +199,30 @@ if __name__ == "__main__":
         for action_ in actions:
             # ballGame.resetTarget()
             game.resetTarget()
+            game.resetHeight()
             game._box.state[0][1] = 0.0
             state = game.getState()
             print "State: " + str(state)
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
-            print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
+            # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
             
             pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 action = scale_action(pa, action_bounds)
                 print "Action: " + str(action)
                 prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
-                print "Next State Prediction: " + str(prediction)
+                # print "Next State Prediction: " + str(prediction)
+                predicted_height = game._computeHeight(prediction[1])
+                game.setPrediction([2,predicted_height])
+                # print "Next Height Prediction: " + str(predicted_height)
                 reward = game.actContinuous(action)
+                print "Height difference: " + str(math.fabs(predicted_height - game._max_y))
             elif not action_space_continuous:
                 print "Action: " + str(pa)
                 reward = game.act(action)
                 
-            print "Reward: " + str(reward)
+            # print "Reward: " + str(reward)
             
             
 

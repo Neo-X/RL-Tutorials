@@ -334,7 +334,7 @@ if __name__ == "__main__":
                     # something bad happened
                     reward = max_reward
                 resultState = game.getState()
-                print "ResultState: " + str(resultState)
+                # print "ResultState: " + str(resultState)
                 # tup = ExperienceTuple(state, [action], resultState, [reward])
                 # Everything should be normalized to be between -1 and 1
                 reward_ = reward
@@ -343,6 +343,7 @@ if __name__ == "__main__":
                 # reward_ = (reward+max_reward)/(max_reward)
                 experience.insert(norm_state(state, max_state), norm_action(action, action_bounds), norm_state(resultState, max_state), [reward_])
                 game.resetTarget()
+                game.resetHeight()
                 # Update agent on screen
                 # game.update()
                 # X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)

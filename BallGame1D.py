@@ -100,6 +100,7 @@ class BallGame1D(object):
         self._render=False
         self._simulate=True
         self._saveVideo=False
+        self._prediction=[2.0,2.0]
         
         
 
@@ -147,6 +148,7 @@ class BallGame1D(object):
         # particles holds the locations of the particles
         self._particles, = self._map_ax.plot([0,4], [0,4], 'bo', ms=4)
         self._targets, = self._map_ax.plot([], [], 'go', ms=4)
+        self._predictions, = self._map_ax.plot([2], [0], 'r+', ms=4, linewidth=3, markeredgewidth=3)
         
         # rect is the box edge
         self._rect = plt.Rectangle(self._box.bounds[::2],
@@ -205,6 +207,8 @@ class BallGame1D(object):
         self._particles.set_markersize(ms)
         self._targets.set_data([self._target[0]], [self._target[1]])
         self._targets.set_markersize(ms)
+        self._predictions.set_data([self._prediction[0]], [self._prediction[1]])
+        self._predictions.set_markersize(ms)
         # return particles, rect
         return out
     
@@ -242,8 +246,10 @@ class BallGame1D(object):
     def reward(self):
         # More like a cost function for distance away from target
         d = math.fabs(self._max_y - self._target[1])
-        self._max_y = self._box.state[0][1]
         return -d
+    
+    def resetHeight(self):
+        self._max_y = self._box.state[0][1]
     
     def update(self):
         """perform animation step"""
@@ -294,6 +300,9 @@ class BallGame1D(object):
         
     def setTarget(self, st):
         self._target = st
+        
+    def setPrediction(self, st):
+        self._prediction = st
         
     def reachedTarget(self):
         # Might be a little touchy because floats are used
