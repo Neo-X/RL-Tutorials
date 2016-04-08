@@ -146,8 +146,8 @@ class ForwardDynamicsNetwork(object):
     def predict(self, state, action):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        self._states_shared.set_value(state)
-        self._action_shared.set_value(action)
+        self._states_shared.set_value([state])
+        self._actions_shared.set_value([action])
         state_ = self._forwardDynamics()[0]
         return state_
 

@@ -334,6 +334,7 @@ if __name__ == "__main__":
                     # something bad happened
                     reward = max_reward
                 resultState = game.getState()
+                print "ResultState: " + str(resultState)
                 # tup = ExperienceTuple(state, [action], resultState, [reward])
                 # Everything should be normalized to be between -1 and 1
                 reward_ = reward
@@ -359,7 +360,7 @@ if __name__ == "__main__":
                     _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
                     # print _states, _rewards
                     cost = model.train(_states, _actions, _rewards, _result_states)
-                    dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states)
+                    dynamicsLoss = forwardDynamicsModel.train(states=_states, actions=_actions, result_states=_result_states)
                     # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 i += 1
                 t += 1

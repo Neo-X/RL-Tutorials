@@ -191,7 +191,7 @@ if __name__ == "__main__":
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
 
-        num_actions = 10
+        num_actions = 20
         scaling = 1.0
         game._box.state[0][1] = 0.0
         
@@ -204,11 +204,14 @@ if __name__ == "__main__":
             print "State: " + str(state)
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
+            print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
             
             pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 action = scale_action(pa, action_bounds)
                 print "Action: " + str(action)
+                prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
+                print "Next State Prediction: " + str(prediction)
                 reward = game.actContinuous(action)
             elif not action_space_continuous:
                 print "Action: " + str(pa)

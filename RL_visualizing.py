@@ -20,6 +20,9 @@ def loadMap():
 def norm_state(state, max_state):
     return (state-max_state)/max_state
 
+def scale_state(state, max_state):
+    return (state*max_state)+max_state
+
 def norm_state2(state, max_state):
     """
     For when the origin is in the centre of the enfironment

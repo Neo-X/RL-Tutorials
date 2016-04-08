@@ -226,15 +226,18 @@ class BallGame1D(object):
                     self.update()
                 
                 if not run:
-                    print "self._max_y: " + str(self._max_y)
+                    # print "self._max_y: " + str(self._max_y)
                     return self.reward()
         else:
             # self._max_y = self._box.state[0][1]
-            init_v_squared = (self._box.state[0][3]*self._box.state[0][3])
-            seconds_ = 2* (-self._box.G)
-            self._max_y = (-init_v_squared)/seconds_
+            self._max_y = self._computeHeight(action_=self._box.state[0][3])
             # print "self._max_y: " + str(self._max_y)
         return self.reward()
+    
+    def _computeHeight(self, action_):
+        init_v_squared = (action_*action_)
+        seconds_ = 2 * (-self._box.G)
+        return (-init_v_squared)/seconds_
             
     def reward(self):
         # More like a cost function for distance away from target
@@ -281,13 +284,13 @@ class BallGame1D(object):
         state = np.array([0.0,0.0], dtype=float)
         # state[0] = self._box.state[0,1]
         state[0] = self._target[1] - state[1]
-        state[1] = self._box.state[0,3]
+        state[1] = self._box.state[0][3]
         return state
     
     def setState(self, st):
         self._agent = st
-        self._box.state[0,0] = st[0]
-        self._box.state[0,1] = st[1]
+        self._box.state[0][0] = st[0]
+        self._box.state[0][1] = st[1]
         
     def setTarget(self, st):
         self._target = st
