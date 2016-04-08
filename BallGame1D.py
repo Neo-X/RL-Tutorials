@@ -226,7 +226,7 @@ class BallGame1D(object):
                     self.update()
                 
                 if not run:
-                    # print "self._max_y: " + str(self._max_y)
+                    print "self._max_y: " + str(self._max_y)
                     return self.reward()
         else:
             # self._max_y = self._box.state[0][1]
@@ -330,8 +330,8 @@ if __name__ == '__main__':
     np.random.seed(seed=10)
     ballGame = BallGame1D()
 
-    # ballGame.enableRender()
-    # ballGame._simulate=True
+    ballGame.enableRender()
+    ballGame._simulate=True
     # ballGame._saveVideo=True
         
     ballGame.init(np.random.rand(256,1),np.random.rand(256,1),np.random.rand(256,1))

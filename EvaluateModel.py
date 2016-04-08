@@ -153,8 +153,10 @@ if __name__ == "__main__":
         game = None
         game_type = settings['game_type']
         if game_type == 'BallGame1DFuture':
+            print "Creating Game type: " + str(game_type)
             game = BallGame1DFuture()
         elif game_type == 'BallGame1D':
+            print "Creating Game type: " + str(game_type)
             game = BallGame1D()
         else:
             print "Unrecognized game: " + str(game_type)
@@ -162,7 +164,7 @@ if __name__ == "__main__":
             
         game.enableRender()
         game._simulate=True
-        game._saveVideo=True
+        # game._saveVideo=True
         game.setMovieName(str(settings['agent_name']) + "_on_" + str(game_type))
             
         action_bounds = np.array(settings['action_bounds'])
@@ -184,22 +186,25 @@ if __name__ == "__main__":
         else:
             X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
         game.init(U, V, Q)
-        
+        game.reset()
         
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
-        bellman_errors = []
-        reward_over_epocs = []
-        values = []
-        step=0
+
         num_actions = 10
         scaling = 1.0
+        game._box.state[0][1] = 0.0
         
         actions = (np.random.rand(num_actions,1)-0.5) * 2.0 * scaling
         for action_ in actions:
             # ballGame.resetTarget()
+            game.resetTarget()
+            game._box.state[0][1] = 0.0
             state = game.getState()
             print "State: " + str(state)
+            # reward = game.actContinuous(action_)
+            # print "Action: " + str(action_)
+            
             pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 action = scale_action(pa, action_bounds)
@@ -208,6 +213,7 @@ if __name__ == "__main__":
             elif not action_space_continuous:
                 print "Action: " + str(pa)
                 reward = game.act(action)
+                
             print "Reward: " + str(reward)
             
             
