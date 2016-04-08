@@ -160,18 +160,24 @@ if __name__ == "__main__":
             print "Unrecognized game: " + str(game_type)
             sys.exit()
             
+        game.enableRender()
+        game._simulate=True
+        game._saveVideo=True
+        game.setMovieName(str(settings['agent_name']) + "_on_" + str(game_type))
+            
         action_bounds = np.array(settings['action_bounds'])
         action_length = len(action_bounds[0])
         data_folder = settings['data_folder']
         states = np.array([max_state])
         state_length = len(max_state)
-        action_space_continuous=False
+        action_space_continuous=True
         
         file_name=data_folder+"navigator_agent_"+str(settings['agent_name'])+".pkl"
         model = cPickle.load(open(file_name))
         
-        forwardDynamicsModel = ForwardDynamicsNetwork(state_length=state_length,action_length=action_length)
-         
+        file_name_dynamics=data_folder+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
+        forwardDynamicsModel = cPickle.load(open(file_name_dynamics))
+        
         if action_space_continuous:
             # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
             X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
@@ -190,16 +196,17 @@ if __name__ == "__main__":
         scaling = 1.0
         
         actions = (np.random.rand(num_actions,1)-0.5) * 2.0 * scaling
-        for action in actions:
+        for action_ in actions:
             # ballGame.resetTarget()
             state = game.getState()
             print "State: " + str(state)
-            print "Action: " + str(action)
             pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 action = scale_action(pa, action_bounds)
+                print "Action: " + str(action)
                 reward = game.actContinuous(action)
             elif not action_space_continuous:
+                print "Action: " + str(pa)
                 reward = game.act(action)
             print "Reward: " + str(reward)
             

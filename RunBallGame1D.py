@@ -438,6 +438,15 @@ if __name__ == "__main__":
             error = np.mean(np.fabs(error))
             print "Round: " + str(round) + " Iteration: " + str(i) + " Bellman Error: " + str(error) + " Expereince: " + str(len(experience))
             """
+            file_name=data_folder+"navigator_agent_"+str(settings['agent_name'])+".pkl"
+            f = open(file_name, 'w')
+            cPickle.dump(model, f)
+            f.close()
+            
+            file_name_dynamics=data_folder+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
+            f = open(file_name_dynamics, 'w')
+            cPickle.dump(forwardDynamicsModel, f)
+            f.close()
             # print model.q_values(states)[:5]
             # print experience[:10]
         

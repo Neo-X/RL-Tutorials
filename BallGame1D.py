@@ -131,6 +131,9 @@ class BallGame1D(object):
             6: [0.66,1],
             7: [1,1],
             }.get(action, [-1,0]) 
+            
+    def setMovieName(self, name):
+        self._movie_name=name
         
     def init(self, U, V, Q):
         """initialize animation"""
@@ -183,7 +186,7 @@ class BallGame1D(object):
             metadata = dict(title='Movie Test', artist='Matplotlib',
                             comment='Movie support!')
             self._writer = FFMpegWriter(fps=30, metadata=metadata)
-            self._writer.setup(self._fig, "writer_test.mp4", 100)
+            self._writer.setup(self._fig, str(self._movie_name) + ".mp4", 100)
             # self._movieOut = open("moviee.mp4", 'wb')
             # self._writer.fig = self._fig
             # self._writer.fig = self._fig
