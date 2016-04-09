@@ -146,9 +146,9 @@ class BallGame1D(object):
         self._map_ax.set_title('Map')
         
         # particles holds the locations of the particles
-        self._particles, = self._map_ax.plot([0,4], [0,4], 'bo', ms=4)
-        self._targets, = self._map_ax.plot([], [], 'go', ms=4)
-        self._predictions, = self._map_ax.plot([2], [0], 'r+', ms=4, linewidth=3, markeredgewidth=3)
+        self._particles, = self._map_ax.plot([0,4], [0,4], 'bo', ms=4, label='agent')
+        self._plot_target, = self._map_ax.plot([], [], 'go', ms=4, label='Target')
+        self._predictions, = self._map_ax.plot([2], [0], 'r+', ms=4, linewidth=3, markeredgewidth=3,  label='Prediction')
         
         # rect is the box edge
         self._rect = plt.Rectangle(self._box.bounds[::2],
@@ -156,6 +156,7 @@ class BallGame1D(object):
                              self._box.bounds[3] - self._box.bounds[2],
                              ec='none', lw=2, fc='none')
         self._map_ax.add_patch(self._rect)
+        self._map_ax.legend()
         
         self._policy_ax.set_title('Policy')
         
@@ -205,8 +206,8 @@ class BallGame1D(object):
         self._rect.set_edgecolor('k')
         self._particles.set_data(self._box.state[:, 0], self._box.state[:, 1])
         self._particles.set_markersize(ms)
-        self._targets.set_data([self._target[0]], [self._target[1]])
-        self._targets.set_markersize(ms)
+        self._plot_target.set_data([self._target[0]], [self._target[1]])
+        self._plot_target.set_markersize(ms)
         self._predictions.set_data([self._prediction[0]], [self._prediction[1]])
         self._predictions.set_markersize(ms)
         # return particles, rect
@@ -321,6 +322,7 @@ class BallGame1D(object):
         
     def enableRender(self):
         self._render=True
+        
     def disableRender(self):
         self._render=False
 
@@ -345,7 +347,6 @@ if __name__ == '__main__':
     ballGame.enableRender()
     ballGame._simulate=True
     # ballGame._saveVideo=True
-        
     ballGame.init(np.random.rand(256,1),np.random.rand(256,1),np.random.rand(256,1))
     
     ballGame.reset()

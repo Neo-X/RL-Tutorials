@@ -164,7 +164,7 @@ if __name__ == "__main__":
             
         game.enableRender()
         game._simulate=True
-        # game._saveVideo=True
+        game._saveVideo=True
         game.setMovieName(str(settings['agent_name']) + "_on_" + str(game_type))
             
         action_bounds = np.array(settings['action_bounds'])
@@ -210,16 +210,16 @@ if __name__ == "__main__":
             pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 action = scale_action(pa, action_bounds)
-                print "Action: " + str(action)
+                # print "Action: " + str(action)
                 prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
-                # print "Next State Prediction: " + str(prediction)
-                predicted_height = game._computeHeight(prediction[1])
+                print "Next State Prediction: " + str(prediction)
+                predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
                 game.setPrediction([2,predicted_height])
                 # print "Next Height Prediction: " + str(predicted_height)
                 reward = game.actContinuous(action)
                 print "Height difference: " + str(math.fabs(predicted_height - game._max_y))
             elif not action_space_continuous:
-                print "Action: " + str(pa)
+                # print "Action: " + str(pa)
                 reward = game.act(action)
                 
             # print "Reward: " + str(reward)
