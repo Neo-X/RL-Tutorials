@@ -333,6 +333,9 @@ if __name__ == "__main__":
                 if reward is None:
                     # something bad happened
                     reward = max_reward
+                # You want to advance the targets first.
+                game.resetTarget()
+                game.resetHeight()
                 resultState = game.getState()
                 # print "ResultState: " + str(resultState)
                 # tup = ExperienceTuple(state, [action], resultState, [reward])
@@ -342,8 +345,6 @@ if __name__ == "__main__":
                 # reward_ = (reward)/(max_reward)
                 # reward_ = (reward+max_reward)/(max_reward)
                 experience.insert(norm_state(state, max_state), norm_action(action, action_bounds), norm_state(resultState, max_state), [reward_])
-                game.resetTarget()
-                game.resetHeight()
                 # Update agent on screen
                 # game.update()
                 # X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
