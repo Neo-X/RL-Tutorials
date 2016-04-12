@@ -74,6 +74,29 @@ def clampAction(actionV, bounds):
         elif actionV[i] > bounds[1][i]:
             actionV[i] = bounds[1][i]
     return actionV
+
+
+def norm_action(action_, action_bounds_):
+    """
+        
+        Normalizes the action 
+        Where the middle of the action bounds are mapped to 0
+        upper bound will correspond to 1 and -1 to the lower
+        from environment space to normalized space
+    """
+    avg = (action_bounds_[0] + action_bounds_[1])/2
+    return (action_ - (avg)) / (action_bounds_[1]-avg)
+
+def scale_action(normed_action_, action_bounds_):
+    """
+        from normalize space back to environment space
+        Normalizes the action 
+        Where 0 in the action will be mapped to the middle of the action bounds
+        1 will correspond to the upper bound and -1 to the lower
+    """
+    avg = (action_bounds_[0] + action_bounds_[1])/2.0
+    return normed_action_ * (action_bounds_[1] - avg) + avg
+
     
 def collectExperienceActionsContinuous(experience, action_bounds):
     i = 0

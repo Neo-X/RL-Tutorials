@@ -25,111 +25,9 @@ from RL_visualizing import *
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
 from ExperienceMemory import ExperienceMemory
-
-def eGreedy(pa1, ra2, e):
-    """
-        epsilon greedy action select
-        pa1 is best action from policy
-        ra1 is the random action
-        e is proabilty to select random action
-        0 <= e < 1.0
-    """
-    r = random.random()
-    if r < e:
-        return ra2
-    else:
-        return pa1
-    
-def eOmegaGreedy(pa1, ra1, ra2, e, omega):
-    """
-        epsilon greedy action select
-        pa1 is best action from policy
-        ra1 is the noisy policy action action
-        ra2 is the random action
-        e is proabilty to select random action
-        0 <= e < omega < 1.0
-    """
-    r = random.random()
-    if r < e:
-        return ra2
-    elif r < omega:
-        return ra1
-    else:
-        return pa1
-    
-def randomExporation(explorationRate, actionV):
-    out = []
-    for i in range(len(actionV)):
-        out.append(actionV[i] + random.gauss(actionV[i], explorationRate))
-    return out
-
-def randomUniformExporation(bounds):
-    out = []
-    for i in range(len(bounds[0])):
-        out.append(np.random.uniform(bounds[0][i],bounds[1][i],1)[0])
-    return out
+from RunGame import *
 
 
-def clampAction(actionV, bounds):
-    """
-    bounds[0] is lower bounds
-    bounds[1] is upper bounds
-    """
-    for i in range(len(actionV)):
-        if actionV[i] < bounds[0][i]:
-            actionV[i] = bounds[0][i]
-        elif actionV[i] > bounds[1][i]:
-            actionV[i] = bounds[1][i]
-    return actionV
-
-def norm_action(action_, action_bounds_):
-    """
-        
-        Normalizes the action 
-        Where the middle of the action bounds are mapped to 0
-        upper bound will correspond to 1 and -1 to the lower
-        from environment space to normalized space
-    """
-    avg = (action_bounds_[0] + action_bounds_[1])/2
-    return (action_ - (avg)) / (action_bounds_[1]-avg)
-
-def scale_action(normed_action_, action_bounds_):
-    """
-        from normalize space back to environment space
-        Normalizes the action 
-        Where 0 in the action will be mapped to the middle of the action bounds
-        1 will correspond to the upper bound and -1 to the lower
-    """
-    avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    return normed_action_ * (action_bounds_[1] - avg) + avg
-    
-def collectExperienceActionsContinuous(experience, action_bounds):
-    i = 0
-    while i < experience.history_size():
-        game.reset()
-        t=0
-        while not game.reachedTarget():
-            if (t > 31):
-                game.reset()
-                t=0
-                
-            state = game.getState()
-            action = game.move(random.choice(action_selection))
-            # randomAction = randomUniformExporation(action_bounds) # Should select from 8 original actions
-            # action = clampAction(randomAction, action_bounds)
-            reward = game.actContinuous(action)
-            resultState = game.getState()
-            # tup = ExperienceTuple(state, [action], resultState, [reward])
-            # Everything should be normalized to be between -1 and 1
-            reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
-            # reward_ = (reward)/(max_reward)
-            # reward_ = (reward+max_reward)/(max_reward)
-            experience.insert(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward_])
-            i+=1
-            t+=1
-
-    print "Done collecting experience from " + str(experience.samples()) + " samples."
-    return experience  
 
     
 if __name__ == "__main__":
@@ -164,7 +62,7 @@ if __name__ == "__main__":
             
         game.enableRender()
         game._simulate=True
-        game._saveVideo=True
+        # game._saveVideo=True
         game.setMovieName(str(settings['agent_name']) + "_on_" + str(game_type))
             
         action_bounds = np.array(settings['action_bounds'])
@@ -213,7 +111,7 @@ if __name__ == "__main__":
                 # print "Action: " + str(action)
                 prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
                 print "Next State Prediction: " + str(prediction)
-                predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
+                predicted_height = game._computeHeight(prediction[3]) # This is dependent on the network shape
                 game.setPrediction([2,predicted_height])
                 # print "Next Height Prediction: " + str(predicted_height)
                 reward = game.actContinuous(action)
