@@ -52,10 +52,10 @@ class BallGame1DFuture(BallGame1D):
     def getState(self):
         state = np.array([0.0,0.0,0.0,0.0], dtype=float)
         # state[0] = self._box.state[0,1]
-        state[0] = self._targets[0] - state[1]
-        state[1] = self._targets[1] - state[1]
-        state[2] = self._targets[2] - state[1]
-        state[3] = self._box.state[0,3]
+        state[0] = self._targets[0]
+        state[1] = self._box.state[0,3]
+        state[2] = self._targets[1]
+        state[3] = self._targets[2]
         return state
     
     def setState(self, st):

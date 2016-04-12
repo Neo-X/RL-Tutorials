@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.animation as manimation
+from matplotlib import cm as CM
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
@@ -101,6 +102,7 @@ class BallGame1D(object):
         self._simulate=True
         self._saveVideo=False
         self._prediction=[2.0,2.0]
+        self._defaultVelocity=6.2
         
         
 
@@ -108,7 +110,7 @@ class BallGame1D(object):
         self._box.state[0][0] = 2.0
         self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
-        self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
+        self._box.state[0][3] = (np.random.rand(1)+self._defaultVelocity) # think this will be about middle, y = 2.0
         self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
         
     def resetTarget(self):
@@ -138,6 +140,7 @@ class BallGame1D(object):
         
     def init(self, U, V, Q):
         """initialize animation"""
+        # print "U: " + str(U)
          #------------------------------------------------------------
         # set up figure and animation
         self._fig, (self._map_ax, self._policy_ax) = plt.subplots(1, 2, sharey=False)
@@ -161,7 +164,7 @@ class BallGame1D(object):
         self._policy_ax.set_title('Policy')
         
         scale =float(4.0)
-        X,Y = np.mgrid[0:self._box.bounds[1]*scale,0:self._box.bounds[1]*scale]/float(scale)
+        X,Y = self.getGrid()
         # print X,Y
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
         textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
@@ -173,8 +176,14 @@ class BallGame1D(object):
         q_max = np.max(Q)
         q_min = np.min(Q)
         Q = (Q - q_min)/ (q_max-q_min)
-        self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
-        self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        gridsize=30
+        # X is relative distance to target
+        # Y is delta velocity change
+        self._policy2 = self._policy_ax.hexbin(Y.ravel(), X.ravel(), C=Q.ravel(), cmap=CM.jet, bins=None)
+        # self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        self._policy = self._policy2 
+        self._policy_ax.set_ylabel("relative target distance")
+        self._policy_ax.set_xlabel("velocity before action")
         
         # self._policy_ax.set_aspect(1.)
         self.setTarget(np.array([2,0]))
@@ -195,6 +204,13 @@ class BallGame1D(object):
             # self._writer.fig = self._fig
         return self._particles, self._rect
     
+    def getGrid(self):
+        size_=16
+        X,Y = np.mgrid[0:size_,0:size_]/8.0
+        X= X + 1.0
+        Y = ((Y - 1.0) * 2.0 ) + self._defaultVelocity
+        return (X, Y)
+        
     def animate(self, i):
         """perform animation step"""
         out = self._box.step(self._dt)
@@ -284,6 +300,7 @@ class BallGame1D(object):
                                                    256)
         self._policy2.cmap._set_extremes()
         """
+        # print "U: " + str(U)
         self._policy.set_UVC(U, V)
         self._fig.canvas.draw()
     

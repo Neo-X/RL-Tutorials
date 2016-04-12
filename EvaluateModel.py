@@ -104,14 +104,14 @@ if __name__ == "__main__":
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
             # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
-            
+
             pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 action = scale_action(pa, action_bounds)
-                # print "Action: " + str(action)
+                print "Action: " + str(action)
                 prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
                 print "Next State Prediction: " + str(prediction)
-                predicted_height = game._computeHeight(prediction[3]) # This is dependent on the network shape
+                predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
                 game.setPrediction([2,predicted_height])
                 # print "Next Height Prediction: " + str(predicted_height)
                 reward = game.actContinuous(action)

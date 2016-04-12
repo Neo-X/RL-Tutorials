@@ -88,22 +88,23 @@ def get_continuous_policy_visual_data1D(model_, max_state, game):
     """
         For policies with one output action parameter
     """
-    X,Y = np.mgrid[0:16,0:16]
+    size_=16
+    X,Y = game.getGrid()
     U = []
     V = []
     Q = []
-    for i in range(16):
+    for i in range(size_):
         t_u = []
         t_v = []
         t_q = []
-        for j in range(16):
-            state = np.zeros(len(max_state))
+        for j in range(size_):
+            state = np.array([X[i][j],Y[i][j]])
             pa = model_.predict([norm_state(state,max_state)])
             # pa = model_.predict([norm_state(state,max_state)])
             q = (model_.q_value([norm_state(state,max_state)]))
             # q=0 
             move = pa
-            t_u.append(move[0])
+            t_u.append(0)
             t_v.append(0)
             t_q.append(q)
         U.append(t_u)
@@ -112,6 +113,7 @@ def get_continuous_policy_visual_data1D(model_, max_state, game):
     
     U = np.array(U)*1.0
     V = np.array(V)*1.0
+    # Switch X and Y?
     return (X, Y, U, V, Q)
 
 
@@ -127,7 +129,7 @@ class RLVisulize(object):
         X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
         # print X,Y
         # print U,V
-        print Q
+        # print Q
         fig, ax = plt.subplots(1)
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
         ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
