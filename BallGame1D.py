@@ -270,6 +270,11 @@ class BallGame1D(object):
         d = math.fabs(self._max_y - self._target[1])
         return -d
     
+    def _reward(self, action):
+        # More like a cost function for distance away from target
+        d = math.fabs(action - self._target[1])
+        return -d
+    
     def resetHeight(self):
         self._max_y = self._box.state[0][1]
     

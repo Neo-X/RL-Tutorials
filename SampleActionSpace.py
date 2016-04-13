@@ -35,21 +35,35 @@ class Sampler(object):
     def __init__(self):
         self._x=[]
         self._samples=[]
+        self._bestSample=([0],[-10000000])
         
 
-    def sample(self, game):
-        samp = [2,3]
-        
+    def sample(self, game, state):
+        self._samples = []
+        self._bestSample=([0],[-10000000])
+        xi = np.linspace(-2.0, 2.0, 100)
+        for i in xi:
+            y = game._reward(game._computeHeight(i+state[1]))
+            # print i, y
+            self._samples.append([[i],[y]])
+            if y > self._bestSample[1][0]:
+                self._bestSample[1][0] = y
+                self._bestSample[0][0] = i
+            
+    def getBestSample(self): 
+        return self._bestSample
+    
     def predict(self, state):
         """
         Returns the best action
         """
-        return []
+        return np.random.rand(1,1)
 
     def q_value(self, state):
         """
         Returns the expected value of the state
         """
+        return np.random.rand(1,1)[0]
     
 if __name__ == "__main__":
     
@@ -93,8 +107,8 @@ if __name__ == "__main__":
         state_length = len(max_state)
         action_space_continuous=True
         
-        file_name=data_folder+"navigator_agent_"+str(settings['agent_name'])+".pkl"
-        model = cPickle.load(open(file_name))
+        # file_name=data_folder+"navigator_agent_"+str(settings['agent_name'])+".pkl"
+        model = Sampler()
         
         file_name_dynamics=data_folder+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
         forwardDynamicsModel = cPickle.load(open(file_name_dynamics))
@@ -104,6 +118,9 @@ if __name__ == "__main__":
             X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
         else:
             X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+        print "U: " + str(U)
+        print "V: " + str(V)
+        print "Q: " + str(Q)
         game.init(U, V, Q)
         game.reset()
         
@@ -122,6 +139,7 @@ if __name__ == "__main__":
             game._box.state[0][1] = 0.0
             state = game.getState()
             print "State: " + str(state)
+            model.sample(game, state)
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
             # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
@@ -131,17 +149,18 @@ if __name__ == "__main__":
             else:
                 X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
             game.updatePolicy(U, V, Q)
-            pa = model.predict([norm_state(state, max_state)])
+            # pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
-                action = scale_action(pa, action_bounds)
+                # action = scale_action(pa, action_bounds)
+                action = model.getBestSample()
                 print "Action: " + str(action)
-                prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
-                print "Next State Prediction: " + str(prediction)
-                predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
-                game.setPrediction([2,predicted_height])
+                # prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
+                # print "Next State Prediction: " + str(prediction)
+                # predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
+                # game.setPrediction([2,predicted_height])
                 # print "Next Height Prediction: " + str(predicted_height)
                 reward = game.actContinuous(action)
-                print "Height difference: " + str(math.fabs(predicted_height - game._max_y))
+                # print "Height difference: " + str(math.fabs(predicted_height - game._max_y))
             elif not action_space_continuous:
                 # print "Action: " + str(pa)
                 reward = game.act(action)
