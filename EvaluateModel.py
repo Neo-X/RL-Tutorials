@@ -77,13 +77,15 @@ if __name__ == "__main__":
         
         file_name_dynamics=data_folder+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
         forwardDynamicsModel = cPickle.load(open(file_name_dynamics))
-        
+        """
         if action_space_continuous:
             # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
             X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
         else:
             X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
         game.init(U, V, Q)
+        """
+        game.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
         game.reset()
         
         if not os.path.exists(data_folder):
@@ -92,7 +94,7 @@ if __name__ == "__main__":
         num_actions = 20
         scaling = 1.0
         game._box.state[0][1] = 0.0
-        
+        reward_sum=0
         actions = (np.random.rand(num_actions,1)-0.5) * 2.0 * scaling
         for action_ in actions:
             # ballGame.resetTarget()
@@ -104,12 +106,14 @@ if __name__ == "__main__":
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
             # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
+            """
             if action_space_continuous:
                 # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
                 X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
             else:
                 X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
             game.updatePolicy(U, V, Q)
+            """
             pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 action = scale_action(pa, action_bounds)
@@ -124,8 +128,10 @@ if __name__ == "__main__":
             elif not action_space_continuous:
                 # print "Action: " + str(pa)
                 reward = game.act(action)
-                
+            reward_sum+=reward
             # print "Reward: " + str(reward)
+            
+        print "Average reward: " + str(reward_sum/num_actions)
             
             
 
