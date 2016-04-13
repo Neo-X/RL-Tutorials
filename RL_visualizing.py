@@ -90,13 +90,10 @@ def get_continuous_policy_visual_data1D(model_, max_state, game):
     """
     size_=16
     X,Y = game.getGrid()
-    U = []
-    V = []
-    Q = []
+    U = np.array(X)
+    V = np.array(X)
+    Q = np.array(X)
     for i in range(size_):
-        t_u = []
-        t_v = []
-        t_q = []
         for j in range(size_):
             state = np.array([X[i][j],Y[i][j]])
             pa = model_.predict([norm_state(state,max_state)])
@@ -104,19 +101,15 @@ def get_continuous_policy_visual_data1D(model_, max_state, game):
             q = (model_.q_value([norm_state(state,max_state)]))
             # q=0 
             move = pa
-            t_u.append(0)
-            t_v.append(0)
-            t_q.append(q)
-        U.append(t_u)
-        V.append(t_v)
-        Q.append(t_q)
+            U[i,j]=move[0]
+            V[i,j]=0
+            Q[i,j]=q
     
     U = np.array(U)*1.0
     V = np.array(V)*1.0
+    Q = np.array(Q)
     # Switch X and Y?
     return (X, Y, U, V, Q)
-
-
 
 class RLVisulize(object):
     

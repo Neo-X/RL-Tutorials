@@ -28,7 +28,28 @@ from ExperienceMemory import ExperienceMemory
 from RunGame import *
 
 
+class Sampler(object):
+    """
+        A simple method to sample the space of actions.
+    """    
+    def __init__(self):
+        self._x=[]
+        self._samples=[]
+        
 
+    def sample(self, game):
+        samp = [2,3]
+        
+    def predict(self, state):
+        """
+        Returns the best action
+        """
+        return []
+
+    def q_value(self, state):
+        """
+        Returns the expected value of the state
+        """
     
 if __name__ == "__main__":
     

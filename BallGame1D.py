@@ -181,7 +181,12 @@ class BallGame1D(object):
         # Y is delta velocity change
         self._policy2 = self._policy_ax.hexbin(Y.ravel(), X.ravel(), C=Q.ravel(), cmap=CM.jet, bins=None)
         # self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
-        self._policy = self._policy2 
+        self._policy = self._policy_ax.contour(Y, X, Q)
+        self._policy_ax.clabel(self._policy, inline=1, fontsize=10)
+        self._policy_ax.set_ylim([np.min(X),np.max(X)])
+        self._policy_ax.set_xlim([np.min(Y),np.max(Y)])
+        # self._policy = self._policy2
+
         self._policy_ax.set_ylabel("relative target distance")
         self._policy_ax.set_xlabel("velocity before action")
         
@@ -280,29 +285,57 @@ class BallGame1D(object):
                 # dpi=100)
         # self._line1.set_ydata(np.sin(x + phase))
         # self._fig.canvas.draw()
-        
+
     def updatePolicy(self, U, V, Q):
                 # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
         textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
         self._policyText.set_text(textstr)
+        """
         q_max = np.max(Q)
         q_min = np.min(Q)
         Q = (Q - q_min)/ (q_max-q_min)
         self._policy2.set_UVC(U, V, Q)
-        # self._policy2.set_vmin(1.0)
-        """
-        self._policy2.update_scalarmappable()
-        print "cmap " + str(self._policy2.cmap)  
-        print "Face colours" + str(self._policy2.get_facecolor())
-        colours = ['gray','black','blue']
-        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                   colours,
-                                                   256)
-        self._policy2.cmap._set_extremes()
-        """
-        # print "U: " + str(U)
         self._policy.set_UVC(U, V)
         self._fig.canvas.draw()
+        """
+        X,Y = self.getGrid()
+        self._policy_ax.clear()
+        self._policy2 = self._policy_ax.hexbin(Y.ravel(), X.ravel(), C=Q.ravel(), cmap=CM.jet, bins=None)
+        # self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        self._policy = self._policy_ax.contour(Y, X, Q)
+        self._policy_ax.clabel(self._policy, inline=1, fontsize=10)
+        self._policy_ax.set_ylim([np.min(X),np.max(X)])
+        self._policy_ax.set_xlim([np.min(Y),np.max(Y)])
+        # self._policy = self._policy2
+
+        self._policy_ax.set_ylabel("relative target distance")
+        self._policy_ax.set_xlabel("velocity before action")
+                
+    def updatePolicy2(self, U, V, Q):
+                # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
+        textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+        self._policyText.set_text(textstr)
+        """
+        q_max = np.max(Q)
+        q_min = np.min(Q)
+        Q = (Q - q_min)/ (q_max-q_min)
+        self._policy2.set_UVC(U, V, Q)
+        self._policy.set_UVC(U, V)
+        self._fig.canvas.draw()
+        """
+        X,Y = self.getGrid()
+        self._policy_ax.clear()
+        self._policy2 = self._policy_ax.hexbin(Y.ravel(), X.ravel(), C=Q.ravel(), cmap=CM.jet, bins=None)
+        # self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        self._policy = self._policy_ax.contour(Y, X, Q)
+        self._policy_ax.clabel(self._policy, inline=1, fontsize=10)
+        self._policy_ax.set_ylim([np.min(X),np.max(X)])
+        self._policy_ax.set_xlim([np.min(Y),np.max(Y)])
+        # self._policy = self._policy2
+
+        self._policy_ax.set_ylabel("relative target distance")
+        self._policy_ax.set_xlabel("velocity before action")
+        
     
     def getState(self):
         state = np.array([0.0,0.0], dtype=float)
