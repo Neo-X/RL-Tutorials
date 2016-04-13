@@ -50,14 +50,15 @@ class Sampler(object):
                 self._bestSample[1][0] = y
                 self._bestSample[0][0] = i
 
-    def sampleModel(self, model, forwardDynamics, current_state):
+    def sampleModel(self, model, forwardDynamics, current_state, max_state, action_bounds):
         self._samples = []
         self._bestSample=([0],[-10000000])
-        pa = model.predict([norm_state(state, max_state)])
+        pa = model.predict([norm_state(current_state, max_state)])
         action = scale_action(pa, action_bounds)
         xi = np.linspace(-0.5+action[0], 0.5+action[0], 100)
         for i in xi:
-            prediction = scale_state(forwardDynamics.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
+            pa = [i]
+            prediction = scale_state(forwardDynamics.predict(state=norm_state(current_state, max_state), action=norm_action(pa, action_bounds)), max_state)
             y = model.q_value([norm_state(prediction, max_state)])
             print i, y
             self._samples.append([[i],[y]])
@@ -267,7 +268,8 @@ def modelSampling():
             game._box.state[0][1] = 0.0
             state = game.getState()
             print "State: " + str(state)
-            sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state)
+            sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state, max_state=max_state, 
+                                action_bounds=action_bounds)
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
             # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
@@ -280,7 +282,7 @@ def modelSampling():
             # pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 # action = scale_action(pa, action_bounds)
-                action = model.getBestSample()
+                action = sampler.getBestSample()
                 print "Action: " + str(action)
                 # prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
                 # print "Next State Prediction: " + str(prediction)
