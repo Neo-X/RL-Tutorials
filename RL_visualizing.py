@@ -95,7 +95,8 @@ def get_continuous_policy_visual_data1D(model_, max_state, game):
     Q = np.array(X)
     for i in range(size_):
         for j in range(size_):
-            state = np.array([X[i][j],Y[i][j]])
+            state = np.array([X[i][j],Y[i][j], X[i][j], X[i][j]])
+            # state = np.array([X[i][j],Y[i][j]])
             pa = model_.predict([norm_state(state,max_state)])
             # pa = model_.predict([norm_state(state,max_state)])
             q = (model_.q_value([norm_state(state,max_state)]))

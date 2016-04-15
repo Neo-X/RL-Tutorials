@@ -32,10 +32,11 @@ class Sampler(object):
     """
         A simple method to sample the space of actions.
     """    
-    def __init__(self):
+    def __init__(self, game):
         self._x=[]
         self._samples=[]
         self._bestSample=([0],[-10000000])
+        self._game=game
         
 
     def sample(self, game, state):
@@ -58,9 +59,10 @@ class Sampler(object):
         xi = np.linspace(-0.5+action[0], 0.5+action[0], 100)
         for i in xi:
             pa = [i]
-            prediction = scale_state(forwardDynamics.predict(state=norm_state(current_state, max_state), action=norm_action(pa, action_bounds)), max_state)
-            y = model.q_value([norm_state(prediction, max_state)])
-            print i, y
+            # prediction = scale_state(forwardDynamics.predict(state=norm_state(current_state, max_state), action=norm_action(pa, action_bounds)), max_state)
+            # y = model.q_value([norm_state(prediction, max_state)])
+            y = self._game._reward(self._game._computeHeight(i+current_state[1]))
+            # print i, y
             self._samples.append([[i],[y]])
             if y > self._bestSample[1][0]:
                 self._bestSample[1][0] = y
@@ -169,7 +171,7 @@ def simpleSampling():
             # pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 # action = scale_action(pa, action_bounds)
-                action = model.getBestSample()
+                action = model.getBestSample()[:1]
                 print "Action: " + str(action)
                 # prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
                 # print "Next State Prediction: " + str(prediction)
@@ -232,7 +234,7 @@ def modelSampling():
         state_length = len(max_state)
         action_space_continuous=True
         
-        sampler = Sampler()
+        sampler = Sampler(game)
         
         file_name=data_folder+"navigator_agent_"+str(settings['agent_name'])+".pkl"
         model = cPickle.load(open(file_name))
@@ -245,9 +247,9 @@ def modelSampling():
             X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
         else:
             X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
-        print "U: " + str(U)
-        print "V: " + str(V)
-        print "Q: " + str(Q)
+        # print "U: " + str(U)
+        # print "V: " + str(V)
+        # print "Q: " + str(Q)
         game.init(U, V, Q)
         game.reset()
         
@@ -282,7 +284,7 @@ def modelSampling():
             # pa = model.predict([norm_state(state, max_state)])
             if action_space_continuous:
                 # action = scale_action(pa, action_bounds)
-                action = sampler.getBestSample()
+                action = sampler.getBestSample()[:1]
                 print "Action: " + str(action)
                 # prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
                 # print "Next State Prediction: " + str(prediction)
