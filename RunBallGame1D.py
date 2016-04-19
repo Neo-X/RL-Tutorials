@@ -141,7 +141,7 @@ if __name__ == "__main__":
         file.close()
         batch_size=32
         rounds = 1000
-        max_training_steps=2000000
+        max_training_steps=settings['max_training_steps']
         
         epsilon = 0.45 # It is important to have some space between these values especially now that the experience buffer starts loaded with random actions
         omega = 0.8
