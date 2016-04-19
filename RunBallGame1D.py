@@ -70,39 +70,6 @@ def randomUniformExporation(bounds):
     return out
 
 
-def clampAction(actionV, bounds):
-    """
-    bounds[0] is lower bounds
-    bounds[1] is upper bounds
-    """
-    for i in range(len(actionV)):
-        if actionV[i] < bounds[0][i]:
-            actionV[i] = bounds[0][i]
-        elif actionV[i] > bounds[1][i]:
-            actionV[i] = bounds[1][i]
-    return actionV
-
-def norm_action(action_, action_bounds_):
-    """
-        
-        Normalizes the action 
-        Where the middle of the action bounds are mapped to 0
-        upper bound will correspond to 1 and -1 to the lower
-        from environment space to normalized space
-    """
-    avg = (action_bounds_[0] + action_bounds_[1])/2
-    return (action_ - (avg)) / (action_bounds_[1]-avg)
-
-def scale_action(normed_action_, action_bounds_):
-    """
-        from normalize space back to environment space
-        Normalizes the action 
-        Where 0 in the action will be mapped to the middle of the action bounds
-        1 will correspond to the upper bound and -1 to the lower
-    """
-    avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    return normed_action_ * (action_bounds_[1] - avg) + avg
-    
 def collectExperienceActionsContinuous(experience, action_bounds):
     i = 0
     while i < experience.history_size():
@@ -124,7 +91,7 @@ def collectExperienceActionsContinuous(experience, action_bounds):
             reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
             # reward_ = (reward)/(max_reward)
             # reward_ = (reward+max_reward)/(max_reward)
-            experience.insert(norm_state(state, max_state), [action], norm_state(resultState, max_state), [reward_])
+            experience.insert(norm_state(state, state_bounds), [action], norm_state(resultState, state_bounds), [reward_])
             i+=1
             t+=1
 
@@ -149,13 +116,14 @@ if __name__ == "__main__":
         # Normalization constants for data
         max_reward = settings['max_reward']
         # max_reward = 1.0
-        max_state = settings['max_state']
+        state_bounds = np.array(settings['state_bounds'])
+        state_length = len(state_bounds[0])
         
         num_actions=8
         action_selection = range(num_actions)
         
         print "Max Reward: " + str(max_reward)
-        print "Max State: " + str(max_state)
+        print "State Bounds: " + str(state_bounds)
         
         
         # game = Map(map)
@@ -178,8 +146,7 @@ if __name__ == "__main__":
         action_bounds = np.array(settings['action_bounds'])
         action_length = len(action_bounds[0])
         data_folder = settings['data_folder']
-        states = np.array([max_state])
-        state_length = len(max_state)
+        states = np.array([state_bounds[1]])
         action_space_continuous=False
         if settings['agent_name'] == "logistic":
             print "Creating Logistic agent"
@@ -233,10 +200,10 @@ if __name__ == "__main__":
          
         best_error=10000000.0
         if action_space_continuous:
-            # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
-            X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
+            # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+            X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
         else:
-            X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+            X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
         game.init(U, V, Q)
         
         rlv = RLVisualize(title=str(settings['agent_name'] + " on " + str(game_type)))
@@ -276,9 +243,9 @@ if __name__ == "__main__":
             reward_sum=0
             state_num=0
             state_ = game.getState()
-            q_value = model.q_value([norm_state(state_, max_state)])
-            action_ = model.predict([norm_state(state_, max_state)])
-            print "q_values: " + str(q_value) + " Action: " + str(action_) + " State: " + str([norm_state(state_, max_state)])
+            q_value = model.q_value([norm_state(state_, state_bounds)])
+            action_ = model.predict([norm_state(state_, state_bounds)])
+            print "q_values: " + str(q_value) + " Action: " + str(action_) + " State: " + str([norm_state(state_, state_bounds)])
             original_val = q_value
             values.append(original_val)
             t=0
@@ -315,13 +282,13 @@ if __name__ == "__main__":
                     
                     
                 state = game.getState()
-                pa = model.predict([norm_state(state, max_state)])
+                pa = model.predict([norm_state(state, state_bounds)])
                 
                 if action_space_continuous:
                     pa = scale_action(pa, action_bounds)
                     action = randomExporation(0.12, pa)
                     randomAction = randomUniformExporation(action_bounds) # Completely random action
-                    # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, max_state)]))
+                    # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, state_bounds)]))
                     action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
                     action = clampAction(action, action_bounds)
                     reward = game.actContinuous(action)
@@ -344,18 +311,18 @@ if __name__ == "__main__":
                 # print "Reward: " + str(reward_)
                 # reward_ = (reward)/(max_reward)
                 # reward_ = (reward+max_reward)/(max_reward)
-                experience.insert(norm_state(state, max_state), norm_action(action, action_bounds), norm_state(resultState, max_state), [reward_])
+                experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), [reward_])
                 # Update agent on screen
                 # game.update()
-                # X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+                # X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
                 # game.updatePolicy(U, V, Q)
                 # print "Reward: " + str(reward_)
                 # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
                 # print model.q_values([tup._state])
                 actions.append(norm_action(action, action_bounds))
-                result_states.append(norm_state(resultState, max_state))
+                result_states.append(norm_state(resultState, state_bounds))
                 rewards.append([reward_])
-                states.append(norm_state(state, max_state))
+                states.append(norm_state(state, state_bounds))
                 reward_sum+=reward_
                 discounted_sum += (math.pow(0.8,t) * reward)
                 if experience.samples() > batch_size:
@@ -368,9 +335,9 @@ if __name__ == "__main__":
                 t += 1
                     
             if action_space_continuous:
-                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
+                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
             else:
-                X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+                X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
             game.update()
             game.updatePolicy(U, V, Q)
             states_, actions_, result_states_, rewards_ = experience.get_batch(batch_size)
@@ -430,9 +397,9 @@ if __name__ == "__main__":
             print ""
             # X,Y = np.mgrid[0:16,0:16]
             if action_space_continuous:
-                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
+                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
             else:
-                X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+                X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
             game.updatePolicy(U, V, Q)
             game.saveVisual(data_folder+"gameState")
             """

@@ -18,16 +18,49 @@ def loadMap():
     return data["map"]
 
 def norm_state(state, max_state):
-    return (state-max_state)/max_state
+    return norm_action(action_=state, action_bounds_=max_state)
 
 def scale_state(state, max_state):
-    return (state*max_state)+max_state
+    return scale_action(normed_action_=state, action_bounds_=max_state)
 
 def norm_state2(state, max_state):
     """
-    For when the origin is in the centre of the enfironment
+    For when the origin is in the centre of the environment
     """
     return (state)/max_state
+
+def clampAction(actionV, bounds):
+    """
+    bounds[0] is lower bounds
+    bounds[1] is upper bounds
+    """
+    for i in range(len(actionV)):
+        if actionV[i] < bounds[0][i]:
+            actionV[i] = bounds[0][i]
+        elif actionV[i] > bounds[1][i]:
+            actionV[i] = bounds[1][i]
+    return actionV
+
+def norm_action(action_, action_bounds_):
+    """
+        
+        Normalizes the action 
+        Where the middle of the action bounds are mapped to 0
+        upper bound will correspond to 1 and -1 to the lower
+        from environment space to normalized space
+    """
+    avg = (action_bounds_[0] + action_bounds_[1])/2
+    return (action_ - (avg)) / (action_bounds_[1]-avg)
+
+def scale_action(normed_action_, action_bounds_):
+    """
+        from normalize space back to environment space
+        Normalizes the action 
+        Where 0 in the action will be mapped to the middle of the action bounds
+        1 will correspond to the upper bound and -1 to the lower
+    """
+    avg = (action_bounds_[0] + action_bounds_[1])/2.0
+    return normed_action_ * (action_bounds_[1] - avg) + avg
 
 def get_policy_visual_data(model_, max_state, game):
     X,Y = np.mgrid[0:16,0:16]
@@ -84,7 +117,7 @@ def get_continuous_policy_visual_data(model_, max_state, game):
     V = np.array(V)*1.0
     return (X, Y, U, V, Q)
 
-def get_continuous_policy_visual_data1D(model_, max_state, game):
+def get_continuous_policy_visual_data1D(model_, state_bounds, game):
     """
         For policies with one output action parameter
     """
@@ -95,13 +128,13 @@ def get_continuous_policy_visual_data1D(model_, max_state, game):
     Q = np.array(X)
     for i in range(size_):
         for j in range(size_):
-            if len(max_state) == 4:
+            if len(state_bounds[0]) == 4:
                 state = np.array([X[i][j],Y[i][j], X[i][j], X[i][j]])
-            elif len(max_state) == 2:
+            elif len(state_bounds[0]) == 2:
                 state = np.array([X[i][j],Y[i][j]])
-            pa = model_.predict([norm_state(state,max_state)])
+            pa = model_.predict([norm_state(state,state_bounds)])
             # pa = model_.predict([norm_state(state,max_state)])
-            q = (model_.q_value([norm_state(state,max_state)]))
+            q = (model_.q_value([norm_state(state,state_bounds)]))
             # q=0 
             move = pa
             U[i,j]=move[0]

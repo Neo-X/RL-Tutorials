@@ -97,7 +97,8 @@ class BallGame1D(object):
         
         self._box = ParticleLine(init_state, size=0.04)
         self._dt = 1. / 30 # 30fps
-        self._max_y = init_state[0][1]
+        self._max_y = -1.0
+        self._previous_max_y = -1.0
         self._render=False
         self._simulate=True
         self._saveVideo=False
@@ -111,13 +112,28 @@ class BallGame1D(object):
         self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
         self._box.state[0][3] = (np.random.rand(1)+self._defaultVelocity) # think this will be about middle, y = 2.0
-        self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
+        self.resetTarget()
         
     def resetTarget(self):
         """
         y range is [1,3]
         """
-        self.setTarget(np.array([2,((np.random.rand(1)-0.5) * 2.0) + 2]))
+        val=np.array([2,self.generateNextTarget(self._target[1])])
+        self.setTarget(val)
+        
+    def generateNextTarget(self, lastTarget):
+        range_ = [0.8,3.2]
+        scale = 0.5
+        offset = lastTarget
+        val = ((np.random.rand(1)-0.5) * 2.0 * scale) + offset
+        if (val < range_[0]):
+            val = range_[0]
+        elif (val > range_[1]):
+            val = range_[1]
+        # val = np.array([2,val])
+        return val
+        
+        
         
     def move(self, action):
         """
@@ -212,7 +228,7 @@ class BallGame1D(object):
     def getGrid(self):
         size_=16
         X,Y = np.mgrid[0:size_,0:size_]/8.0
-        X= X + 1.0
+        X= X - 1.0
         Y = ((Y - 1.0) * 2.0 ) + self._defaultVelocity
         return (X, Y)
         
@@ -276,6 +292,7 @@ class BallGame1D(object):
         return -d
     
     def resetHeight(self):
+        self._previous_max_y = self._max_y
         self._max_y = self._box.state[0][1]
     
     def update(self):
@@ -345,7 +362,7 @@ class BallGame1D(object):
     def getState(self):
         state = np.array([0.0,0.0], dtype=float)
         # state[0] = self._box.state[0,1]
-        state[0] = self._target[1] - state[1]
+        state[0] = self._target[1] - self._previous_max_y
         state[1] = self._box.state[0][3]
         return state
     
