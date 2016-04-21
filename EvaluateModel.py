@@ -41,10 +41,11 @@ if __name__ == "__main__":
         # Normalization constants for data
         max_reward = settings['max_reward']
         # max_reward = 1.0
-        max_state = settings['max_state']
+        state_bounds = np.array(settings['state_bounds'])
+        state_length = len(state_bounds[0])
         
         print "Max Reward: " + str(max_reward)
-        print "Max State: " + str(max_state)
+        print "State Bounds: " + str(state_bounds)
         
         
         # game = Map(map)
@@ -68,8 +69,7 @@ if __name__ == "__main__":
         action_bounds = np.array(settings['action_bounds'])
         action_length = len(action_bounds[0])
         data_folder = settings['data_folder']
-        states = np.array([max_state])
-        state_length = len(max_state)
+        states = np.array([state_bounds[1]])
         action_space_continuous=True
         
         file_name=data_folder+"navigator_agent_"+str(settings['agent_name'])+".pkl"
@@ -79,10 +79,10 @@ if __name__ == "__main__":
         forwardDynamicsModel = cPickle.load(open(file_name_dynamics))
         """
         if action_space_continuous:
-            # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
-            X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
+            # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+            X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
         else:
-            X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+            X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
         game.init(U, V, Q)
         """
         game.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
@@ -105,20 +105,20 @@ if __name__ == "__main__":
             print "State: " + str(state)
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
-            # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
+            # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=state_bounds), max_state=state_bounds))
             """
             if action_space_continuous:
-                # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
-                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
+                # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
             else:
-                X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+                X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
             game.updatePolicy(U, V, Q)
             """
-            pa = model.predict([norm_state(state, max_state)])
+            pa = model.predict([norm_state(state, state_bounds)])
             if action_space_continuous:
                 action = scale_action(pa, action_bounds)
                 print "Action: " + str(action)
-                prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
+                prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, state_bounds), action=norm_action(action, action_bounds)), state_bounds)
                 print "Next State Prediction: " + str(prediction)
                 predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
                 game.setPrediction([2,predicted_height])

@@ -38,7 +38,7 @@ class BallGame1DFuture(BallGame1D):
         self._box.state[0][2] = 0
         self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
         num_future_targets=3
-        self._targets = collections.deque(list( [0]*num_future_targets ))
+        self._targets = collections.deque(list( [2]*num_future_targets ))
         for ind in range(1, len(self._targets)):
             self._targets[ind] = self.generateNextTarget(self._targets[ind-1])
         self.setTarget(np.array([2,self._targets[0]]))
@@ -47,7 +47,7 @@ class BallGame1DFuture(BallGame1D):
         """
         y range is [1,3]
         """
-        val=self.generateNextTarget(self._target[1])
+        val=self.generateNextTarget(self._targets[2])
         self._targets.append(val)
         self._targets.popleft()
         self.setTarget(np.array([2,self._targets[0]]))
