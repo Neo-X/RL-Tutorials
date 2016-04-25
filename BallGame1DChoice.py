@@ -28,6 +28,8 @@ class BallGame1DChoice(BallGame1D):
     def __init__(self):
         #------------------------------------------------------------
         # set up initial state
+        self._steps_forward=2
+        self._choices=3
         super(BallGame1DChoice,self).__init__()
         
             
@@ -38,13 +40,14 @@ class BallGame1DChoice(BallGame1D):
         
         # update positions
         targets_ = np.array(self._targets)
-        targets_[:,0] += self._dt * -1.0
-        self._targets = targets_
-        
-        ms = int(self._fig.dpi * 2 * self._box.size * self._fig.get_figwidth()
+        print "step targets: " + str(targets_)
+        targets_[:,:,0] += self._dt * -1.0
+        self._targets = collections.deque(list(targets_))
+        scale=1.0
+        ms = int(self._fig.dpi * scale * self._box.size * self._fig.get_figwidth()
                  / np.diff(self._map_ax.get_xbound())[0])
         
-        self._plot_target.set_data(targets_[:,0], targets_[:,1])
+        self._plot_target.set_data(targets_[:,:,0].reshape((1,-1))[0], targets_[:,:,1].reshape((1,-1))[0])
         self._plot_target.set_markersize(ms)
 
         # return particles, rect
@@ -55,12 +58,19 @@ class BallGame1DChoice(BallGame1D):
         self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
         self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
-        num_future_targets=3
-        self._targets = collections.deque(list( np.random.rand(num_future_targets,2)))
-        for ind in range(1, len(self._targets)):
-            height = self.generateNextTarget(self._targets[ind-1][1])
-            self._targets[ind] = [4,height]
-        self.setTargets(np.array([4,self._targets[0][1]]))
+        num_future_targets=1+self._steps_forward
+        self._targets = collections.deque()
+        for i in range(num_future_targets):
+            self._targets.append(np.random.rand(self._choices,2))
+        
+        start_dist=2.8
+        self._targets[0][:,0]=start_dist
+        for col in range(1, len(self._targets)):
+            for row in range(0, len(self._targets)):
+                height = self.generateNextTarget(self._targets[col][row-1][1])
+                self._targets[col][row] = [col+start_dist,height]
+        self.setTargets(self._targets)
+        print self._targets
         
     def resetTarget(self):
         """
@@ -73,24 +83,28 @@ class BallGame1DChoice(BallGame1D):
         """
         y range is [1,3]
         """
-        val=self.generateNextTarget(self._targets[2])
+        val=[]
+        for i in range(self._choices):
+            height = self.generateNextTarget(self._targets[self._steps_forward][i,1])
+            # val.append([self._targets[self._steps_forward][0,0]+1,height])
+            val.append([4.0,height])
         self._targets.append(val)
         self._targets.popleft()
-        self.setTarget(np.array([2,self._targets[0]]))
+        self.setTargets(self._targets)
         
     def setTargets(self, st):
         """
         y range is [1,3]
         """
-        self._target=st
+        self._targets=st
         
     def getState(self):
         state = np.array([0.0,0.0,0.0,0.0], dtype=float)
         # state[0] = self._box.state[0,1]
-        state[0] = self._targets[0][1] - self._previous_max_y
+        state[0] = self._targets[0][0][1] - self._previous_max_y
         state[1] = self._box.state[0,3]
-        state[2] = self._targets[1][1] - self._previous_max_y
-        state[3] = self._targets[2][1] - self._previous_max_y
+        state[2] = self._targets[0][1][1] - self._previous_max_y
+        state[3] = self._targets[0][2][1] - self._previous_max_y
         return state
     
     def setState(self, st):
@@ -137,5 +151,7 @@ if __name__ == '__main__':
         print "Action: " + str(action)
         reward = ballGame.actContinuous(action)
         print "Reward: " + str(reward)
+        print "targets: " + str(ballGame._targets)
+        ballGame.resetTarget()
 
     ballGame.finish()
