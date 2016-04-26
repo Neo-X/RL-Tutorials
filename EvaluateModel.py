@@ -63,7 +63,7 @@ if __name__ == "__main__":
             
         game.enableRender()
         game._simulate=True
-        game._saveVideo=True
+        # game._saveVideo=True
         game.setMovieName(str(settings['agent_name']) + "_on_" + str(game_type))
             
         action_bounds = np.array(settings['action_bounds'])
