@@ -72,7 +72,6 @@ class BallGame1DChoice(BallGame1D):
         targets_[:,:,0] += diff
         self._targets = collections.deque(list(targets_))
         
-        
         return super(BallGame1DChoice,self).actContinuous(action)
         
     def reset(self):

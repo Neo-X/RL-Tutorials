@@ -11,6 +11,13 @@ This work is done to help understand the full Reiforcement Learning pipeline. I 
  5. sudo apt-get install python-pyode
  6. sudo apt-get install python-opengl
 
+### To record videos
+
+You need ffmpeg
+  1. sudo add-apt-repository ppa:mc3man/trusty-media
+  2. sudo apt-get update
+  3. sudo apt-get install ffmpeg gstreamer0.10-ffmpeg
+
 ## Using
 
 	$ python RunGame.py Deep.json

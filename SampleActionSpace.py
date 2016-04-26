@@ -279,7 +279,6 @@ def modelSampling():
             game.resetHeight()
             game._box.state[0][1] = 0.0
             state = game.getState()
-            print "State: " + str(state)
             if (game_has_choices):
                 action_v=-1000000000
                 for i in range(len(state)):
@@ -297,6 +296,7 @@ def modelSampling():
             else:
                 sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state, state_bounds=state_bounds, 
                                 action_bounds=action_bounds)
+            print "State: " + str(state)
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
             # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, state_bounds=state_bounds), state_bounds=state_bounds))
