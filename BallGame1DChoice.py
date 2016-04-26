@@ -28,7 +28,7 @@ class BallGame1DChoice(BallGame1D):
     def __init__(self):
         #------------------------------------------------------------
         # set up initial state
-        self._steps_forward=2
+        self._steps_forward=38
         self._choices=3
         super(BallGame1DChoice,self).__init__()
         
@@ -40,7 +40,7 @@ class BallGame1DChoice(BallGame1D):
         
         # update positions
         targets_ = np.array(self._targets)
-        print "step targets: " + str(targets_)
+        # print "step targets: " + str(targets_)
         targets_[:,:,0] += self._dt * -1.0
         self._targets = collections.deque(list(targets_))
         scale=1.0
@@ -58,16 +58,17 @@ class BallGame1DChoice(BallGame1D):
         self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
         self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
-        num_future_targets=1+self._steps_forward
         self._targets = collections.deque()
-        for i in range(num_future_targets):
+        for i in range(self._steps_forward):
             self._targets.append(np.random.rand(self._choices,2))
-        
+            
+        print self._targets[4]
         start_dist=2.8
         self._targets[0][:,0]=start_dist
-        for col in range(1, len(self._targets)):
-            for row in range(0, len(self._targets)):
-                height = self.generateNextTarget(self._targets[col][row-1][1])
+        self._targets[0][:,1]=2.0
+        for col in range(1, self._steps_forward):
+            for row in range(0, self._choices):
+                height = self.generateNextTarget(self._targets[col-1][row][1])
                 self._targets[col][row] = [col+start_dist,height]
         self.setTargets(self._targets)
         print self._targets
@@ -152,6 +153,6 @@ if __name__ == '__main__':
         reward = ballGame.actContinuous(action)
         print "Reward: " + str(reward)
         print "targets: " + str(ballGame._targets)
-        ballGame.resetTarget()
+        # ballGame.resetTarget()
 
     ballGame.finish()
