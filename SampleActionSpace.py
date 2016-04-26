@@ -36,6 +36,7 @@ class Sampler(object):
     def __init__(self, game):
         self._x=[]
         self._samples=[]
+        # action, value
         self._bestSample=([0],[-10000000])
         self._game=game
         
@@ -52,16 +53,16 @@ class Sampler(object):
                 self._bestSample[1][0] = y
                 self._bestSample[0][0] = i
 
-    def sampleModel(self, model, forwardDynamics, current_state, max_state, action_bounds):
+    def sampleModel(self, model, forwardDynamics, current_state, state_bounds, action_bounds):
         self._samples = []
         self._bestSample=([0],[-10000000])
-        pa = model.predict([norm_state(current_state, max_state)])
+        pa = model.predict([norm_state(current_state, state_bounds)])
         action = scale_action(pa, action_bounds)
         xi = np.linspace(-0.5+action[0], 0.5+action[0], 100)
         for i in xi:
             pa = [i]
-            # prediction = scale_state(forwardDynamics.predict(state=norm_state(current_state, max_state), action=norm_action(pa, action_bounds)), max_state)
-            # y = model.q_value([norm_state(prediction, max_state)])
+            # prediction = scale_state(forwardDynamics.predict(state=norm_state(current_state, state_bounds), action=norm_action(pa, action_bounds)), state_bounds)
+            # y = model.q_value([norm_state(prediction, state_bounds)])
             y = self._game._reward(self._game._computeHeight(i+current_state[1]))
             # print i, y
             self._samples.append([[i],[y]])
@@ -71,6 +72,9 @@ class Sampler(object):
                             
     def getBestSample(self): 
         return self._bestSample
+    
+    def setBestSample(self, samp): 
+        self._bestSample = samp
     
     def predict(self, state):
         """
@@ -94,11 +98,11 @@ def simpleSampling():
         # Normalization constants for data
         max_reward = settings['max_reward']
         # max_reward = 1.0
-        max_state = settings['max_state']
+        state_bounds = np.array(settings['state_bounds'])
+        state_length = len(state_bounds[0])
         
         print "Max Reward: " + str(max_reward)
-        print "Max State: " + str(max_state)
-        
+        print "State Bounds: " + str(state_bounds)
         
         # game = Map(map)
         game = None
@@ -124,8 +128,7 @@ def simpleSampling():
         action_bounds = np.array(settings['action_bounds'])
         action_length = len(action_bounds[0])
         data_folder = settings['data_folder']
-        states = np.array([max_state])
-        state_length = len(max_state)
+        states = np.array([state_bounds])
         action_space_continuous=True
         
         # file_name=data_folder+"navigator_agent_"+str(settings['agent_name'])+".pkl"
@@ -135,10 +138,10 @@ def simpleSampling():
         forwardDynamicsModel = cPickle.load(open(file_name_dynamics))
         
         if action_space_continuous:
-            # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
-            X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
+            # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+            X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
         else:
-            X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+            X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
         print "U: " + str(U)
         print "V: " + str(V)
         print "Q: " + str(Q)
@@ -165,19 +168,19 @@ def simpleSampling():
             model.sample(game, state)
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
-            # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
+            # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, state_bounds=state_bounds), state_bounds=state_bounds))
             if action_space_continuous:
-                # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
-                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
+                # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
             else:
-                X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+                X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
             game.updatePolicy(U, V, Q)
-            # pa = model.predict([norm_state(state, max_state)])
+            # pa = model.predict([norm_state(state, state_bounds)])
             if action_space_continuous:
                 # action = scale_action(pa, action_bounds)
                 action = model.getBestSample()[:1]
                 print "Action: " + str(action)
-                # prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
+                # prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, state_bounds), action=norm_action(action, action_bounds)), state_bounds)
                 # print "Next State Prediction: " + str(prediction)
                 # predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
                 # game.setPrediction([2,predicted_height])
@@ -206,12 +209,12 @@ def modelSampling():
         map = loadMap()
         # Normalization constants for data
         max_reward = settings['max_reward']
-        # max_reward = 1.0
-        max_state = settings['max_state']
+        state_bounds = np.array(settings['state_bounds'])
+        state_length = len(state_bounds[0])
         
         print "Max Reward: " + str(max_reward)
-        print "Max State: " + str(max_state)
-        
+        print "State Bounds: " + str(state_bounds)
+        game_has_choices=False
         
         # game = Map(map)
         game = None
@@ -222,6 +225,10 @@ def modelSampling():
         elif game_type == 'BallGame1D':
             print "Creating Game type: " + str(game_type)
             game = BallGame1D()
+        elif game_type == 'BallGame1DChoice':
+            print "Creating Game type: " + str(game_type)
+            game = BallGame1DChoice()
+            game_has_choices=True
         else:
             print "Unrecognized game: " + str(game_type)
             sys.exit()
@@ -234,8 +241,7 @@ def modelSampling():
         action_bounds = np.array(settings['action_bounds'])
         action_length = len(action_bounds[0])
         data_folder = settings['data_folder']
-        states = np.array([max_state])
-        state_length = len(max_state)
+        states = np.array([state_bounds])
         action_space_continuous=True
         
         sampler = Sampler(game)
@@ -247,10 +253,10 @@ def modelSampling():
         forwardDynamicsModel = cPickle.load(open(file_name_dynamics))
                 
         if action_space_continuous:
-            # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
-            X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
+            # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+            X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
         else:
-            X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+            X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
         # print "U: " + str(U)
         # print "V: " + str(V)
         # print "Q: " + str(Q)
@@ -274,26 +280,37 @@ def modelSampling():
             game._box.state[0][1] = 0.0
             state = game.getState()
             print "State: " + str(state)
-            sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state, max_state=max_state, 
+            if (game_has_choices):
+                action_v=-1000000000
+                for state_ in state:
+                    sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state_, state_bounds=state_bounds, 
+                                    action_bounds=action_bounds)     
+                    action_ = sampler.getBestSample()
+                    if (action_[1][0] > action_v):
+                        action = action_
+                        state = state_
+                sampler.setBestSample(action)
+            else:
+                sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state, state_bounds=state_bounds, 
                                 action_bounds=action_bounds)
             # reward = game.actContinuous(action_)
             # print "Action: " + str(action_)
-            # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, max_state=max_state), max_state=max_state))
+            # print "Verify State: " + str(state) + " with " + str(scale_state(norm_state(state, state_bounds=state_bounds), state_bounds=state_bounds))
             if action_space_continuous:
-                # X, Y, U, V, Q = get_continuous_policy_visual_data(model, max_state, game)
-                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, max_state, game)
+                # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
             else:
-                X, Y, U, V, Q = get_policy_visual_data(model, max_state, game)
+                X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
             game.updatePolicy(U, V, Q)
-            # pa = model.predict([norm_state(state, max_state)])
+            # pa = model.predict([norm_state(state, state_bounds)])
             if action_space_continuous:
                 # action = scale_action(pa, action_bounds)
-                action = sampler.getBestSample()[:1]
+                action = sampler.getBestSample()[0]
                 print "Action: " + str(action)
-                # prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, max_state), action=norm_action(action, action_bounds)), max_state)
+                prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, state_bounds), action=norm_action(action, action_bounds)), state_bounds)
                 # print "Next State Prediction: " + str(prediction)
-                # predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
-                # game.setPrediction([2,predicted_height])
+                predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
+                game.setPrediction([2,predicted_height])
                 # print "Next Height Prediction: " + str(predicted_height)
                 reward = game.actContinuous(action)
                 # print "Height difference: " + str(math.fabs(predicted_height - game._max_y))

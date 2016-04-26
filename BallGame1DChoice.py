@@ -84,14 +84,16 @@ class BallGame1DChoice(BallGame1D):
         """
         y range is [1,3]
         """
+        """
         val=[]
         for i in range(self._choices):
             height = self.generateNextTarget(self._targets[self._steps_forward][i,1])
             # val.append([self._targets[self._steps_forward][0,0]+1,height])
             val.append([4.0,height])
         self._targets.append(val)
+        """
         self._targets.popleft()
-        self.setTargets(self._targets)
+        # self.setTargets(self._targets)
         
     def setTargets(self, st):
         """
@@ -99,14 +101,22 @@ class BallGame1DChoice(BallGame1D):
         """
         self._targets=st
         
-    def getState(self):
-        state = np.array([0.0,0.0,0.0,0.0], dtype=float)
+    def getStates(self):
+        states=[]
         # state[0] = self._box.state[0,1]
-        state[0] = self._targets[0][0][1] - self._previous_max_y
-        state[1] = self._box.state[0,3]
-        state[2] = self._targets[0][1][1] - self._previous_max_y
-        state[3] = self._targets[0][2][1] - self._previous_max_y
-        return state
+        for i in range(self._choices):
+            state = np.array([0.0,0.0], dtype=float)
+            state[0] = self._targets[0][0][1] - self._previous_max_y
+            state[1] = self._box.state[0,3]
+            states.append(state)
+        # state[2] = self._targets[0][1][1] - self._previous_max_y
+        # state[3] = self._targets[0][2][1] - self._previous_max_y
+        return states
+    
+        
+    def getState(self):
+        
+        return self.getStates()
     
     def setState(self, st):
         self._agent = st
