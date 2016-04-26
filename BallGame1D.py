@@ -280,6 +280,10 @@ class BallGame1D(object):
         init_v_squared = (action_*action_)
         seconds_ = 2 * (-self._box.G)
         return (-init_v_squared)/seconds_
+    
+    def _computeTime(self, action_):
+        seconds_ = action_/self._box.G
+        return seconds_
             
     def reward(self):
         # More like a cost function for distance away from target

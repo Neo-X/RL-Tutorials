@@ -30,8 +30,13 @@ class BallGame1DChoice(BallGame1D):
         # set up initial state
         self._steps_forward=38
         self._choices=3
+        self._target = 0
         super(BallGame1DChoice,self).__init__()
         
+    def init(self, U, V, Q):
+        out = super(BallGame1DChoice,self).init(U, V, Q)
+        self._plot_target_choice, = self._map_ax.plot([], [], 'ro', ms=4, label='Target_Choice')
+        return out 
             
     def animate(self, i):
         """perform animation step"""
@@ -49,10 +54,27 @@ class BallGame1DChoice(BallGame1D):
         
         self._plot_target.set_data(targets_[:,:,0].reshape((1,-1))[0], targets_[:,:,1].reshape((1,-1))[0])
         self._plot_target.set_markersize(ms)
+        
+        self._plot_target_choice.set_data([targets_[0,self._target_choice,0]], [targets_[0,self._target_choice,1]])
+        self._plot_target_choice.set_markersize(ms)
 
         # return particles, rect
         return out
             
+    def actContinuous(self, action):
+        # print "Acting: " + str(action)
+        # self._box.state[0][2] = action[0]
+        v = self._box.state[0][3] + action[0]
+        time = self._computeTime(v)
+        # x direction is 1/s
+        targets_ = np.array(self._targets)
+        diff = time - targets_[0,0,0] + 2.0
+        targets_[:,:,0] += diff
+        self._targets = collections.deque(list(targets_))
+        
+        
+        return super(BallGame1DChoice,self).actContinuous(action)
+        
     def reset(self):
         self._box.state[0][0] = 2.0
         self._box.state[0][1] = self._box.bounds[2]+0.1
@@ -123,6 +145,9 @@ class BallGame1DChoice(BallGame1D):
         self._box.state[0,0] = st[0]
         self._box.state[0,1] = st[1]
         
+    def setTargetChoice(self, i):
+        self._target_choice = i
+                
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
 

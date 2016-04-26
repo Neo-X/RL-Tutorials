@@ -282,14 +282,18 @@ def modelSampling():
             print "State: " + str(state)
             if (game_has_choices):
                 action_v=-1000000000
-                for state_ in state:
+                for i in range(len(state)):
+                    state_ = state[i]
                     sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state_, state_bounds=state_bounds, 
                                     action_bounds=action_bounds)     
                     action_ = sampler.getBestSample()
                     if (action_[1][0] > action_v):
+                        action_v = action_[1][0] 
                         action = action_
-                        state = state_
+                        state__ = state_
+                        game.setTargetChoice(i)
                 sampler.setBestSample(action)
+                state = state__
             else:
                 sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state, state_bounds=state_bounds, 
                                 action_bounds=action_bounds)
