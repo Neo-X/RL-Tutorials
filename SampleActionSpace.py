@@ -20,6 +20,7 @@ from ForwardDynamicsNetwork import ForwardDynamicsNetwork
 from MapGame import Map
 from BallGame1D import BallGame1D
 from BallGame1DFuture import BallGame1DFuture
+from BallGame1DChoice import BallGame1DChoice
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
@@ -108,6 +109,9 @@ def simpleSampling():
         elif game_type == 'BallGame1D':
             print "Creating Game type: " + str(game_type)
             game = BallGame1D()
+        elif game_type == 'BallGame1DChoice':
+            print "Creating Game type: " + str(game_type)
+            game = BallGame1DChoice()
         else:
             print "Unrecognized game: " + str(game_type)
             sys.exit()
