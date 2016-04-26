@@ -256,7 +256,9 @@ class BallGame1D(object):
         # print "Acting: " + str(action)
         # self._box.state[0][2] = action[0]
         self._box.state[0][3] += action[0]
+        oldstate = self._box.state[0][3]
         self._box.state[0][1] =0
+        # print "New state: " + str(self._box.state[0][3])
         if self._simulate:
             for i in range(500):
                 run = self.animate(i)
@@ -269,6 +271,7 @@ class BallGame1D(object):
                 
                 if not run:
                     # print "self._max_y: " + str(self._max_y)
+                    self._box.state[0][3] = oldstate # Need to set state to initial to help eliminate errors
                     return self.reward()
         else:
             # self._max_y = self._box.state[0][1]

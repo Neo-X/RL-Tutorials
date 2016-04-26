@@ -30,7 +30,7 @@ class BallGame1DChoice(BallGame1D):
         # set up initial state
         self._steps_forward=38
         self._choices=3
-        self._target = 0
+        self._target_choice = 0
         super(BallGame1DChoice,self).__init__()
         
     def init(self, U, V, Q):
@@ -60,7 +60,7 @@ class BallGame1DChoice(BallGame1D):
 
         # return particles, rect
         return out
-            
+    
     def actContinuous(self, action):
         # print "Acting: " + str(action)
         # self._box.state[0][2] = action[0]
@@ -71,14 +71,16 @@ class BallGame1DChoice(BallGame1D):
         diff = time - targets_[0,0,0] + 2.0
         targets_[:,:,0] += diff
         self._targets = collections.deque(list(targets_))
+        print "Action continuous: " + str(action)
         
         return super(BallGame1DChoice,self).actContinuous(action)
         
     def reset(self):
+        np.random.seed(13)
         self._box.state[0][0] = 2.0
         self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
-        self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
+        self._box.state[0][3] = ((np.random.rand(1)-0.5)+6.26) # think this will be about middle, y = 2.0
         self._targets = collections.deque()
         for i in range(self._steps_forward):
             self._targets.append(np.random.rand(self._choices,2))
@@ -127,8 +129,8 @@ class BallGame1DChoice(BallGame1D):
         # state[0] = self._box.state[0,1]
         for i in range(self._choices):
             state = np.array([0.0,0.0], dtype=float)
-            state[0] = self._targets[0][0][1] - self._previous_max_y
-            state[1] = self._box.state[0,3]
+            state[0] = self._targets[0][i][1] - self._previous_max_y
+            state[1] = self._box.state[0][3]
             states.append(state)
         # state[2] = self._targets[0][1][1] - self._previous_max_y
         # state[3] = self._targets[0][2][1] - self._previous_max_y
@@ -146,6 +148,7 @@ class BallGame1DChoice(BallGame1D):
         
     def setTargetChoice(self, i):
         self._target_choice = i
+        self._target = self._targets[0][i]
                 
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
@@ -182,11 +185,12 @@ if __name__ == '__main__':
     for action in actions:
         # ballGame.resetTarget()
         state = ballGame.getState()
-        # print "State: " + str(state)
+        print "State: " + str(state)
         print "Action: " + str(action)
+        ballGame.setTargetChoice(0)
         reward = ballGame.actContinuous(action)
         print "Reward: " + str(reward)
-        print "targets: " + str(ballGame._targets)
-        # ballGame.resetTarget()
+        # print "targets: " + str(ballGame._targets)
+        ballGame.resetTarget()
 
     ballGame.finish()

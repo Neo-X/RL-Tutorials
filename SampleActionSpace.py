@@ -58,13 +58,14 @@ class Sampler(object):
         self._bestSample=([0],[-10000000])
         pa = model.predict([norm_state(current_state, state_bounds)])
         action = scale_action(pa, action_bounds)
-        xi = np.linspace(-0.5+action[0], 0.5+action[0], 100)
+        print "Suggested Action: " + str(action) + " for state: " + str(current_state)
+        xi = np.linspace(-0.5+action[0], 0.15+action[0], 100)
         for i in xi:
             pa = [i]
             # prediction = scale_state(forwardDynamics.predict(state=norm_state(current_state, state_bounds), action=norm_action(pa, action_bounds)), state_bounds)
             # y = model.q_value([norm_state(prediction, state_bounds)])
             y = self._game._reward(self._game._computeHeight(i+current_state[1]))
-            # print i, y
+            print i, y
             self._samples.append([[i],[y]])
             if y > self._bestSample[1][0]:
                 self._bestSample[1][0] = y
@@ -275,24 +276,32 @@ def modelSampling():
         reward_sum=0
         for action_ in actions:
             # ballGame.resetTarget()
-            game.resetTarget()
-            game.resetHeight()
             game._box.state[0][1] = 0.0
             state = game.getState()
             if (game_has_choices):
                 action_v=-1000000000
+                best_target=0
+                best_action=0
                 for i in range(len(state)):
+                # for i in range(1):
                     state_ = state[i]
+                    # val=np.array([2,state_[1]])
+                    # game.setTarget(val)
+                    game.setTargetChoice(i)
                     sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state_, state_bounds=state_bounds, 
                                     action_bounds=action_bounds)     
-                    action_ = sampler.getBestSample()
-                    if (action_[1][0] > action_v):
-                        action_v = action_[1][0] 
-                        action = action_
+                    action__ = sampler.getBestSample()
+                    print "Found action: " + str(action__) + " for state: " +str(state_)
+                    if (action__[1][0] > action_v):
+                        action_v = action__[1][0] 
+                        best_action = action__
                         state__ = state_
-                        game.setTargetChoice(i)
-                sampler.setBestSample(action)
+                        best_target=i
+                sampler.setBestSample(best_action)
                 state = state__
+                game.setTargetChoice(best_target)
+                # val=np.array([2,state[1]])
+                # game.setTarget(val)
             else:
                 sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state, state_bounds=state_bounds, 
                                 action_bounds=action_bounds)
@@ -309,8 +318,9 @@ def modelSampling():
             # pa = model.predict([norm_state(state, state_bounds)])
             if action_space_continuous:
                 # action = scale_action(pa, action_bounds)
-                action = sampler.getBestSample()[0]
+                action = sampler.getBestSample()
                 print "Action: " + str(action)
+                action = action[0]
                 prediction = scale_state(forwardDynamicsModel.predict(state=norm_state(state, state_bounds), action=norm_action(action, action_bounds)), state_bounds)
                 # print "Next State Prediction: " + str(prediction)
                 predicted_height = game._computeHeight(prediction[1]) # This is dependent on the network shape
@@ -322,6 +332,8 @@ def modelSampling():
                 # print "Action: " + str(pa)
                 reward = game.act(action)
             reward_sum+=reward
+            game.resetTarget()
+            game.resetHeight()
                 
             # print "Reward: " + str(reward)
             
