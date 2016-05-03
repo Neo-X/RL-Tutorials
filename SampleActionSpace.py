@@ -58,14 +58,14 @@ class Sampler(object):
         self._bestSample=([0],[-10000000])
         pa = model.predict([norm_state(current_state, state_bounds)])
         action = scale_action(pa, action_bounds)
-        print "Suggested Action: " + str(action) + " for state: " + str(current_state)
+        # print "Suggested Action: " + str(action) + " for state: " + str(current_state)
         xi = np.linspace(-0.5+action[0], 0.15+action[0], 100)
         for i in xi:
             pa = [i]
             # prediction = scale_state(forwardDynamics.predict(state=norm_state(current_state, state_bounds), action=norm_action(pa, action_bounds)), state_bounds)
             # y = model.q_value([norm_state(prediction, state_bounds)])
             y = self._game._reward(self._game._computeHeight(i+current_state[1]))
-            print i, y
+            # print i, y
             self._samples.append([[i],[y]])
             if y > self._bestSample[1][0]:
                 self._bestSample[1][0] = y
@@ -234,8 +234,8 @@ def modelSampling():
             print "Unrecognized game: " + str(game_type)
             sys.exit()
             
-        game.enableRender()
-        game._simulate=True
+        # game.enableRender()
+        # game._simulate=True
         # game._saveVideo=True
         game.setMovieName(str(settings['agent_name']) + "_on_" + str(game_type))
             
@@ -267,7 +267,7 @@ def modelSampling():
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
 
-        num_actions = 20
+        num_actions = 200
         scaling = 1.0
         game._box.state[0][1] = 0.0
         
@@ -291,7 +291,7 @@ def modelSampling():
                     sampler.sampleModel(model=model, forwardDynamics=forwardDynamicsModel, current_state=state_, state_bounds=state_bounds, 
                                     action_bounds=action_bounds)     
                     action__ = sampler.getBestSample()
-                    print "Found action: " + str(action__) + " for state: " +str(state_)
+                    # print "Found action: " + str(action__) + " for state: " +str(state_)
                     if (action__[1][0] > action_v):
                         action_v = action__[1][0] 
                         best_action = action__

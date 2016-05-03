@@ -28,7 +28,7 @@ class BallGame1DChoice(BallGame1D):
     def __init__(self):
         #------------------------------------------------------------
         # set up initial state
-        self._steps_forward=38
+        self._steps_forward=238
         self._choices=3
         self._target_choice = 0
         super(BallGame1DChoice,self).__init__()

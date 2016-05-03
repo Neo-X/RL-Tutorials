@@ -61,8 +61,8 @@ if __name__ == "__main__":
             print "Unrecognized game: " + str(game_type)
             sys.exit()
             
-        game.enableRender()
-        game._simulate=True
+        # game.enableRender()
+        # game._simulate=True
         # game._saveVideo=True
         game.setMovieName(str(settings['agent_name']) + "_on_" + str(game_type))
             
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
 
-        num_actions = 20
+        num_actions = 200
         scaling = 1.0
         game._box.state[0][1] = 0.0
         reward_sum=0
