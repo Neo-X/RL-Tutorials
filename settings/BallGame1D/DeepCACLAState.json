@@ -1,0 +1,23 @@
+{
+"model_type": "Deep_CACLA",
+"agent_name": "Deep_CACLA",
+"data_folder": "Deep_CACLAState/",
+"game_type": "BallGame1DState",
+"epsilon": 1.0,
+"batch_size": 32,
+"learning_rate": 0.00025,
+"anchor_file": "../data/anchors32.json",
+"sim_config_file": "../data/pendulumDiscreteActions/trainDiscreteActions.ini",
+"hidden_layer_size": 36,
+"num_actions": -1,
+"exploration_rate": 0.15,
+"rounds": 5000,
+"epochs": 10,
+"max_training_steps": 1000000,
+"num_states": 32,
+"discount_factor": 0.8,
+"max_reward": 5.0,
+"state_bounds": [[-0.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],
+[0.5,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0]],
+"action_bounds": [[-0.5],[0.5]]
+}

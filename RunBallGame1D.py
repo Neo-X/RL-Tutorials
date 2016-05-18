@@ -20,6 +20,7 @@ from ForwardDynamicsNetwork import ForwardDynamicsNetwork
 from MapGame import Map
 from BallGame1D import BallGame1D
 from BallGame1DFuture import BallGame1DFuture
+from BallGame1DState import BallGame1DState
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
@@ -121,6 +122,7 @@ if __name__ == "__main__":
         
         num_actions=8
         action_selection = range(num_actions)
+        visualize_policy=True
         
         print "Max Reward: " + str(max_reward)
         print "State Bounds: " + str(state_bounds)
@@ -133,6 +135,10 @@ if __name__ == "__main__":
             game = BallGame1DFuture()
         elif game_type == 'BallGame1D':
             game = BallGame1D()
+        elif game_type == 'BallGame1DState':
+            game = BallGame1DState()
+            visualize_policy=False
+            
         else:
             print "Unrecognized game: " + str(game_type)
             sys.exit()
@@ -199,12 +205,15 @@ if __name__ == "__main__":
         trainData["std_forward_dynamics_loss"]=[]
          
         best_error=10000000.0
-        if action_space_continuous:
-            # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
-            X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
+        if (visualize_policy):
+            if action_space_continuous:
+                # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
+            else:
+                X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
+            game.init(U, V, Q)
         else:
-            X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
-        game.init(U, V, Q)
+            game.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
         
         rlv = RLVisualize(title=str(settings['agent_name'] + " on " + str(game_type)))
         rlv.setInteractive()
@@ -282,6 +291,7 @@ if __name__ == "__main__":
                     
                     
                 state = game.getState()
+                # print "State: " + str(state)
                 pa = model.predict([norm_state(state, state_bounds)])
                 
                 if action_space_continuous:
@@ -333,13 +343,18 @@ if __name__ == "__main__":
                     # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 i += 1
                 t += 1
-                    
-            if action_space_continuous:
-                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
-            else:
-                X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
+        
             game.update()
-            game.updatePolicy(U, V, Q)
+            if (visualize_policy):
+                if action_space_continuous:
+                    # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+                    X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
+                else:
+                    X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
+                game.updatePolicy(U, V, Q)
+            else:
+                game.updatePolicy(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))            
+                
             states_, actions_, result_states_, rewards_ = experience.get_batch(batch_size)
             error = model.bellman_error(states_, actions_, rewards_, result_states_)
             error = np.mean(np.fabs(error))
@@ -396,11 +411,15 @@ if __name__ == "__main__":
                 
             print ""
             # X,Y = np.mgrid[0:16,0:16]
-            if action_space_continuous:
-                X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
+            if (visualize_policy):
+                if action_space_continuous:
+                    # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+                    X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
+                else:
+                    X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
+                game.updatePolicy(U, V, Q)
             else:
-                X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
-            game.updatePolicy(U, V, Q)
+                game.updatePolicy(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))            
             game.saveVisual(data_folder+"gameState")
             """
             states, actions, result_states, rewards = get_batch(experience, len(experience))
