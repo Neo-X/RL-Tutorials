@@ -24,35 +24,38 @@ from BallGame1DChoice import BallGame1DChoice
 # import matplotlib.animation as animation
 
 
-class BallGame1DChoiceState(BallGame1DChoice):
+class BallGame1DChoiceStateFuture(BallGame1DChoice):
 
     def __init__(self):
         #------------------------------------------------------------
         # set up initial state
-        super(BallGame1DChoiceState,self).__init__()
+        super(BallGame1DChoiceStateFuture,self).__init__()
         self._granularity = 20 # This should be an even number
         self._action_dimension=1
         self._range = 1.0
+        self._future = 3
 
     
     def getState(self):
-        state = np.zeros(self._granularity+self._action_dimension)
+        state = np.zeros((self._granularity*self._future)+self._action_dimension)
         # state[0] = self._box.state[0,1]
         state[0] = self._box.state[0,3]
         # print "sSelf: " + str(self._choices)
-        for i in range(int(self._choices)):
-            # state = np.zeros(grandularity)
-            delta = self._targets[0][i][1] - self._previous_max_y
-            # print "First delta: " + str(delta)
-            delta = (delta)/(self._range/(self._granularity/2.0))
-            # print "Second delta: " + str(delta)
-            index = int(delta+(self._granularity/2))
-            # print "Index is: " + str(index)
-            if (index < 1):
-                index = 0
-            if (index >= self._granularity):
-                index = self._granularity-1
-            state[index+self._action_dimension] = 1.0
+        for f in range(self._future):
+            
+            for i in range(int(self._choices)):
+                # state = np.zeros(grandularity)
+                delta = self._targets[0][i][1] - self._previous_max_y
+                # print "First delta: " + str(delta)
+                delta = (delta)/(self._range/(self._granularity/2.0))
+                # print "Second delta: " + str(delta)
+                index = int(delta+(self._granularity/2))
+                # print "Index is: " + str(index)
+                if (index < 1):
+                    index = 0
+                if (index >= self._granularity):
+                    index = self._granularity-1
+                state[(f*self._granularity)+index+self._action_dimension] = 1.0
         
         return state
     
@@ -92,7 +95,7 @@ class BallGame1DChoiceState(BallGame1DChoice):
 if __name__ == '__main__':
     
     np.random.seed(seed=10)
-    game = BallGame1DChoiceState()
+    game = BallGame1DChoiceStateFuture()
 
     game.enableRender()
     game._simulate=True

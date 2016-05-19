@@ -25,17 +25,15 @@ class ImplicitPlanningAgent(object):
     def selectTarget(self, state ):
         _target = self._targetSelector.predict(state)
     
-    def getTargetAction(self, _target, state):
+    def getTargetAction(self, _target, state, granularity):
         # print "Target is: " + str(_target)
         # _target = self._targetSelector.predict(state)
         # print "Inner State: " + str(state)
         #change the state
-        _state = np.zeros_like(state)
+        adjust=1
+        _state = np.array([np.zeros(granularity+adjust)])
         _state[0][0] = state[0][0]
-        __state = np.zeros(len(state[0])-1)
-        __state[_target] = 1.0
-        
-        _state[0][1:] = __state
+        _state[0][_target+adjust] = 1.0
         return self._actionNetwork.predict(_state)
         
     def predict(self, state):

@@ -23,6 +23,7 @@ from BallGame1D import BallGame1D
 from BallGame1DFuture import BallGame1DFuture
 from BallGame1DState import BallGame1DState
 from BallGame1DChoiceState import BallGame1DChoiceState
+from BallGame1DChoiceStateFuture import BallGame1DChoiceStateFuture
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
@@ -142,6 +143,9 @@ if __name__ == "__main__":
         elif game_type == 'BallGame1DChoiceState':
             game = BallGame1DChoiceState()
             visualize_policy=False
+        elif game_type == 'BallGame1DChoiceStateFuture':
+            game = BallGame1DChoiceStateFuture()
+            visualize_policy=False
         else:
             print "Unrecognized game: " + str(game_type)
             sys.exit()
@@ -185,7 +189,7 @@ if __name__ == "__main__":
             action_space_continuous=True
         elif settings['agent_name'] == "ImplicitPlanningAgent":
             print "Creating " + str(settings['agent_name']) + " agent"
-            action_length = state_length-1
+            action_length = 20
             network_folder = settings['action_network']
             file_name=network_folder+"navigator_agent_"+str(settings['network_name'])+".pkl"
             action_Network = cPickle.load(open(file_name))
@@ -322,7 +326,7 @@ if __name__ == "__main__":
                 elif not action_space_continuous:
                     action = random.choice(action_selection)
                     action = eGreedy(pa, action, epsilon * p)
-                    pa = model.getTargetAction(action, [norm_state(state, state_bounds)])
+                    pa = model.getTargetAction(action, [norm_state(state, state_bounds)], 20)
                     game.setTargetChoice(action)
                     reward = game.actContinuous(pa)
                     # action = [action]
