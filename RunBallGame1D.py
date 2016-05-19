@@ -240,7 +240,7 @@ if __name__ == "__main__":
             experience = ExperienceMemory(state_length=state_length, action_length=action_length, memory_length=max_expereince, continuous_actions=action_space_continuous)
             # experience = collectExperienceActionsContinuous(experience, action_bounds)
         else: 
-            experience = ExperienceMemory(state_length=state_length, action_length=action_length, memory_length=max_expereince)
+            experience = ExperienceMemory(state_length=state_length, action_length=1, memory_length=max_expereince)
         bellman_errors = []
         reward_over_epocs = []
         values = []
@@ -277,7 +277,7 @@ if __name__ == "__main__":
                     # print "Reward o epochs: " + str(reward_over_epocs)
                     reward_over_epocs.append(reward_sum)
                     discounted_values.append(discounted_sum)
-                    print "Actions: " + str(actions)
+                    # print "Actions: " + str(actions)
                     # states, actions, result_states, rewards = experience.get_batch(batch_size)
                     # print "States: " + str(states)
                     error = model.bellman_error(np.array(states), np.array(actions), 
@@ -321,7 +321,7 @@ if __name__ == "__main__":
                     action = eGreedy(pa, action, epsilon * p)
                     pa = model.getTargetAction(action, [norm_state(state, state_bounds)])
                     reward = game.actContinuous(pa)
-                    action = [action]
+                    # action = [action]
                     # reward = game.act(action)
                     
                 if reward is None:
@@ -338,8 +338,13 @@ if __name__ == "__main__":
                 # print "Reward: " + str(reward_)
                 # reward_ = (reward)/(max_reward)
                 # reward_ = (reward+max_reward)/(max_reward)
-                print "Action: " + str(action) + " normed action" + str(norm_action(action, action_bounds))
-                experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), [reward_])
+                # print "Action: " + str(action) + " normed action" + str(norm_action(action, action_bounds))
+                if (action_space_continuous):
+                    experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), [reward_])
+                    actions.append(action)
+                else:
+                    experience.insert(norm_state(state, state_bounds), [[action]], norm_state(resultState, state_bounds), [reward_])
+                    actions.append([action])
                 # Update agent on screen
                 # game.update()
                 # X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
@@ -347,7 +352,6 @@ if __name__ == "__main__":
                 # print "Reward: " + str(reward_)
                 # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
                 # print model.q_values([tup._state])
-                actions.append(action)
                 result_states.append(norm_state(resultState, state_bounds))
                 rewards.append([reward_])
                 states.append(norm_state(state, state_bounds))
@@ -355,7 +359,7 @@ if __name__ == "__main__":
                 discounted_sum += (math.pow(0.8,t) * reward)
                 if experience.samples() > batch_size:
                     _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
-                    print _actions, _rewards
+                    # print _actions, _rewards
                     cost = model.train(_states, _actions, _rewards, _result_states)
                     if (train_forward_dynamics):
                         dynamicsLoss = forwardDynamicsModel.train(states=_states, actions=_actions, result_states=_result_states)
@@ -400,8 +404,9 @@ if __name__ == "__main__":
             trainData["std_bellman_error"].append(std_bellman_error)
             trainData["mean_discount_error"].append(mean_discount_error)
             trainData["std_discount_error"].append(std_discount_error)
-            trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
-            trainData["std_forward_dynamics_loss"].append(mean_dynamicsLosses)
+            if (train_forward_dynamics):
+                trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
+                trainData["std_forward_dynamics_loss"].append(mean_dynamicsLosses)
             
             rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
             rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
