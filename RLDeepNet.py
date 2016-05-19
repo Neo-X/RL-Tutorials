@@ -20,10 +20,10 @@ def rlTDSGD(cost, delta, params, lr=0.05):
 
 class RLDeepNet(object):
     
-    def __init__(self, input, n_in, n_out):
+    def __init__(self, n_in, n_out):
 
         batch_size=32
-        state_length=2
+        state_length=n_in
         # data types for model
         State = T.dmatrix("State")
         State.tag.test_value = np.random.rand(batch_size,state_length)
@@ -45,7 +45,7 @@ class RLDeepNet(object):
                 nonlinearity=lasagne.nonlinearities.rectify)
     
         self._l_outA = lasagne.layers.DenseLayer(
-                l_hid2A, num_units=8,
+                l_hid2A, num_units=n_out,
                 nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
         
@@ -61,10 +61,9 @@ class RLDeepNet(object):
                 nonlinearity=lasagne.nonlinearities.rectify)
     
         self._l_outB = lasagne.layers.DenseLayer(
-                l_hid2B, num_units=8,
+                l_hid2B, num_units=n_out,
                 nonlinearity=lasagne.nonlinearities.linear)
 
-        
         # print "Initial W " + str(self._w_o.get_value()) 
         
         self._learning_rate = 0.00025

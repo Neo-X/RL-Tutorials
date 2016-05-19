@@ -15,6 +15,7 @@ from RLDeepNet import RLDeepNet
 from DeepCACLA import DeepCACLA
 from DeepDPG import DeepDPG 
 from ForwardDynamicsNetwork import ForwardDynamicsNetwork
+from ImplicitPlanningAgent import ImplicitPlanningAgent
 
 # Games
 from MapGame import Map
@@ -179,6 +180,14 @@ if __name__ == "__main__":
             print "Creating " + str(settings['agent_name']) + " agent"
             model = DeepDPG(n_in=state_length, n_out= action_length)
             action_space_continuous=True
+        elif settings['agent_name'] == "ImplicitPlanningAgent":
+            print "Creating " + str(settings['agent_name']) + " agent"
+            network_folder = settings['action_network']
+            file_name=network_folder+"navigator_agent_"+str(settings['network_name'])+".pkl"
+            action_Network = cPickle.load(open(file_name))
+            model = ImplicitPlanningAgent(n_in=state_length, n_out=state_length-1, actionNetwork=action_Network)
+            action_space_continuous=False
+            
         else:
             print "Unrecognized model: " + str(settings['agent_name'])
             sys.exit()
@@ -305,6 +314,7 @@ if __name__ == "__main__":
                 elif not action_space_continuous:
                     action = random.choice(action_selection)
                     action = eGreedy(pa, action, epsilon * p)
+                    model.getTargetAction
                     reward = game.act(action)
                     
                 if reward is None:
