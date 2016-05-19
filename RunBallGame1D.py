@@ -22,6 +22,7 @@ from MapGame import Map
 from BallGame1D import BallGame1D
 from BallGame1DFuture import BallGame1DFuture
 from BallGame1DState import BallGame1DState
+from BallGame1DChoiceState import BallGame1DChoiceState
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
@@ -138,7 +139,9 @@ if __name__ == "__main__":
         elif game_type == 'BallGame1DState':
             game = BallGame1DState()
             visualize_policy=False
-            
+        elif game_type == 'BallGame1DChoiceState':
+            game = BallGame1DChoiceState()
+            visualize_policy=False
         else:
             print "Unrecognized game: " + str(game_type)
             sys.exit()
@@ -152,7 +155,7 @@ if __name__ == "__main__":
         action_length = len(action_bounds[0])
         action_selection = range(action_length)
         print action_selection
-        data_folder = settings['data_folder']
+        data_folder = settings['data_folder']+settings['game_type']+"/"
         states = np.array([state_bounds[1]])
         action_space_continuous=False
         if settings['agent_name'] == "logistic":
@@ -320,6 +323,7 @@ if __name__ == "__main__":
                     action = random.choice(action_selection)
                     action = eGreedy(pa, action, epsilon * p)
                     pa = model.getTargetAction(action, [norm_state(state, state_bounds)])
+                    game.setTargetChoice(action)
                     reward = game.actContinuous(pa)
                     # action = [action]
                     # reward = game.act(action)

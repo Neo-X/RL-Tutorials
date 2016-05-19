@@ -28,8 +28,8 @@ class BallGame1DChoice(BallGame1D):
     def __init__(self):
         #------------------------------------------------------------
         # set up initial state
-        self._steps_forward=238
-        self._choices=3
+        self._steps_forward=int(238)
+        self._choices=int(3)
         self._target_choice = 0
         super(BallGame1DChoice,self).__init__()
         
@@ -71,7 +71,7 @@ class BallGame1DChoice(BallGame1D):
         diff = time - targets_[0,0,0] + 2.0
         targets_[:,:,0] += diff
         self._targets = collections.deque(list(targets_))
-        print "Action continuous: " + str(action)
+        # print "Action continuous: " + str(action)
         
         return super(BallGame1DChoice,self).actContinuous(action)
         
@@ -85,7 +85,7 @@ class BallGame1DChoice(BallGame1D):
         for i in range(self._steps_forward):
             self._targets.append(np.random.rand(self._choices,2))
             
-        print self._targets[4]
+        # print self._targets[4]
         start_dist=2.8
         self._targets[0][:,0]=start_dist
         self._targets[0][:,1]=2.0
@@ -94,7 +94,7 @@ class BallGame1DChoice(BallGame1D):
                 height = self.generateNextTarget(self._targets[col-1][row][1])
                 self._targets[col][row] = [col+start_dist,height]
         self.setTargets(self._targets)
-        print self._targets
+        # print self._targets
         
     def resetTarget(self):
         """
