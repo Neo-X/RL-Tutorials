@@ -8,7 +8,7 @@ from RLDeepNet import RLDeepNet
 
 
 # For debugging
-# theano.config.mode='FAST_COMPILE'
+theano.config.mode='FAST_COMPILE'
 
 class ImplicitPlanningAgent(object):
     
@@ -26,8 +26,9 @@ class ImplicitPlanningAgent(object):
         _target = self._targetSelector.predict(state)
     
     def getTargetAction(self, _target, state):
-        _target = self._targetSelector.predict(state)
-        print "Inner State: " + str(state)
+        print "Target is: " + str(_target)
+        # _target = self._targetSelector.predict(state)
+        # print "Inner State: " + str(state)
         #change the state
         _state = np.zeros_like(state)
         _state[0][0] = state[0][0]
@@ -39,15 +40,10 @@ class ImplicitPlanningAgent(object):
         
     def predict(self, state):
         _target = self._targetSelector.predict(state)
-        print "Inner State: " + str(state)
+        # print "Inner State: " + str(state)
         #change the state
-        _state = np.zeros_like(state)
-        _state[0][0] = state[0][0]
-        __state = np.zeros(len(state[0])-1)
-        __state[_target] = 1.0
-        
-        _state[0][1:] = __state
-        return self._actionNetwork.predict(_state)
+
+        return _target
         
         # _targetSelector to get state
         # actionNetwork to get the parameters for the action
