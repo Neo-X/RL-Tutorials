@@ -25,6 +25,7 @@ from game.BallGame1DState import BallGame1DState
 from game.BallGame1DChoiceState import BallGame1DChoiceState
 from game.BallGame1DChoiceStateFuture import BallGame1DChoiceStateFuture
 from game.BallGame2DChoice import BallGame2DChoice
+from game.BallGame2D import BallGame2D
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
@@ -147,6 +148,9 @@ if __name__ == "__main__":
         elif game_type == 'BallGame1DChoiceStateFuture':
             game = BallGame1DChoiceStateFuture()
             visualize_policy=False
+        elif game_type == 'BallGame2D':
+            game = BallGame2D()
+            visualize_policy=False    
         elif game_type == 'BallGame2DChoice':
             game = BallGame2DChoice()
             visualize_policy=False

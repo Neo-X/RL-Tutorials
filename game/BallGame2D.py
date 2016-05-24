@@ -16,14 +16,14 @@ from BallGame1DFuture import BallGame1DFuture
 # import matplotlib.animation as animation
 
 
-class BallGame2DChoice(BallGame1DFuture):
+class BallGame2D(BallGame1DFuture):
 
     def __init__(self):
         #------------------------------------------------------------
         # set up initial state
         self._x_v=1.0
         self._x_diff=0.0
-        super(BallGame2DChoice,self).__init__()
+        super(BallGame2D,self).__init__()
         
         
         
@@ -40,7 +40,7 @@ class BallGame2DChoice(BallGame1DFuture):
             
     def animate(self, i):
         """perform animation step"""
-        out = super(BallGame2DChoice,self).animate(i)
+        out = super(BallGame2D,self).animate(i)
         """step once by dt seconds"""
         
         # update positions
@@ -118,10 +118,9 @@ class BallGame2DChoice(BallGame1DFuture):
     def getState(self):
         state = []
         state.append( self._box.state[0,3]) # velocity in y
-        for target_ in self._targets:
-            state.append(target_[0] - 2.0)
-            state.append(target_[1] - self._previous_max_y)
-        # state[0] = self._box.state[0,1]
+        # state.append( self._box.state[0,3]) # velocity in y
+        state.append(self._targets[0][0] - 2.0)
+        state.append(self._targets[0][1] - self._previous_max_y)
         return state
     
     def setState(self, st):
@@ -145,7 +144,7 @@ class BallGame2DChoice(BallGame1DFuture):
 if __name__ == '__main__':
     
     np.random.seed(seed=10)
-    ballGame = BallGame2DChoice()
+    ballGame = BallGame2D()
 
     ballGame.enableRender()
     ballGame._simulate=True
