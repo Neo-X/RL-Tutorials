@@ -1,12 +1,10 @@
 """
-Animation of Elastic collisions with Gravity
 
-author: Jake Vanderplas
-email: vanderplas@astro.washington.edu
-website: http://jakevdp.github.com
-license: BSD
-https://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
-Please feel free to use and modify this, but keep the above information. Thanks!
+
+author: Glen Berseth
+email: gberseth@cs.ubc.ca
+website: http://www.fracturedplane.com
+license: GPL
 """
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
@@ -31,7 +29,6 @@ class BallGame1DChoice(BallGame1D):
         self._steps_forward=int(238)
         self._choices=int(3)
         self._target_choice = 0
-        self._x_v=1.0
         super(BallGame1DChoice,self).__init__()
         
     def init(self, U, V, Q):
@@ -49,7 +46,7 @@ class BallGame1DChoice(BallGame1D):
         targets_ = np.array(self._targets)
         # print "step targets: " + str(targets_)
         
-        targets_[:,:,0] += self._dt * self._x_v * -1.0
+        targets_[:,:,0] += self._dt * -1.0
         self._targets = collections.deque(list(targets_))
         
         scale=1.0
@@ -72,12 +69,12 @@ class BallGame1DChoice(BallGame1D):
         time = self._computeTime(v)
         # x direction is 1/s
         self._x_v = self._x_v + action[0]
-        """
+        
         targets_ = np.array(self._targets)
         diff = time - targets_[0,0,0] + 2.0
         targets_[:,:,0] += diff
         self._targets = collections.deque(list(targets_))
-        """
+        
         # print "Action continuous: " + str(action)
         
         return super(BallGame1DChoice,self).actContinuous(action)
