@@ -66,14 +66,13 @@ class BallGame2D(BallGame1DFuture):
 
     def actContinuous(self, action):
         run = True
-        
+        self._x_v = action[1]
         v = self._box.state[0][3] + action[0]
         time = self._computeTime(v)
         target = np.array(self._target)
         self._x_diff = (time*self._x_v) - target[0] + 2.0
         # print "Diff: " +str(diff)
         # x direction is 1/s
-        self._x_v = action[1]
         # print "Acting: " + str(action)
         # self._box.state[0][2] = action[0]
         self._box.state[0][3] += action[0]
@@ -144,33 +143,34 @@ class BallGame2D(BallGame1DFuture):
 if __name__ == '__main__':
     
     np.random.seed(seed=10)
-    ballGame = BallGame2D()
+    game = BallGame2D()
 
-    ballGame.enableRender()
-    ballGame._simulate=True
-    # ballGame._saveVideo=True
-    print "dt: " + str(ballGame._dt)
-    print "BOX: " + str(ballGame._box)
-    ballGame.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
+    game.enableRender()
+    game._simulate=True
+    # game._saveVideo=True
+    print "dt: " + str(game._dt)
+    print "BOX: " + str(game._box)
+    game.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
     
-    ballGame.reset()
-    ballGame.resetTarget()
-    ballGame.setTarget(np.array([2,2]))
+    game.reset()
+    game.resetTarget()
+    game.setTarget(np.array([2,2]))
     num_actions=10
     action_lenth=2
-    scaling = 2.0
-    ballGame._box.state[0][1] = 0
+    scaling = 0.1
+    game._box.state[0][1] = 0
     
     actions = (np.random.rand(num_actions,action_lenth)-0.5) * 2.0 * scaling
     for action in actions:
-        # ballGame.resetTarget()
-        state = ballGame.getState()
+        # game.resetTarget()
+        state = game.getState()
         print "State: " + str(state)
         action[1] = 1.0
         print "Action: " + str(action)
-        reward = ballGame.actContinuous(action)
+        reward = game.actContinuous(action)
         print "Reward: " + str(reward)
-        # print "targets: " + str(ballGame._targets)
-        ballGame.resetTarget()
+        # print "targets: " + str(game._targets)
+        game.resetTarget()
+        game.resetHeight()
 
-    ballGame.finish()
+    game.finish()
