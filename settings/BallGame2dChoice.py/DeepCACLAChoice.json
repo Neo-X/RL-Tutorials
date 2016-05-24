@@ -2,7 +2,7 @@
 "model_type": "Deep_CACLA",
 "agent_name": "Deep_CACLA",
 "data_folder": "Deep_CACLA/",
-"game_type": "BallGame1DChoice",
+"game_type": "BallGame2DChoice",
 "epsilon": 1.0,
 "batch_size": 32,
 "learning_rate": 0.00025,
@@ -17,6 +17,6 @@
 "num_states": 32,
 "discount_factor": 0.8,
 "max_reward": 5.0,
-"state_bounds": [[-1.0,-0.5],[1.0,0.5]],
+"state_bounds": [[-0.5,-1.0],[0.5,1.0]],
 "action_bounds": [[-0.5,0.5],[0.5,1.5]]
 }

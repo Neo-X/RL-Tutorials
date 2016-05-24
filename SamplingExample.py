@@ -1,4 +1,4 @@
-from MapGame import Map
+from game.MapGame import Map
 from BallGame import BallGame
 import random
 import numpy as np
@@ -8,8 +8,8 @@ import json
 import os
 import copy
 
-from RLLogisticRegression import RLLogisticRegression
-from NeuralNet import NeuralNet 
+from model import RLLogisticRegression.RLLogisticRegression
+from model import NeuralNet.NeuralNet
 from RLNeuralNetwork import RLNeuralNetwork
 from RLNeuralNetworkDQ import RLNeuralNetworkDQ
 from RLDeepNet import RLDeepNet 
@@ -19,7 +19,7 @@ import sys
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
-from ExperienceMemory import ExperienceMemory
+from model import ExperienceMemory.ExperienceMemory
 
 import matplotlib.pyplot as plt
 

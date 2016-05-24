@@ -3,7 +3,7 @@
 
 """
 
-from MapGame import *
+from game.MapGame import *
 from math import *
 import random
 

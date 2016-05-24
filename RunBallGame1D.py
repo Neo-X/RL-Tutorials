@@ -7,28 +7,29 @@ import os
 import sys
 
 # Networks
-from RLLogisticRegression import RLLogisticRegression
-from NeuralNet import NeuralNet 
-from RLNeuralNetwork import RLNeuralNetwork
-from RLNeuralNetworkDQ import RLNeuralNetworkDQ
-from RLDeepNet import RLDeepNet 
-from DeepCACLA import DeepCACLA
-from DeepDPG import DeepDPG 
-from ForwardDynamicsNetwork import ForwardDynamicsNetwork
-from ImplicitPlanningAgent import ImplicitPlanningAgent
+from model.RLLogisticRegression import RLLogisticRegression
+from model.NeuralNet import NeuralNet
+from model.RLNeuralNetwork import RLNeuralNetwork
+from model.RLNeuralNetworkDQ import RLNeuralNetworkDQ
+from model.RLDeepNet import RLDeepNet 
+from model.DeepCACLA import DeepCACLA
+from model.DeepDPG import DeepDPG 
+from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
+from model.ImplicitPlanningAgent import ImplicitPlanningAgent
 
 # Games
-from MapGame import Map
-from BallGame1D import BallGame1D
-from BallGame1DFuture import BallGame1DFuture
-from BallGame1DState import BallGame1DState
-from BallGame1DChoiceState import BallGame1DChoiceState
-from BallGame1DChoiceStateFuture import BallGame1DChoiceStateFuture
+from game.MapGame import Map
+from game.BallGame1D import BallGame1D
+from game.BallGame1DFuture import BallGame1DFuture
+from game.BallGame1DState import BallGame1DState
+from game.BallGame1DChoiceState import BallGame1DChoiceState
+from game.BallGame1DChoiceStateFuture import BallGame1DChoiceStateFuture
+from game.BallGame2DChoice import BallGame2DChoice
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
-from ExperienceMemory import ExperienceMemory
+from model.ExperienceMemory import ExperienceMemory
 
 def eGreedy(pa1, ra2, e):
     """
@@ -145,6 +146,9 @@ if __name__ == "__main__":
             visualize_policy=False
         elif game_type == 'BallGame1DChoiceStateFuture':
             game = BallGame1DChoiceStateFuture()
+            visualize_policy=False
+        elif game_type == 'BallGame2DChoice':
+            game = BallGame2DChoice()
             visualize_policy=False
         else:
             print "Unrecognized game: " + str(game_type)

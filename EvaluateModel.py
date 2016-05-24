@@ -7,14 +7,14 @@ import os
 import sys
 
 # Networks
-from RLLogisticRegression import RLLogisticRegression
-from NeuralNet import NeuralNet 
+from model import RLLogisticRegression.RLLogisticRegression
+from model import NeuralNet.NeuralNet
 from RLNeuralNetwork import RLNeuralNetwork
 from RLNeuralNetworkDQ import RLNeuralNetworkDQ
 from RLDeepNet import RLDeepNet 
 from DeepCACLA import DeepCACLA
 from DeepDPG import DeepDPG 
-from ForwardDynamicsNetwork import ForwardDynamicsNetwork
+from model import ForwardDynamicsNetwork.ForwardDynamicsNetwork
 
 # Games
 from MapGame import Map
@@ -24,7 +24,7 @@ from BallGame1DFuture import BallGame1DFuture
 from RL_visualizing import *
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
-from ExperienceMemory import ExperienceMemory
+from model import ExperienceMemory.ExperienceMemory
 from RunGame import *
 
 

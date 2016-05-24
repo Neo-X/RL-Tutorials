@@ -129,16 +129,14 @@ class BallGame1DChoice(BallGame1D):
         self._targets=st
         
     def getStates(self):
-        states=[]
-        # state[0] = self._box.state[0,1]
+        state=[]
+        state.append(self._box.state[0,1])
         for i in range(self._choices):
-            state = np.array([0.0,0.0], dtype=float)
-            state[0] = self._targets[0][i][1] - self._previous_max_y
-            state[1] = self._box.state[0][3]
-            states.append(state)
+            state.append(self._targets[0][i][1] - self._previous_max_y)
+            state.append( self._box.state[0][3] - 2.0)
         # state[2] = self._targets[0][1][1] - self._previous_max_y
         # state[3] = self._targets[0][2][1] - self._previous_max_y
-        return states
+        return state
     
         
     def getState(self):

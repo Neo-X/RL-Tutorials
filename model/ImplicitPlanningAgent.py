@@ -4,7 +4,7 @@ import numpy as np
 import lasagne
 
 from DeepCACLA import DeepCACLA
-from RLDeepNet import RLDeepNet
+from model.RLDeepNet import RLDeepNet
 
 
 # For debugging

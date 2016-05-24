@@ -1,4 +1,4 @@
-from MapGame import Map
+from game.MapGame import Map
 from BallGame import BallGame
 import random
 import numpy as np
@@ -7,8 +7,8 @@ import cPickle
 import json
 import os
 
-from RLLogisticRegression import RLLogisticRegression
-from NeuralNet import NeuralNet 
+from model import RLLogisticRegression.RLLogisticRegression
+from model import NeuralNet.NeuralNet
 from RLNeuralNetwork import RLNeuralNetwork
 from RLNeuralNetworkDQ import RLNeuralNetworkDQ
 from RLDeepNet import RLDeepNet 
@@ -18,7 +18,7 @@ import sys
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
-from ExperienceMemory import ExperienceMemory
+from model import ExperienceMemory.ExperienceMemory
 
 def eGreedy(pa1, ra2, e):
     """

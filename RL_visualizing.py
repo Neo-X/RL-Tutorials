@@ -5,7 +5,7 @@ import numpy as np
 import random
 import cPickle
 import sys
-from MapGame import Map
+from game.MapGame import Map
 
 
 def loadMap():

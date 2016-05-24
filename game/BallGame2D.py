@@ -11,12 +11,12 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.animation as manimation
-from BallGame1DChoice import BallGame1DChoice
+from BallGame1D import BallGame1D 
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
 
-class BallGame2DChoice(BallGame1DChoice):
+class BallGame2DChoice(BallGame1D):
 
     def __init__(self):
         #------------------------------------------------------------
@@ -29,26 +29,26 @@ class BallGame2DChoice(BallGame1DChoice):
             
     def animate(self, i):
         """perform animation step"""
-        out = super(BallGame1DChoice,self).animate(i)
+        out = super(BallGame2DChoice,self).animate(i)
         """step once by dt seconds"""
         
         # update positions
         
-        targets_ = np.array(self._targets)
+        target = np.array(self._target)
         # print "step targets: " + str(targets_)
         
-        targets_[:,:,0] += self._dt * self._x_v * -1.0
-        self._targets = collections.deque(list(targets_))
+        target[0] += self._dt * self._x_v * -1.0
+        self._target = (target)
         
         scale=1.0
         ms = int(self._fig.dpi * scale * self._box.size * self._fig.get_figwidth()
                  / np.diff(self._map_ax.get_xbound())[0])
         
-        self._plot_target.set_data(targets_[:,:,0].reshape((1,-1))[0], targets_[:,:,1].reshape((1,-1))[0])
+        self._plot_target.set_data(target[0].reshape((1,-1))[0], target[1].reshape((1,-1))[0])
         self._plot_target.set_markersize(ms)
         
-        self._plot_target_choice.set_data([targets_[0,self._target_choice,0]], [targets_[0,self._target_choice,1]])
-        self._plot_target_choice.set_markersize(ms)
+        # self._plot_target_choice.set_data([target[0]], [target[1]])
+        # self._plot_target_choice.set_markersize(ms)
 
         # return particles, rect
         return out
@@ -58,8 +58,8 @@ class BallGame2DChoice(BallGame1DChoice):
         
         v = self._box.state[0][3] + action[0]
         time = self._computeTime(v)
-        targets_ = np.array(self._targets)
-        self._x_diff = (time*self._x_v) - targets_[0,0,0] + 2.0
+        target = np.array(self._target)
+        self._x_diff = (time*self._x_v) - target[0] + 2.0
         # print "Diff: " +str(diff)
         # x direction is 1/s
         self._x_v = action[1]
@@ -123,16 +123,16 @@ if __name__ == '__main__':
     ballGame.reset()
     ballGame.setTarget(np.array([2,2]))
     num_actions=10
+    action_lenth=2
     scaling = 2.0
     ballGame._box.state[0][1] = 0
     
-    actions = (np.random.rand(num_actions,1)-0.5) * 2.0 * scaling
+    actions = (np.random.rand(num_actions,action_lenth)-0.5) * 2.0 * scaling
     for action in actions:
         # ballGame.resetTarget()
         state = ballGame.getState()
         print "State: " + str(state)
         print "Action: " + str(action)
-        ballGame.setTargetChoice(0)
         reward = ballGame.actContinuous(action)
         print "Reward: " + str(reward)
         # print "targets: " + str(ballGame._targets)
