@@ -31,6 +31,7 @@ class BallGame1DChoice(BallGame1D):
         self._steps_forward=int(238)
         self._choices=int(3)
         self._target_choice = 0
+        self._x_v=1.0
         super(BallGame1DChoice,self).__init__()
         
     def init(self, U, V, Q):
@@ -44,10 +45,13 @@ class BallGame1DChoice(BallGame1D):
         """step once by dt seconds"""
         
         # update positions
+        
         targets_ = np.array(self._targets)
         # print "step targets: " + str(targets_)
-        targets_[:,:,0] += self._dt * -1.0
+        
+        targets_[:,:,0] += self._dt * self._x_v * -1.0
         self._targets = collections.deque(list(targets_))
+        
         scale=1.0
         ms = int(self._fig.dpi * scale * self._box.size * self._fig.get_figwidth()
                  / np.diff(self._map_ax.get_xbound())[0])
@@ -67,10 +71,13 @@ class BallGame1DChoice(BallGame1D):
         v = self._box.state[0][3] + action[0]
         time = self._computeTime(v)
         # x direction is 1/s
+        self._x_v = self._x_v + action[0]
+        """
         targets_ = np.array(self._targets)
         diff = time - targets_[0,0,0] + 2.0
         targets_[:,:,0] += diff
         self._targets = collections.deque(list(targets_))
+        """
         # print "Action continuous: " + str(action)
         
         return super(BallGame1DChoice,self).actContinuous(action)
@@ -178,7 +185,7 @@ if __name__ == '__main__':
     ballGame.reset()
     ballGame.setTarget(np.array([2,2]))
     num_actions=10
-    scaling = 2.0
+    scaling = 0.3
     ballGame._box.state[0][1] = 0
     
     actions = (np.random.rand(num_actions,1)-0.5) * 2.0 * scaling

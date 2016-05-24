@@ -12,11 +12,12 @@ from RLDeepNet import RLDeepNet
 
 class ImplicitPlanningAgent(object):
     
-    def __init__(self, n_in, n_out, actionNetwork):
+    def __init__(self, n_in, n_out, actionNetwork, settings):
         
         self._targetSelector = RLDeepNet(n_in=n_in, n_out=n_out)
         # _actionNetwork = RLDeepNet(n_in=n_in, n_out=n_out) # should load this network from a file
         self._actionNetwork = actionNetwork
+        self._settings = settings
         
         
     def train(self, states, actions, rewards, result_states):

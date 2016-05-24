@@ -97,6 +97,7 @@ class BallGame1D(object):
         
         self._box = ParticleLine(init_state, size=0.04)
         self._dt = 1. / 30 # 30fps
+        
         self._max_y = -1.0
         self._previous_max_y = -1.0
         self._render=False
@@ -426,7 +427,7 @@ if __name__ == '__main__':
     ballGame.enableRender()
     ballGame._simulate=True
     # ballGame._saveVideo=True
-    ballGame.init(np.random.rand(256,1),np.random.rand(256,1),np.random.rand(256,1))
+    ballGame.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
     
     ballGame.reset()
     ballGame.setTarget(np.array([2,2]))
