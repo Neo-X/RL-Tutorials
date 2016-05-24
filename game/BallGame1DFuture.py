@@ -30,8 +30,6 @@ class BallGame1DFuture(BallGame1D):
         # set up initial state
         super(BallGame1DFuture,self).__init__()
         
-        
-
     def reset(self):
         self._box.state[0][0] = 2.0
         self._box.state[0][1] = self._box.bounds[2]+0.1
@@ -89,7 +87,7 @@ if __name__ == '__main__':
     # ballGame._saveVideo=True
     print "dt: " + str(ballGame._dt)
     print "BOX: " + str(ballGame._box)
-    ballGame.init(np.random.rand(256,1),np.random.rand(256,1),np.random.rand(256,1))
+    ballGame.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
     
     ballGame.reset()
     ballGame.setTarget(np.array([2,2]))

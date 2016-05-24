@@ -11,12 +11,12 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.animation as manimation
-from BallGame1D import BallGame1D 
+from BallGame1DFuture import BallGame1DFuture 
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
 
-class BallGame2DChoice(BallGame1D):
+class BallGame2DChoice(BallGame1DFuture):
 
     def __init__(self):
         #------------------------------------------------------------
@@ -25,7 +25,18 @@ class BallGame2DChoice(BallGame1D):
         self._x_diff=0.0
         super(BallGame2DChoice,self).__init__()
         
-
+        
+        
+    def reset(self):
+        self._box.state[0][0] = 2.0
+        self._box.state[0][1] = self._box.bounds[2]+0.1
+        self._box.state[0][2] = 0
+        self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
+        num_future_targets=3
+        self._targets = collections.deque(list( [[2,2]]*num_future_targets ))
+        for ind in range(1, len(self._targets)):
+            self._targets[ind] = [1.0 + self._targets[ind-1][0], self.generateNextTarget(self._targets[ind-1][1])]
+        self.setTarget(np.array(self._targets[0]))
             
     def animate(self, i):
         """perform animation step"""
@@ -34,17 +45,17 @@ class BallGame2DChoice(BallGame1D):
         
         # update positions
         
-        target = np.array(self._target)
+        targets_ = np.array(self._targets)
         # print "step targets: " + str(targets_)
         
-        target[0] += self._dt * self._x_v * -1.0
-        self._target = (target)
+        targets_[:,0] += self._dt * self._x_v * -1.0
+        self._targets = collections.deque(list(targets_))
         
         scale=1.0
         ms = int(self._fig.dpi * scale * self._box.size * self._fig.get_figwidth()
                  / np.diff(self._map_ax.get_xbound())[0])
         
-        self._plot_target.set_data(target[0].reshape((1,-1))[0], target[1].reshape((1,-1))[0])
+        self._plot_target.set_data(targets_[:,0], targets_[:,1])
         self._plot_target.set_markersize(ms)
         
         # self._plot_target_choice.set_data([target[0]], [target[1]])
@@ -95,6 +106,29 @@ class BallGame2DChoice(BallGame1D):
         return -d
         
                 
+    def resetTarget(self):
+        """
+        y range is [1,3]
+        """
+        val=[self._targets[2][0]+1.0 ,self.generateNextTarget(self._targets[2][1])]
+        self._targets.append(val)
+        self._targets.popleft()
+        self.setTarget(np.array(self._targets[0]))
+        
+    def getState(self):
+        state = []
+        state.append( self._box.state[0,3]) # velocity in y
+        for target_ in self._targets:
+            state.append(target_[0] - 2.0)
+            state.append(target_[1] - self._previous_max_y)
+        # state[0] = self._box.state[0,1]
+        return state
+    
+    def setState(self, st):
+        self._agent = st
+        self._box.state[0,0] = st[0]
+        self._box.state[0,1] = st[1]
+    
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
 
@@ -121,6 +155,7 @@ if __name__ == '__main__':
     ballGame.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
     
     ballGame.reset()
+    ballGame.resetTarget()
     ballGame.setTarget(np.array([2,2]))
     num_actions=10
     action_lenth=2
@@ -132,6 +167,7 @@ if __name__ == '__main__':
         # ballGame.resetTarget()
         state = ballGame.getState()
         print "State: " + str(state)
+        action[1] = 1.0
         print "Action: " + str(action)
         reward = ballGame.actContinuous(action)
         print "Reward: " + str(reward)
