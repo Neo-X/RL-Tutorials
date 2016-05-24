@@ -62,7 +62,7 @@ class BallGame2DChoice(BallGame1DChoice):
         self._x_diff = (time*self._x_v) - targets_[0,0,0] + 2.0
         # print "Diff: " +str(diff)
         # x direction is 1/s
-        self._x_v = self._x_v + action[0]
+        self._x_v = action[1]
         # print "Acting: " + str(action)
         # self._box.state[0][2] = action[0]
         self._box.state[0][3] += action[0]
