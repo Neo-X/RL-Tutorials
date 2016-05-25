@@ -367,7 +367,7 @@ if __name__ == "__main__":
                 # print "ResultState: " + str(resultState)
                 # tup = ExperienceTuple(state, [action], resultState, [reward])
                 # Everything should be normalized to be between -1 and 1
-                reward_ = norm_reward(reward, max_reward=max_reward)
+                reward_ = reward/max_reward
                 
                 
                 # print "Reward: " + str(reward_)
