@@ -123,6 +123,8 @@ if __name__ == "__main__":
         map = loadMap()
         # Normalization constants for data
         max_reward = settings['max_reward']
+        visualize_learning = settings['visualize_learning']
+        visualize_game = settings['visualize_game']
         # max_reward = 1.0
         state_bounds = np.array(settings['state_bounds'])
         state_length = len(state_bounds[0])
@@ -166,9 +168,8 @@ if __name__ == "__main__":
             print "Unrecognized game: " + str(game_type)
             sys.exit()
             
-        if settings['render']:
+        if settings['render'] and visualize_game:
             game.enableRender()
-        
         game._simulate=settings['simulate']
         
         steps = 500
@@ -232,9 +233,10 @@ if __name__ == "__main__":
         """
         if (train_forward_dynamics):
             forwardDynamicsModel = ForwardDynamicsNetwork(state_length=state_length,action_length=action_length)
-            nlv = NNVisualize(title=str("Forward Dynamics Model") + " on " + str(game_type))
-            nlv.setInteractive()
-            nlv.init()
+            if visualize_learning:
+                nlv = NNVisualize(title=str("Forward Dynamics Model") + " on " + str(game_type))
+                nlv.setInteractive()
+                nlv.init()
         values = []
         discounted_values = []
         bellman_error = []
@@ -257,13 +259,16 @@ if __name__ == "__main__":
                 X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
             else:
                 X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
-            game.init(U, V, Q)
+            if visualize_game:
+                game.init(U, V, Q)
         else:
-            game.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
+            if visualize_game:
+                game.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
         
-        rlv = RLVisualize(title=str(settings['agent_name'] + " on " + str(game_type)))
-        rlv.setInteractive()
-        rlv.init()
+        if visualize_learning:
+            rlv = RLVisualize(title=str(settings['agent_name'] + " on " + str(game_type)))
+            rlv.setInteractive()
+            rlv.init()
         
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
@@ -397,17 +402,17 @@ if __name__ == "__main__":
                     # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 i += 1
                 t += 1
-        
-            game.update()
-            if (visualize_policy):
-                if action_space_continuous:
-                    # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
-                    X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
+            if visualize_game:
+                game.update()
+                if (visualize_policy):
+                    if action_space_continuous:
+                        # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+                        X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
+                    else:
+                        X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
+                    game.updatePolicy(U, V, Q)
                 else:
-                    X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
-                game.updatePolicy(U, V, Q)
-            else:
-                game.updatePolicy(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))            
+                    game.updatePolicy(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))            
                 
             states_, actions_, result_states_, rewards_ = experience.get_batch(batch_size)
             error = model.bellman_error(states_, actions_, rewards_, result_states_)
@@ -438,14 +443,20 @@ if __name__ == "__main__":
             if (train_forward_dynamics):
                 trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
                 trainData["std_forward_dynamics_loss"].append(mean_dynamicsLosses)
+                
+            if settings['save_trainData']:
+                fp = open(data_folder+"trainingData.json", 'w')
+                json.dump(trainData, fp)
+                fp.close()
             
-            rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-            rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
-            rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
-            rlv.redraw()
-            if (train_forward_dynamics):
-                nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
-                nlv.redraw()
+            if visualize_learning:
+                rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
+                rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
+                rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
+                rlv.redraw()
+                if (train_forward_dynamics):
+                    nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
+                    nlv.redraw()
                     
             
             reward_over_epocs.append(reward_sum)
@@ -461,27 +472,29 @@ if __name__ == "__main__":
             rewards = []
             result_states = []
             
-            rlv.redraw()
-            rlv.setInteractiveOff()
-            rlv.saveVisual(data_folder+"trainingGraph")
-            rlv.setInteractive()
-            if (train_forward_dynamics):
-                nlv.setInteractiveOff()
-                nlv.saveVisual(data_folder+"trainingGraphNN")
-                nlv.setInteractive()
+            if visualize_learning:
+                rlv.redraw()
+                rlv.setInteractiveOff()
+                rlv.saveVisual(data_folder+"trainingGraph")
+                rlv.setInteractive()
+                if (train_forward_dynamics):
+                    nlv.setInteractiveOff()
+                    nlv.saveVisual(data_folder+"trainingGraphNN")
+                    nlv.setInteractive()
                 
             print ""
             # X,Y = np.mgrid[0:16,0:16]
-            if (visualize_policy):
-                if action_space_continuous:
-                    # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
-                    X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
+            if visualize_game:
+                if (visualize_policy):
+                    if action_space_continuous:
+                        # X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
+                        X, Y, U, V, Q = get_continuous_policy_visual_data1D(model, state_bounds, game)
+                    else:
+                        X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
+                    game.updatePolicy(U, V, Q)
                 else:
-                    X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
-                game.updatePolicy(U, V, Q)
-            else:
-                game.updatePolicy(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))            
-            game.saveVisual(data_folder+"gameState")
+                    game.updatePolicy(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))            
+                game.saveVisual(data_folder+"gameState")
             """
             states, actions, result_states, rewards = get_batch(experience, len(experience))
             error = model.bellman_error(states, actions, rewards, result_states)

@@ -105,6 +105,7 @@ class BallGame1D(object):
         self._saveVideo=False
         self._prediction=[2.0,2.0]
         self._defaultVelocity=6.2
+        self.setTarget(np.array([2,2]))
         
         
 
@@ -208,7 +209,7 @@ class BallGame1D(object):
         self._policy_ax.set_xlabel("velocity before action")
         
         # self._policy_ax.set_aspect(1.)
-        self.setTarget(np.array([2,2]))
+        # self.setTarget(np.array([2,2]))
         
         self._particles.set_data([], [])
         self._rect.set_edgecolor('none')
