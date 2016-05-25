@@ -13,6 +13,7 @@ from model.RLNeuralNetwork import RLNeuralNetwork
 from model.RLNeuralNetworkDQ import RLNeuralNetworkDQ
 from model.RLDeepNet import RLDeepNet 
 from model.DeepCACLA import DeepCACLA
+from model.DeepERCACLA import DeepERCACLA
 from model.DeepDPG import DeepDPG 
 from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
 from model.ImplicitPlanningAgent import ImplicitPlanningAgent
@@ -202,6 +203,10 @@ if __name__ == "__main__":
             print "Creating " + str(settings['agent_name']) + " agent"
             model = DeepCACLA(n_in=state_length, n_out=action_length)
             action_space_continuous=True
+        elif settings['agent_name'] == "Deeper_CACLA":
+            print "Creating " + str(settings['agent_name']) + " agent"
+            model = DeepERCACLA(n_in=state_length, n_out=action_length)
+            action_space_continuous=True
         elif settings['agent_name'] == "Deep_DPG":
             print "Creating " + str(settings['agent_name']) + " agent"
             model = DeepDPG(n_in=state_length, n_out= action_length)
@@ -341,7 +346,8 @@ if __name__ == "__main__":
                     action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
                     action_ = clampAction(action, action_bounds)
                     reward = game.actContinuous(action_)
-                    action = norm_action(action_, action_bounds) # back to network version of action
+                    # action = norm_action(action_, action_bounds) # back to network version of action
+                    action = action_
                 elif not action_space_continuous:
                     action = random.choice(action_selection)
                     action = eGreedy(pa, action, epsilon * p)
@@ -361,7 +367,7 @@ if __name__ == "__main__":
                 # print "ResultState: " + str(resultState)
                 # tup = ExperienceTuple(state, [action], resultState, [reward])
                 # Everything should be normalized to be between -1 and 1
-                reward_ = reward
+                reward_ = norm_reward(reward, max_reward=max_reward)
                 
                 
                 # print "Reward: " + str(reward_)
@@ -375,13 +381,8 @@ if __name__ == "__main__":
                     experience.insert(norm_state(state, state_bounds), [[action]], norm_state(resultState, state_bounds), [reward_])
                     actions.append([action])
                 # Update agent on screen
-                print "State " + str(state) + " action " + str(action_) + " newState " + str(resultState) + " Reward: " + str(reward_)
-                # game.update()
-                # X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
+                # print "State " + str(state) + " action " + str(action_) + " newState " + str(resultState) + " Reward: " + str(reward_)
                 # game.updatePolicy(U, V, Q)
-                # print "Reward: " + str(reward_)
-                # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
-                # print model.q_values([tup._state])
                 result_states.append(norm_state(resultState, state_bounds))
                 rewards.append([reward_])
                 states.append(norm_state(state, state_bounds))

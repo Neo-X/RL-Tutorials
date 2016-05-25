@@ -20,7 +20,7 @@ def rlTDSGD(cost, delta, params, lr=0.05):
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 
-class DeepCACLA(object):
+class DeepERCACLA(object):
     
     def __init__(self, n_in, n_out):
 
@@ -38,9 +38,13 @@ class DeepCACLA(object):
         Action.tag.test_value = np.random.rand(batch_size, action_length)
         # create a small convolutional neural network
         inputLayerA = lasagne.layers.InputLayer((None, state_length), State)
+        
+        l_hid1A = lasagne.layers.DenseLayer(
+                inputLayerA, num_units=128,
+                nonlinearity=lasagne.nonlinearities.rectify)
 
         l_hid2A = lasagne.layers.DenseLayer(
-                inputLayerA, num_units=64,
+                l_hid1A, num_units=64,
                 nonlinearity=lasagne.nonlinearities.rectify)
         
         l_hid3A = lasagne.layers.DenseLayer(
@@ -52,8 +56,13 @@ class DeepCACLA(object):
                 nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
         inputLayerActA = lasagne.layers.InputLayer((None, state_length), State)
+        
+        l_hid1ActA = lasagne.layers.DenseLayer(
+                inputLayerActA, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
         l_hid2ActA = lasagne.layers.DenseLayer(
-                inputLayerActA, num_units=64,
+                l_hid1ActA, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid3ActA = lasagne.layers.DenseLayer(
@@ -67,8 +76,13 @@ class DeepCACLA(object):
         
         # self.updateTargetModel()
         inputLayerB = lasagne.layers.InputLayer((None, state_length), State)
+        
+        l_hid1B = lasagne.layers.DenseLayer(
+                inputLayerB, num_units=128,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        
         l_hid2B = lasagne.layers.DenseLayer(
-                inputLayerB, num_units=64,
+                l_hid1B, num_units=64,
                 nonlinearity=lasagne.nonlinearities.rectify)
     
         l_hid3B = lasagne.layers.DenseLayer(
@@ -80,8 +94,13 @@ class DeepCACLA(object):
                 nonlinearity=lasagne.nonlinearities.linear)
         
         inputLayerActB = lasagne.layers.InputLayer((None, state_length), State)
+        
+        l_hid1ActB = lasagne.layers.DenseLayer(
+                inputLayerActB, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
         l_hid2ActB = lasagne.layers.DenseLayer(
-                inputLayerActB, num_units=64,
+                l_hid1ActB, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         l_hid3ActB = lasagne.layers.DenseLayer(

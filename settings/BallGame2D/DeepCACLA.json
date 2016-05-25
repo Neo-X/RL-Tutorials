@@ -1,7 +1,7 @@
 {
-"model_type": "Deep_CACLA",
-"agent_name": "Deep_CACLA",
-"data_folder": "Deep_CACLA/",
+"model_type": "Deeper_CACLA",
+"agent_name": "Deeper_CACLA",
+"data_folder": "Deeper_CACLA/",
 "game_type": "BallGame2D",
 "epsilon": 1.0,
 "batch_size": 32,
@@ -19,6 +19,8 @@
 "max_reward": 5.0,
 "simulate": true,
 "render": false,
-"state_bounds": [[-1.0,1.0,0.05,-1.0],[1.0,10.5,2.0,2.0]],
-"action_bounds": [[-0.5,0.05],[0.5,2.0]]
+"__state_bounds": [[-1.0,1.0,0.05,-1.0],[1.0,10.5,2.0,2.0]],
+"state_bounds": [[-0.5,0.5],[0.5,10.0]],
+"action_bounds": [[-0.5,0.05],[0.5,2.0]],
+"__action_bounds": [[-0.5],[0.5]]
 }

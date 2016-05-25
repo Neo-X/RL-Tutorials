@@ -17,6 +17,9 @@ def loadMap():
     dataFile.close()
     return data["map"]
 
+def norm_reward(reward, max_reward):
+    return (reward+(max_reward/2.0))/(max_reward*0.5)
+
 def norm_state(state, max_state):
     return norm_action(action_=state, action_bounds_=max_state)
 
