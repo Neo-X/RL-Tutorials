@@ -1,7 +1,7 @@
 {
-"model_type": "Deeper_CACLA",
-"agent_name": "Deeper_CACLA",
-"data_folder": "Deeper_CACLA/",
+"model_type": "Deep_CACLA",
+"agent_name": "Deep_CACLA",
+"data_folder": "Deep_CACLA/",
 "game_type": "BallGame2D",
 "epsilon": 1.0,
 "batch_size": 32,
