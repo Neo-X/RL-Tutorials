@@ -136,22 +136,29 @@ if __name__ == "__main__":
         game = None
         game_type = settings['game_type']
         if game_type == 'BallGame1DFuture':
+            print "Starting game type: " + str(game_type)
             game = BallGame1DFuture()
         elif game_type == 'BallGame1D':
+            print "Starting game type: " + str(game_type)
             game = BallGame1D()
         elif game_type == 'BallGame1DState':
+            print "Starting game type: " + str(game_type)
             game = BallGame1DState()
             visualize_policy=False
         elif game_type == 'BallGame1DChoiceState':
+            print "Starting game type: " + str(game_type)
             game = BallGame1DChoiceState()
             visualize_policy=False
         elif game_type == 'BallGame1DChoiceStateFuture':
+            print "Starting game type: " + str(game_type)
             game = BallGame1DChoiceStateFuture()
             visualize_policy=False
         elif game_type == 'BallGame2D':
+            print "Starting game type: " + str(game_type)
             game = BallGame2D()
             visualize_policy=False    
         elif game_type == 'BallGame2DChoice':
+            print "Starting game type: " + str(game_type)
             game = BallGame2DChoice()
             visualize_policy=False
         else:
@@ -281,7 +288,7 @@ if __name__ == "__main__":
             state_ = game.getState()
             q_value = model.q_value([norm_state(state_, state_bounds)])
             action_ = model.predict([norm_state(state_, state_bounds)])
-            print "q_values: " + str(q_value) + " Action: " + str(action_) + " State: " + str([norm_state(state_, state_bounds)])
+            print "q_values: " + str(q_value) + " Action: " + str(scale_action(action_, action_bounds)) + " State: " + str(state_)
             original_val = q_value
             values.append(original_val)
             t=0

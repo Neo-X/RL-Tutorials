@@ -69,8 +69,8 @@ class BallGame2D(BallGame1DFuture):
         self._x_v = action[1]
         v = self._box.state[0][3] + action[0]
         time = self._computeTime(v)
-        target = np.array(self._target)
-        self._x_diff = (time*self._x_v) - target[0] + 2.0
+        targets_ = np.array(self._targets)
+        self._x_diff = (time*self._x_v) - targets_[0][0] + 2.0
         # print "Diff: " +str(diff)
         # x direction is 1/s
         # print "Acting: " + str(action)
@@ -96,6 +96,8 @@ class BallGame2D(BallGame1DFuture):
         else:
             # self._max_y = self._box.state[0][1]
             self._max_y = self._computeHeight(action_=self._box.state[0][3])
+            targets_[:,0] -= (time*self._x_v)
+            self._targets = collections.deque(list(targets_))
             # print "self._max_y: " + str(self._max_y)
         return self.reward()
     
@@ -145,8 +147,8 @@ if __name__ == '__main__':
     np.random.seed(seed=10)
     game = BallGame2D()
 
-    game.enableRender()
-    game._simulate=True
+    # game.enableRender()
+    # game._simulate=True
     # game._saveVideo=True
     print "dt: " + str(game._dt)
     print "BOX: " + str(game._box)
@@ -157,7 +159,7 @@ if __name__ == '__main__':
     game.setTarget(np.array([2,2]))
     num_actions=10
     action_lenth=2
-    scaling = 0.1
+    scaling = 1.0
     game._box.state[0][1] = 0
     
     actions = (np.random.rand(num_actions,action_lenth)-0.5) * 2.0 * scaling
