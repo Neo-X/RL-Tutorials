@@ -386,7 +386,7 @@ if __name__ == "__main__":
                 result_states.append(norm_state(resultState, state_bounds))
                 rewards.append([reward_])
                 states.append(norm_state(state, state_bounds))
-                reward_sum+=reward_
+                reward_sum+=reward
                 discounted_sum += (math.pow(0.8,t) * reward)
                 if experience.samples() > batch_size:
                     _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)

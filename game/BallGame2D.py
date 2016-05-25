@@ -56,7 +56,7 @@ class BallGame2D(BallGame1D):
 
         # return particles, rect
         return out
-    """
+    
     def actContinuous(self, action):
         run = True
         self._box.state[0][3] += action[0]
@@ -95,10 +95,10 @@ class BallGame2D(BallGame1D):
     
     def reward(self):
         # More like a cost function for distance away from target
-        # d = math.fabs(self._max_y - self._target[1]) + math.fabs(self._x_diff)
-        d = math.fabs(self._max_y - self._target[1])
+        d = math.fabs(self._max_y - self._target[1]) + math.fabs(self._x_diff)
+        # d = math.fabs(self._max_y - self._target[1])
         return -d
-    """     
+         
                 
     def resetTarget(self):
         """
@@ -107,7 +107,7 @@ class BallGame2D(BallGame1D):
         val=np.array([3.0 + (np.random.rand(1)-0.4)[0],self.generateNextTarget(self._target[1])])
         self.setTarget(val)
     
-    """    
+        
     def getState(self):
         state = []
         state.append(self._target[1] - self._previous_max_y)
@@ -120,7 +120,7 @@ class BallGame2D(BallGame1D):
         self._agent = st
         self._box.state[0,0] = st[0]
         self._box.state[0,1] = st[1]
-    """
+    
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
 
