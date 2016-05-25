@@ -165,7 +165,11 @@ if __name__ == "__main__":
             print "Unrecognized game: " + str(game_type)
             sys.exit()
             
-        game._simulate=False
+        if settings['render']:
+            game.enableRender()
+        
+        game._simulate=settings['simulate']
+        
         steps = 500
         max_expereince = 20000
         # for i in range(steps):
@@ -335,9 +339,9 @@ if __name__ == "__main__":
                     randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, state_bounds)]))
                     action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
-                    action = clampAction(action, action_bounds)
-                    reward = game.actContinuous(action)
-                    action = norm_action(action, action_bounds) # back to network version of action
+                    action_ = clampAction(action, action_bounds)
+                    reward = game.actContinuous(action_)
+                    action = norm_action(action_, action_bounds) # back to network version of action
                 elif not action_space_continuous:
                     action = random.choice(action_selection)
                     action = eGreedy(pa, action, epsilon * p)
@@ -358,6 +362,8 @@ if __name__ == "__main__":
                 # tup = ExperienceTuple(state, [action], resultState, [reward])
                 # Everything should be normalized to be between -1 and 1
                 reward_ = reward
+                
+                
                 # print "Reward: " + str(reward_)
                 # reward_ = (reward)/(max_reward)
                 # reward_ = (reward+max_reward)/(max_reward)
@@ -369,6 +375,7 @@ if __name__ == "__main__":
                     experience.insert(norm_state(state, state_bounds), [[action]], norm_state(resultState, state_bounds), [reward_])
                     actions.append([action])
                 # Update agent on screen
+                print "State " + str(state) + " action " + str(action_) + " newState " + str(resultState) + " Reward: " + str(reward_)
                 # game.update()
                 # X, Y, U, V, Q = get_policy_visual_data(model, state_bounds, game)
                 # game.updatePolicy(U, V, Q)

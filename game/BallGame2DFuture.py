@@ -11,19 +11,19 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.animation as manimation
-from BallGame1D import BallGame1D 
+from BallGame2D import BallGame2D 
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
 
-class BallGame2D(BallGame1D):
+class BallGame2DFuture(BallGame2D):
 
     def __init__(self):
         #------------------------------------------------------------
         # set up initial state
         self._x_v=1.0
         self._x_diff=0.0
-        super(BallGame2D,self).__init__()
+        super(BallGame2DFuture,self).__init__()
         
         
         
@@ -31,24 +31,31 @@ class BallGame2D(BallGame1D):
         self._box.state[0][0] = 2.0
         self._box.state[0][1] = self._box.bounds[2]+0.1
         self._box.state[0][2] = 0
-        self._box.state[0][3] = (np.random.rand(1)+self._defaultVelocity) # think this will be about middle, y = 2.0
-        self.resetTarget()
+        self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
+        num_future_targets=3
+        self._targets = collections.deque(list( [[3,2]]*num_future_targets ))
+        for ind in range(1, len(self._targets)):
+            self._targets[ind] = [1.0 + self._targets[ind-1][0], self.generateNextTarget(self._targets[ind-1][1])]
+        self.setTarget(np.array(self._targets[0]))
             
     def animate(self, i):
         """perform animation step"""
-        out = super(BallGame2D,self).animate(i)
+        out = super(BallGame2DFuture,self).animate(i)
         """step once by dt seconds"""
         
         # update positions
         
+        targets_ = np.array(self._targets)
+        # print "step targets: " + str(targets_)
         
-        self._target[0] += self._dt * self._x_v * -1.0
+        targets_[:,0] += self._dt * self._x_v * -1.0
+        self._targets = collections.deque(list(targets_))
         
         scale=1.0
         ms = int(self._fig.dpi * scale * self._box.size * self._fig.get_figwidth()
                  / np.diff(self._map_ax.get_xbound())[0])
         
-        self._plot_target.set_data([self._target[0]], [self._target[1]])
+        self._plot_target.set_data(targets_[:,0], targets_[:,1])
         self._plot_target.set_markersize(ms)
         
         # self._plot_target_choice.set_data([target[0]], [target[1]])
@@ -59,15 +66,16 @@ class BallGame2D(BallGame1D):
 
     def actContinuous(self, action):
         run = True
-        self._box.state[0][3] += action[0]
         self._x_v = action[1]
-        time = self._computeTime(self._box.state[0][3])
-        target_ = np.array(self._target)
-        self._x_diff = ((time*self._x_v)+2.0) - target_[0]
+        v = self._box.state[0][3] + action[0]
+        time = self._computeTime(v)
+        targets_ = np.array(self._targets)
+        self._x_diff = (time*self._x_v) - targets_[0][0] + 2.0
         # print "Diff: " +str(diff)
         # x direction is 1/s
         # print "Acting: " + str(action)
         # self._box.state[0][2] = action[0]
+        self._box.state[0][3] += action[0]
         oldstate = self._box.state[0][3]
         self._box.state[0][1] =0
         # print "New state: " + str(self._box.state[0][3])
@@ -88,15 +96,15 @@ class BallGame2D(BallGame1D):
         else:
             # self._max_y = self._box.state[0][1]
             self._max_y = self._computeHeight(action_=self._box.state[0][3])
-            target_[0] -= (time*self._x_v)
-            self.setTarget(target_)
+            targets_[:,0] -= (time*self._x_v)
+            self._targets = collections.deque(list(targets_))
             # print "self._max_y: " + str(self._max_y)
         return self.reward()
     
     def reward(self):
         # More like a cost function for distance away from target
         # d = math.fabs(self._max_y - self._target[1]) + math.fabs(self._x_diff)
-        d = math.fabs(self._max_y - self._target[1])
+        d = math.fabs(self._max_y - self._targets[0][1])
         return -d
         
                 
@@ -104,15 +112,17 @@ class BallGame2D(BallGame1D):
         """
         y range is [1,3]
         """
-        val=np.array([3.0 + (np.random.rand(1)-0.4)[0],self.generateNextTarget(self._target[1])])
-        self.setTarget(val)
+        val=[self._targets[2][0]+1.0 ,self.generateNextTarget(self._targets[2][1])]
+        self._targets.append(val)
+        self._targets.popleft()
+        self.setTarget(np.array(self._targets[0]))
         
     def getState(self):
         state = []
-        state.append(self._target[1] - self._previous_max_y)
+        state.append(self._targets[0][1] - self._previous_max_y)
         state.append( self._box.state[0,3]) # velocity in y
         state.append( self._x_v) # velocity in x
-        state.append(self._target[0] - 2.0)
+        state.append(self._targets[0][0] - 2.0)
         return state
     
     def setState(self, st):
@@ -136,7 +146,7 @@ class BallGame2D(BallGame1D):
 if __name__ == '__main__':
     
     np.random.seed(seed=10)
-    game = BallGame2D()
+    game = BallGame2DFuture()
 
     # game.enableRender()
     # game._simulate=True
