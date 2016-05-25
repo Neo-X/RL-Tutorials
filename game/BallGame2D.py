@@ -33,7 +33,7 @@ class BallGame2D(BallGame1DFuture):
         self._box.state[0][2] = 0
         self._box.state[0][3] = (np.random.rand(1)+6.2) # think this will be about middle, y = 2.0
         num_future_targets=3
-        self._targets = collections.deque(list( [[2,2]]*num_future_targets ))
+        self._targets = collections.deque(list( [[3,2]]*num_future_targets ))
         for ind in range(1, len(self._targets)):
             self._targets[ind] = [1.0 + self._targets[ind-1][0], self.generateNextTarget(self._targets[ind-1][1])]
         self.setTarget(np.array(self._targets[0]))
@@ -155,8 +155,8 @@ if __name__ == '__main__':
     game.init(np.random.rand(16,16),np.random.rand(16,16),np.random.rand(16,16))
     
     game.reset()
-    game.resetTarget()
-    game.setTarget(np.array([2,2]))
+    # game.resetTarget()
+    # game.setTarget(np.array([2,2]))
     num_actions=10
     action_lenth=2
     scaling = 1.0

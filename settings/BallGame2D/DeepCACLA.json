@@ -17,6 +17,6 @@
 "num_states": 32,
 "discount_factor": 0.8,
 "max_reward": 5.0,
-"state_bounds": [[0.0,-1.0,-1.0],[10.5,2.0,1.0]],
+"state_bounds": [[1.0,-1.0,-1.0],[10.5,2.0,1.0]],
 "action_bounds": [[-0.5,0.05],[0.5,2.0]]
 }
