@@ -7,31 +7,37 @@ import os
 import sys
 
 # Networks
-from model import RLLogisticRegression.RLLogisticRegression
-from model import NeuralNet.NeuralNet
-from RLNeuralNetwork import RLNeuralNetwork
-from RLNeuralNetworkDQ import RLNeuralNetworkDQ
-from RLDeepNet import RLDeepNet 
-from DeepCACLA import DeepCACLA
-from DeepDPG import DeepDPG 
-from model import ForwardDynamicsNetwork.ForwardDynamicsNetwork
+from model.RLLogisticRegression import RLLogisticRegression
+from model.NeuralNet import NeuralNet
+from model.RLNeuralNetwork import RLNeuralNetwork
+from model.RLNeuralNetworkDQ import RLNeuralNetworkDQ
+from model.RLDeepNet import RLDeepNet 
+from model.DeepCACLA import DeepCACLA
+from model.DeepERCACLA import DeepERCACLA
+from model.DeepDPG import DeepDPG 
+from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
+from model.ImplicitPlanningAgent import ImplicitPlanningAgent
 
 # Games
-from MapGame import Map
-from BallGame1D import BallGame1D
-from BallGame1DFuture import BallGame1DFuture
+from game.MapGame import Map
+from game.BallGame1D import BallGame1D
+from game.BallGame1DFuture import BallGame1DFuture
+from game.BallGame1DState import BallGame1DState
+from game.BallGame1DChoiceState import BallGame1DChoiceState
+from game.BallGame1DChoiceStateFuture import BallGame1DChoiceStateFuture
+from game.BallGame2DChoice import BallGame2DChoice
+from game.BallGame2D import BallGame2D
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
-from model import ExperienceMemory.ExperienceMemory
-from RunGame import *
+from model.ExperienceMemory import ExperienceMemory 
 
 
 
     
 if __name__ == "__main__":
-    
+
     # make a color map of fixed colors
     #try: 
         file = open(sys.argv[1])
@@ -52,11 +58,31 @@ if __name__ == "__main__":
         game = None
         game_type = settings['game_type']
         if game_type == 'BallGame1DFuture':
-            print "Creating Game type: " + str(game_type)
+            print "Starting game type: " + str(game_type)
             game = BallGame1DFuture()
         elif game_type == 'BallGame1D':
-            print "Creating Game type: " + str(game_type)
+            print "Starting game type: " + str(game_type)
             game = BallGame1D()
+        elif game_type == 'BallGame1DState':
+            print "Starting game type: " + str(game_type)
+            game = BallGame1DState()
+            visualize_policy=False
+        elif game_type == 'BallGame1DChoiceState':
+            print "Starting game type: " + str(game_type)
+            game = BallGame1DChoiceState()
+            visualize_policy=False
+        elif game_type == 'BallGame1DChoiceStateFuture':
+            print "Starting game type: " + str(game_type)
+            game = BallGame1DChoiceStateFuture()
+            visualize_policy=False
+        elif game_type == 'BallGame2D':
+            print "Starting game type: " + str(game_type)
+            game = BallGame2D()
+            visualize_policy=False    
+        elif game_type == 'BallGame2DChoice':
+            print "Starting game type: " + str(game_type)
+            game = BallGame2DChoice()
+            visualize_policy=False
         else:
             print "Unrecognized game: " + str(game_type)
             sys.exit()

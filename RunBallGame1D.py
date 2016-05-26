@@ -233,7 +233,7 @@ if __name__ == "__main__":
         """
         if (train_forward_dynamics):
             forwardDynamicsModel = ForwardDynamicsNetwork(state_length=state_length,action_length=action_length)
-            if visualize_learning:
+            if settings['visulaize_forward_dynamics']:
                 nlv = NNVisualize(title=str("Forward Dynamics Model") + " on " + str(game_type))
                 nlv.setInteractive()
                 nlv.init()
@@ -454,7 +454,7 @@ if __name__ == "__main__":
                 rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
                 rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                 rlv.redraw()
-                if (train_forward_dynamics):
+                if (settings['visulaize_forward_dynamics']):
                     nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
                     nlv.redraw()
                     
@@ -477,7 +477,7 @@ if __name__ == "__main__":
                 rlv.setInteractiveOff()
                 rlv.saveVisual(data_folder+"trainingGraph")
                 rlv.setInteractive()
-                if (train_forward_dynamics):
+                if (settings['visulaize_forward_dynamics']):
                     nlv.setInteractiveOff()
                     nlv.saveVisual(data_folder+"trainingGraphNN")
                     nlv.setInteractive()
