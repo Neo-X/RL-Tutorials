@@ -1,4 +1,5 @@
 from game.MapGame import Map
+from game.BallGame import BallGame
 import random
 import numpy as np
 import math
@@ -6,18 +7,18 @@ import cPickle
 import json
 import os
 
-from model import RLLogisticRegression.RLLogisticRegression
-from model import NeuralNet.NeuralNet
-from RLNeuralNetwork import RLNeuralNetwork
-from RLNeuralNetworkDQ import RLNeuralNetworkDQ
-from RLDeepNet import RLDeepNet 
-from DeepCACLA import DeepCACLA
-from DeepDPG import DeepDPG 
+from model.RLLogisticRegression import RLLogisticRegression
+from model.NeuralNet import NeuralNet
+from model.RLNeuralNetwork import RLNeuralNetwork
+from model.RLNeuralNetworkDQ import RLNeuralNetworkDQ
+from model.RLDeepNet import RLDeepNet 
+from model.DeepCACLA import DeepCACLA
+from model.DeepDPG import DeepDPG 
 import sys
 
 from RL_visualizing import *
 from RLVisualize import RLVisualize
-from model import ExperienceMemory.ExperienceMemory
+from model.ExperienceMemory import ExperienceMemory
 
 def eGreedy(pa1, ra2, e):
     """
@@ -319,7 +320,7 @@ if __name__ == "__main__":
             discounted_sum += (math.pow(0.8,t) * reward)
             if experience.samples() > batch_size:
                 _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
-                print _actions, _rewards
+                # print _actions, _rewards
                 cost = model.train(_states, _actions, _rewards, _result_states)
                 # print "Iteration: " + str(i) + " Cost: " + str(cost)
                 
