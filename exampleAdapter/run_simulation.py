@@ -1,8 +1,6 @@
 
 import sys
 
-sys.path.append("../")
-import deap
 import json
 import random
 import numpy as np
