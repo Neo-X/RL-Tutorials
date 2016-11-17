@@ -26,5 +26,6 @@
 "save_trainData": true,
 "visualize_game": true,
 "train_forward_dynamics": true,
-"visulaize_forward_dynamics": true
+"visulaize_forward_dynamics": true,
+"expereince_length": 50000,
 }

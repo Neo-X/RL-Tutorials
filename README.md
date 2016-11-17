@@ -21,6 +21,7 @@ You need ffmpeg
 ## Using
 
 	$ python RunGame.py Deep.json
+	$ python RunBallGame1D.py settings/BallGame1D/DeepCACLA.json
 
 
 ## References
