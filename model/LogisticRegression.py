@@ -55,7 +55,7 @@ class RLLogisticRegression(object):
         self._
         self._w = init_tanh(n_in, n_out, 1234)
         self._w_old = init_tanh(n_in, n_out, 2235)
-        print "Initial W " + str(self._w.get_value()) 
+        print ("Initial W " + str(self._w.get_value()) )
         # (n_out,) ,) used so that it can be added as row or column
         self._b = init_b_weights((n_out,))
         self._b_old = init_b_weights((n_out,))
@@ -127,7 +127,7 @@ class RLLogisticRegression(object):
         # return (T.dot(State, self._w) + self._b.reshape((1, -1)))
         
     def updateTargetModel(self):
-        print "Updating target Model"
+        print ("Updating target Model")
         self._w_old = self._w 
         self._b_old = self._b
         

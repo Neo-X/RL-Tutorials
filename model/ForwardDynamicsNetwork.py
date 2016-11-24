@@ -51,7 +51,7 @@ class ForwardDynamicsNetwork(object):
         self._l_out = lasagne.layers.DenseLayer(
                 l_hid4ActA, num_units=state_length,
                 nonlinearity=lasagne.nonlinearities.linear)
-                # print "Initial W " + str(self._w_o.get_value()) 
+                # print ("Initial W " + str(self._w_o.get_value()) )
         
         self._learning_rate = 0.001
         self._discount_factor= 0.8
@@ -127,7 +127,7 @@ class ForwardDynamicsNetwork(object):
         self._states_shared.set_value(states)
         self._next_states_shared.set_value(result_states)
         self._actions_shared.set_value(actions)
-        # print "Performing Critic trainning update"
+        # print ("Performing Critic trainning update")
         #if (( self._updates % self._weight_update_steps) == 0):
         #    self.updateTargetModel()
         self._updates += 1
@@ -135,12 +135,12 @@ class ForwardDynamicsNetwork(object):
         loss = self._train()
         # This undoes the Actor parameter updates as a result of the Critic update.
         #if all_paramsActA == self._l_outActA:
-        #    print "Parameters the same:"
+        #    print ("Parameters the same:")
         # lasagne.layers.helper.set_all_param_values(self._l_outActA, all_paramsActA)
         # self._trainOneActions(states, actions, rewards, result_states)
         # diff_ = self._bellman_error(states, rewards, result_states)
-        # print "Diff"
-        # print diff_
+        # print ("Diff")
+        # print (diff_)
         return loss
     
     def predict(self, state, action):

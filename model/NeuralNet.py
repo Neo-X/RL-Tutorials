@@ -77,8 +77,8 @@ class NeuralNet(object):
         self._w_o_old = init_weights((hidden_size, n_out))
         self._b_o_old = init_b_weights((1,n_out))
         
-        print "Initial W_h " + str(self._w_h.get_value())
-        print "Initial W_o " + str(self._w_o.get_value()) 
+        print ("Initial W_h " + str(self._w_h.get_value()))
+        print ("Initial W_o " + str(self._w_o.get_value()) )
         
         self._learning_rate = 0.001
         self._discount_factor= 0.8
@@ -148,7 +148,7 @@ class NeuralNet(object):
         return qyx
     
     def updateTargetModel(self):
-        print "Updating target Model"
+        print ("Updating target Model")
         self._w_h_old = self._w_h 
         self._b_h_old = self._b_h 
         self._w_o_old = self._w_o 

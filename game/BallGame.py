@@ -9,7 +9,7 @@ https://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/
 Please feel free to use and modify this, but keep the above information. Thanks!
 """
 import numpy as np
-from scipy.spatial.distance import pdist, squareform
+# from scipy.spatial.distance import pdist, squareform
 
 import matplotlib.pyplot as plt
 # import scipy.integrate as integrate
@@ -48,6 +48,7 @@ class ParticleBox:
         # update positions
         self.state[:, :2] += dt * self.state[:, 2:]
 
+        """ Don't need to check for colissions.
         # find pairs of particles undergoing a collision
         D = squareform(pdist(self.state[:, :2]))
         ind1, ind2 = np.where(D < 2 * self.size)
@@ -84,7 +85,7 @@ class ParticleBox:
             # assign new velocities
             self.state[i1, 2:] = v_cm + v_rel * m2 / (m1 + m2)
             self.state[i2, 2:] = v_cm - v_rel * m1 / (m1 + m2) 
-
+        """
         # check for crossing boundary
         crossed_x1 = (self.state[:, 0] < self.bounds[0] + self.size)
         crossed_x2 = (self.state[:, 0] > self.bounds[1] - self.size)
@@ -101,8 +102,8 @@ class ParticleBox:
         self.state[crossed_y1 | crossed_y2, 3] *= -1
         if (crossed_y1[0] ):
             # Crosses ground boundary
-            # print "Bounce Ground"
-            # print crossed_y1, crossed_y2
+            # print (("Bounce Ground"))
+            # print (crossed_y1, crossed_y2)
             return False
 
         # add gravity
@@ -172,7 +173,7 @@ class BallGame(object):
         
         scale =float(4.0)
         X,Y = np.mgrid[0:self._box.bounds[1]*scale,0:self._box.bounds[1]*scale]/float(scale)
-        print X,Y
+        print (X,Y)
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
         textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
@@ -214,12 +215,12 @@ class BallGame(object):
         
     def actContinuous(self, action):
         run = True
-        # print "Acting: " + str(action)
+        # print ("Acting: " + str(action))
         self._box.state[0][3] = action[1]
         self._box.state[0][2] = action[0]
         for i in range(500):
             run = self.animate(i)
-            # print box.state
+            # print (box.state)
             self.update()
             
             if not run:
@@ -254,7 +255,7 @@ class BallGame(object):
         """perform animation step"""
         # update pieces of the animation
         # self._agent = self._agent + np.array([0.1,0.1])
-        # print "Agent loc: " + str(self._agent)
+        # print ("Agent loc: " + str(self._agent))
         self._fig.canvas.draw()
         # self._line1.set_ydata(np.sin(x + phase))
         # self._fig.canvas.draw()
@@ -270,8 +271,8 @@ class BallGame(object):
         # self._policy2.set_vmin(1.0)
         """
         self._policy2.update_scalarmappable()
-        print "cmap " + str(self._policy2.cmap)  
-        print "Face colours" + str(self._policy2.get_facecolor())
+        print ("cmap " + str(self._policy2.cmap)  )
+        print ("Face colours" + str(self._policy2.get_facecolor()))
         colours = ['gray','black','blue']
         cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
                                                    colours,

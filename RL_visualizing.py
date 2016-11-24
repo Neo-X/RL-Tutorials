@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 # import matplotlib.animation as animation
 import random
-import cPickle
+import dill
 import sys
 from game.MapGame import Map
 
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     
     max_state = 8.0
     file_name=sys.argv[1]
-    model = cPickle.load(open(file_name)) 
+    model = dill.load(open(file_name)) 
     map = loadMap()
     rlv = RLVisulize(map)
     game = Map(map)

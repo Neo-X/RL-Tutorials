@@ -18,7 +18,7 @@ def loadMap():
 # make values from -5 to 5, for this example
 zvals = loadMap()
 
-print zvals
+print (zvals)
 
 
 class Map(object):
@@ -107,7 +107,7 @@ class Map(object):
     
     def fall(self, loc):
         # Check to see if collision at loc with any obstacles
-        # print int(math.floor(loc[0])), int(math.floor(loc[1]))
+        # print (int(math.floor(loc[0])), int(math.floor(loc[1])))
         if self._map[int(math.floor(loc[0]))][ int(math.floor(loc[1]))] < 0:
             return True
         return False
@@ -118,17 +118,17 @@ class Map(object):
             a=(loc - obs)
             d = np.sqrt((a*a).sum(axis=0))
             if d < 0.3:
-                # print "Found collision"
+                # print ("Found collision")
                 return True
         return False
     
     def reward(self):
         # More like a cost function for distance away from target
-        # print "Agent Loc: " + str(self._agent)
-        # print "Target Loc: " + str(self._target)
+        # print ("Agent Loc: " + str(self._agent))
+        # print ("Target Loc: " + str(self._target))
         a=(self._agent - self._target)
         d = np.sqrt((a*a).sum(axis=0))
-        # print "Dist Vector: " + str(a) + " Distance: " + str(d)
+        # print ("Dist Vector: " + str(a) + " Distance: " + str(d))
         if d < 0.3:
             return 16.0
         return 0
@@ -187,7 +187,7 @@ class Map(object):
         self._policy_ax.set_title('Policy')
         
         X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
-        print X,Y
+        print (X,Y)
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
         textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
@@ -207,7 +207,7 @@ class Map(object):
         """perform animation step"""
         # update pieces of the animation
         # self._agent = self._agent + np.array([0.1,0.1])
-        # print "Agent loc: " + str(self._agent)
+        # print ("Agent loc: " + str(self._agent))
         self._particles.set_data(self._agent[0], self._agent[1] )
         self._particles.set_markersize(self._markerSize)
         # self._line1.set_ydata(np.sin(x + phase))
@@ -224,8 +224,8 @@ class Map(object):
         # self._policy2.set_vmin(1.0)
         """
         self._policy2.update_scalarmappable()
-        print "cmap " + str(self._policy2.cmap)  
-        print "Face colours" + str(self._policy2.get_facecolor())
+        print ("cmap " + str(self._policy2.cmap)  )
+        print ("Face colours" + str(self._policy2.get_facecolor()))
         colours = ['gray','black','blue']
         cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
                                                    colours,

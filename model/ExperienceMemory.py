@@ -28,7 +28,7 @@ class ExperienceMemory(object):
         self._continuous_actions = continuous_actions
         
     def insert(self, state, action, nextState, reward):
-        # print "Instert State: " + str(state)
+        # print ("Instert State: " + str(state))
         # state = list(state)
         """
         state = list(state)
@@ -39,8 +39,8 @@ class ExperienceMemory(object):
         if (None in nums): 
             # don't insert this garbage
             return
-        # print "Insert State: " + str(nextState)
-        # print "nums: " + str(nums)
+        # print ("Insert State: " + str(nextState))
+        # print ("nums: " + str(nums))
         for s in nums:
             if not (float('-inf') < float(s) < float('inf')):
                 #more garbage: -inf, inf, nan
@@ -50,7 +50,7 @@ class ExperienceMemory(object):
         self._history_update_index+=1
         if ( (self._history_update_index % (self._history_size-1) ) == 0):
             self._history_update_index=0
-        # print "Tuple: " + str(state) + ", " + str(action) + ", " + str(nextState) + ", " + str(reward)
+        # print ("Tuple: " + str(state) + ", " + str(action) + ", " + str(nextState) + ", " + str(reward))
         self._state_history[self._history_update_index] = np.array(state)
         self._action_history[self._history_update_index] = np.array(action)
         self._nextState_history[self._history_update_index] = np.array(nextState)
@@ -68,7 +68,7 @@ class ExperienceMemory(object):
         """
         # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
         indices = (random.sample(range(0, min(self._history_size, self.samples())), batch_size))
-        # print indices
+        # print (indices)
 
         state = []
         action = []
@@ -80,8 +80,8 @@ class ExperienceMemory(object):
             action.append(self._action_history[i])
             resultState.append(self._nextState_history[i])
             reward.append(self._reward_history[i])
-        # print c
-        # print experience[indices]
+        # print (c)
+        # print (experience[indices])
         state = np.array(state)
         if (self._continuous_actions):
             action = np.array(action)

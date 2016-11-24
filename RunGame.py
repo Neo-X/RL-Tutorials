@@ -3,7 +3,7 @@ from game.BallGame import BallGame
 import random
 import numpy as np
 import math
-import cPickle
+import dill
 import json
 import os
 
@@ -118,14 +118,14 @@ def collectExperienceActionsContinuous(experience, action_bounds):
             # tup = ExperienceTuple(state, [action], resultState, [reward])
             # Everything should be normalized to be between -1 and 1
             # reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
-            # print "Reward: " + str(reward)
+            # print ("Reward: " + str(reward))
             reward_ = (reward)/(max_reward)
             # reward_ = (reward+max_reward)/(max_reward)
             experience.insert(norm_state(state, state_bounds), [action], norm_state(resultState, state_bounds), [reward_])
             i+=1
             t+=1
 
-    print "Done collecting experience from " + str(experience.samples()) + " samples."
+    print ("Done collecting experience from " + str(experience.samples()) + " samples.")
     return experience  
 
     
@@ -149,51 +149,51 @@ if __name__ == "__main__":
     num_actions=8
     action_selection = range(num_actions)
     
-    print "Max Reward: " + str(max_reward)
+    print ("Max Reward: " + str(max_reward))
     state_bounds = np.array(settings['state_bounds'])
     
     game = Map(map)
     steps = 500
     max_expereince = 20000
     # for i in range(steps):
-    print action_selection
+    print (action_selection)
     i=0
     action_bounds = settings['action_bounds']
     data_folder = settings['data_folder']
     states = np.array([[0,0]])
     action_space_continuous=False
     if settings['agent_name'] == "logistic":
-        print "Creating Logistic agent"
+        print ("Creating Logistic agent")
         model = RLLogisticRegression(states, n_in=2, n_out=8)
     elif settings['agent_name'] == "NN":
-        print "Creating NN agent"
+        print ("Creating NN agent")
         model = NeuralNet(states, n_in=2, n_out=8)
     elif settings['agent_name'] == "Deep":
-        print "Creating Deep agent"
+        print ("Creating Deep agent")
         model = RLNeuralNetwork(states, n_in=2, n_out=8)
     elif settings['agent_name'] == "Deep_DQ":
-        print "Creating Deep agent"
+        print ("Creating Deep agent")
         model = RLNeuralNetworkDQ(states, n_in=2, n_out=8)
     elif settings['agent_name'] == "Deep_NN":
-        print "Creating Deep agent"
+        print ("Creating Deep agent")
         model = RLDeepNet(n_in=2, n_out=8)
         max_training_steps = settings['max_training_steps']
         epsilon = settings['epsilon']
     elif settings['agent_name'] == "Deep_CACLA":
-        print "Creating " + str(settings['agent_name']) + " agent"
+        print ("Creating " + str(settings['agent_name']) + " agent")
         model = DeepCACLA(n_in=2, n_out=2)
         action_space_continuous=True
     elif settings['agent_name'] == "Deep_DPG":
-        print "Creating " + str(settings['agent_name']) + " agent"
+        print ("Creating " + str(settings['agent_name']) + " agent")
         model = DeepDPG(n_in=2, n_out=2)
         action_space_continuous=True
     else:
-        print "Unrecognized model: " + str(settings['agent_name'])
+        print ("Unrecognized model: " + str(settings['agent_name']))
         sys.exit()
     """ 
     if len(sys.argv) > 1:
         file_name=sys.argv[1]
-        model = cPickle.load(open(file_name))
+        model = dill.load(open(file_name))
     """
     
     values = []
@@ -236,7 +236,7 @@ if __name__ == "__main__":
         # reduces random action select probability
         p = (max_training_steps - step) / float(max_training_steps)
         t=0
-        print "Random Action selection Pr(): " + str(p)
+        print ("Random Action selection Pr(): " + str(p))
         discounted_values = []
         bellman_errors = []
         reward_over_epocs = []
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         state_ = game.getState()
         q_value = model.q_value([norm_state(state_, state_bounds)])
         action_ = model.predict([norm_state(state_, state_bounds)])
-        print "q_values: " + str(q_value) + " Action: " + str(action_) + " State: " + str([norm_state(state_, state_bounds)])
+        print ("q_values: " + str(q_value) + " Action: " + str(action_) + " State: " + str([norm_state(state_, state_bounds)]))
         original_val = q_value
         values.append(original_val)
         while not game.reachedTarget():
@@ -284,7 +284,7 @@ if __name__ == "__main__":
             if action_space_continuous:
                 action = randomExporation(0.12, pa)
                 randomAction = randomUniformExporation(action_bounds) # Completely random action
-                # print "policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, state_bounds)]))
+                # print ("policy action: " + str(pa) + " Q-values: " + str(model.q_values([norm_state(state, state_bounds)])))
                 action = eOmegaGreedy(pa, action, randomAction, epsilon * p, omega * p)
                 # action = clampAction(action, action_bounds)
                 reward = game.actContinuous(action)
@@ -293,12 +293,12 @@ if __name__ == "__main__":
                 action = eGreedy(pa, action, epsilon * p)
                 reward = game.act(action)
                 
-            # print "Action: " + str(action)
+            # print ("Action: " + str(action))
             resultState = game.getState()
             # tup = ExperienceTuple(state, [action], resultState, [reward])
             # Everything should be normalized to be between -1 and 1
             # reward_ = (reward+(max_reward/2.0))/(max_reward*0.5)
-            # print "Reward: " + str(reward)
+            # print ("Reward: " + str(reward))
             reward_ = reward/max_reward
             # reward_ = (reward)/(max_reward)
             # reward_ = (reward+max_reward)/(max_reward)
@@ -309,9 +309,9 @@ if __name__ == "__main__":
             # game.updatePolicy(U, V, Q)
             i += 1
             t += 1
-            # print "Reward: " + str(reward_)
-            # print "Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state)
-            # print model.q_values([tup._state])
+            # print ("Reward: " + str(reward_))
+            # print ("Reward for action " + str(tup._action) + " reward is " + str(tup._reward) + " State was " + str(tup._state))
+            # print (model.q_values([tup._state]))
             actions.append([action])
             result_states.append(resultState)
             rewards.append([reward_])
@@ -320,9 +320,9 @@ if __name__ == "__main__":
             discounted_sum += (math.pow(0.8,t) * reward)
             if experience.samples() > batch_size:
                 _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
-                # print _actions, _rewards
+                # print (_actions, _rewards)
                 cost = model.train(_states, _actions, _rewards, _result_states)
-                # print "Iteration: " + str(i) + " Cost: " + str(cost)
+                # print ("Iteration: " + str(i) + " Cost: " + str(cost))
                 
             if (i % steps == 0) and not (i == 0):
                 if action_space_continuous:
@@ -334,7 +334,7 @@ if __name__ == "__main__":
                 states_, actions_, result_states_, rewards_ = experience.get_batch(32)
                 error = model.bellman_error(states_, actions_, rewards_, result_states_)
                 error = np.mean(np.fabs(error))
-                print "Iteration: " + str(i) + " Cost: " + str(cost) + " Bellman Error: " + str(error)
+                print ("Iteration: " + str(i) + " Cost: " + str(cost) + " Bellman Error: " + str(error))
                 
                 mean_reward = np.mean(reward_over_epocs)
                 std_reward = np.std(reward_over_epocs)
@@ -344,7 +344,7 @@ if __name__ == "__main__":
                 std_discount_error = np.std(np.array(discounted_values) - np.array(values))
                 
                 trainData["mean_reward"].append(mean_reward)
-                # print "Mean Rewards: " + str(mean_rewards)
+                # print ("Mean Rewards: " + str(mean_rewards))
                 trainData["std_reward"].append(std_reward)
                 trainData["mean_bellman_error"].append(mean_bellman_error)
                 trainData["std_bellman_error"].append(std_bellman_error)
@@ -373,7 +373,7 @@ if __name__ == "__main__":
         rlv.saveVisual(data_folder+"trainingGraph")
         rlv.setInteractive()
             
-        print ""
+        print ("")
         # X,Y = np.mgrid[0:16,0:16]
         if action_space_continuous:
             X, Y, U, V, Q = get_continuous_policy_visual_data(model, state_bounds, game)
@@ -385,15 +385,15 @@ if __name__ == "__main__":
         states, actions, result_states, rewards = get_batch(experience, len(experience))
         error = model.bellman_error(states, actions, rewards, result_states)
         error = np.mean(np.fabs(error))
-        print "Round: " + str(round) + " Iteration: " + str(i) + " Bellman Error: " + str(error) + " Expereince: " + str(len(experience))
+        print ("Round: " + str(round) + " Iteration: " + str(i) + " Bellman Error: " + str(error) + " Expereince: " + str(len(experience)))
         """
-        # print model.q_values(states)[:5]
-        # print experience[:10]
+        # print (model.q_values(states)[:5])
+        # print (experience[:10])
     
-    # print "Experience: " + str(experience)
-    print "Found target after " + str(i) + " actions"
+    # print ("Experience: " + str(experience))
+    print ("Found target after " + str(i) + " actions")
     file_name=data_folder+"navigator_agent_"+str(settings['agent_name'])+".pkl"
     f = open(file_name, 'w')
-    cPickle.dump(model, f)
+    dill.dump(model, f)
     f.close()
     

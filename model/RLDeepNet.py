@@ -64,7 +64,7 @@ class RLDeepNet(object):
                 l_hid2B, num_units=n_out,
                 nonlinearity=lasagne.nonlinearities.linear)
 
-        # print "Initial W " + str(self._w_o.get_value()) 
+        # print ("Initial W " + str(self._w_o.get_value()) )
         
         self._learning_rate = 0.00025
         self._discount_factor= 0.99
@@ -130,7 +130,7 @@ class RLDeepNet(object):
         self._bellman_error = theano.function(inputs=[State, Action, Reward, ResultState], outputs=diff, allow_input_downcast=True)
         
     def updateTargetModel(self):
-        print "Updating target Model"
+        print ("Updating target Model")
         """
             Double Q learning
         """
@@ -156,7 +156,7 @@ class RLDeepNet(object):
         # states[0, ...] = state
         q_values = self.q_values(state)
         action_ = self.predict(state)
-        # print "q_values: " + str(q_values) + " Action: " + str(action_)
+        # print ("q_values: " + str(q_values) + " Action: " + str(action_))
         original_val = q_values[action_]
         return original_val
     

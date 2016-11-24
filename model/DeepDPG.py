@@ -101,7 +101,7 @@ class DeepDPG(object):
                 l_hid3B, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
             
-        # print "Initial W " + str(self._w_o.get_value()) 
+        # print ("Initial W " + str(self._w_o.get_value()) )
         
         self._learning_rate = 0.001
         self._discount_factor= 0.8
@@ -218,7 +218,7 @@ class DeepDPG(object):
         # self._diffs = theano.function(input=[State])
         
     def _trainOneActions(self, states, actions, rewards, result_states):
-        print "Training action"
+        print ("Training action")
         # lossActor, _ = self._trainActor()
         State = T.dmatrix("State")
         # State.tag.test_value = np.random.rand(batch_size,state_length)
@@ -231,19 +231,19 @@ class DeepDPG(object):
         
         
         for state, action, reward, result_state in zip(states, actions, rewards, result_states):
-            # print state
-            # print action
+            # print (state)
+            # print (action)
             self._states_shared.set_value([state])
             self._next_states_shared.set_value([result_state])
             self._actions_shared.set_value([action])
             self._rewards_shared.set_value([reward])
-            # print "Q value for state and action: " + str(self.q_value([state]))
+            # print ("Q value for state and action: " + str(self.q_value([state])))
             # all_paramsA = lasagne.layers.helper.get_all_param_values(self._l_outA)
-            # print "Network length: " + str(len(all_paramsA))
-            # print "weights: " + str(all_paramsA[0])
+            # print ("Network length: " + str(len(all_paramsA)))
+            # print ("weights: " + str(all_paramsA[0]))
             # lossActor, _ = self._trainActor()
             _params = lasagne.layers.helper.get_all_params(self._l_outA)
-            # print _params[0].get_value()
+            # print (_params[0].get_value())
             inputs_ = {
                 State: self._states_shared,
                 Action: self._q_valsActA,
@@ -256,13 +256,13 @@ class DeepDPG(object):
                 self._learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
             
             ind = 0
-            print "Update: " + str (updates_.items())
-            print "Updates length: " + str (len(updates_.items()[ind][0].get_value())) 
-            print " Updates: " + str(updates_.items()[ind][0].get_value())
+            print ("Update: " + str (updates_.items()))
+            print ("Updates length: " + str (len(updates_.items()[ind][0].get_value())) )
+            print (" Updates: " + str(updates_.items()[ind][0].get_value()))
             
             
     def updateTargetModel(self):
-        # print "Updating target Model"
+        # print ("Updating target Model")
         """
             Target model updates
         """
@@ -271,31 +271,31 @@ class DeepDPG(object):
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._l_outB)
         lerp_weight = 0.001
         
-        # print "l_out length: " + str(len(all_paramsA))
-        # print "l_out length: " + str(all_paramsA[-6:])
-        # print "l_out[0] length: " + str(all_paramsA[0])
-        # print "l_out[4] length: " + str(all_paramsA[4])
-        # print "l_out[5] length: " + str(all_paramsA[5])
-        # print "l_out[6] length: " + str(all_paramsA[6])
-        # print "l_out[7] length: " + str(all_paramsA[7])
-        # print "l_out[11] length: " + str(all_paramsA[11])
-        # print "param Values"
+        # print ("l_out length: " + str(len(all_paramsA)))
+        # print ("l_out length: " + str(all_paramsA[-6:]))
+        # print ("l_out[0] length: " + str(all_paramsA[0]))
+        # print ("l_out[4] length: " + str(all_paramsA[4]))
+        # print ("l_out[5] length: " + str(all_paramsA[5]))
+        # print ("l_out[6] length: " + str(all_paramsA[6]))
+        # print ("l_out[7] length: " + str(all_paramsA[7]))
+        # print ("l_out[11] length: " + str(all_paramsA[11]))
+        # print ("param Values")
         all_params = []
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):
-            # print "paramsA: " + str(paramsA)
-            # print "paramsB: " + str(paramsB)
+            # print ("paramsA: " + str(paramsA))
+            # print ("paramsB: " + str(paramsB))
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_params.append(params)
         """
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         all_paramsActB = lasagne.layers.helper.get_all_param_values(self._l_outActB)
-        # print "l_outAct[0] length: " + str(all_paramsActA[0])
-        # print "l_outAct[4] length: " + str(all_paramsActA[4])
-        # print "l_outAct[5] length: " + str(all_paramsActA[5])
+        # print ("l_outAct[0] length: " + str(all_paramsActA[0]))
+        # print ("l_outAct[4] length: " + str(all_paramsActA[4]))
+        # print ("l_outAct[5] length: " + str(all_paramsActA[5]))
         all_paramsAct = []
         for paramsA, paramsB in zip(all_paramsActA, all_paramsActB):
-            # print "paramsA: " + str(paramsA)
-            # print "paramsB: " + str(paramsB)
+            # print ("paramsA: " + str(paramsA))
+            # print ("paramsB: " + str(paramsB))
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_paramsAct.append(params)
             """
@@ -307,7 +307,7 @@ class DeepDPG(object):
         self._next_states_shared.set_value(result_states)
         self._actions_shared.set_value(actions)
         self._rewards_shared.set_value(rewards)
-        # print "Performing Critic trainning update"
+        # print ("Performing Critic trainning update")
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
@@ -315,14 +315,14 @@ class DeepDPG(object):
         loss, _ = self._train()
         # This undoes the Actor parameter updates as a result of the Critic update.
         #if all_paramsActA == self._l_outActA:
-        #    print "Parameters the same:"
+        #    print ("Parameters the same:")
         # lasagne.layers.helper.set_all_param_values(self._l_outActA, all_paramsActA)
         # self._trainOneActions(states, actions, rewards, result_states)
         for i in range(10):
             self._trainActor()
         # diff_ = self._bellman_error(states, rewards, result_states)
-        # print "Diff"
-        # print diff_
+        # print ("Diff")
+        # print (diff_)
         return loss
     
     def predict(self, state):

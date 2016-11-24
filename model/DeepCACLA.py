@@ -93,7 +93,7 @@ class DeepCACLA(object):
                 nonlinearity=lasagne.nonlinearities.linear)
 
         
-        # print "Initial W " + str(self._w_o.get_value()) 
+        # print ("Initial W " + str(self._w_o.get_value()) )
         
         self._learning_rate = 0.001
         self._discount_factor= 0.8
@@ -187,7 +187,7 @@ class DeepCACLA(object):
         # self._diffs = theano.function(input=[State])
         
     def updateTargetModel(self):
-        print "Updating target Model"
+        print ("Updating target Model")
         """
             Target model updates
         """
@@ -203,7 +203,7 @@ class DeepCACLA(object):
         for params_ in all_paramsA:
             params_ = np.reshape(params_, (params_.size,1))
             params.extend(params_)
-        print len(params)
+        print (len(params))
         return params
     
     def train(self, states, actions, rewards, result_states):
@@ -211,24 +211,24 @@ class DeepCACLA(object):
         self._next_states_shared.set_value(result_states)
         self._actions_shared.set_value(actions)
         self._rewards_shared.set_value(rewards)
-        # print "Performing Critic trainning update"
+        # print ("Performing Critic trainning update")
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
         loss, _ = self._train()
         
         diff_ = self._bellman_error(states, rewards, result_states)
-        # print "Diff"
-        # print diff_
+        # print ("Diff")
+        # print (diff_)
         tmp_states=[]
         tmp_result_states=[]
         tmp_actions=[]
         tmp_rewards=[]
         for i in range(len(diff_)):
-            # print "Performing Actor trainning update"
+            # print ("Performing Actor trainning update")
             
             if ( diff_[i] > 0.0):
-                # print states[i]
+                # print (states[i])
                 tmp_states.append(states[i])
                 tmp_result_states.append(result_states[i])
                 tmp_actions.append(actions[i])
@@ -240,7 +240,7 @@ class DeepCACLA(object):
             self._actions_shared.set_value(tmp_actions)
             self._rewards_shared.set_value(tmp_rewards)
             lossActor, _ = self._trainActor()
-            # print "Length of positive actions: " + str(len(tmp_actions))
+            # print ("Length of positive actions: " + str(len(tmp_actions)))
             # return np.sqrt(lossActor);
         return loss
     

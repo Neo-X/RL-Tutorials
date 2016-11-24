@@ -63,16 +63,16 @@ def RMSpropRL(cost, delta, params, lr=0.001, rho=0.95, epsilon=0.01):
     grads = T.grad(cost=cost, wrt=params)
     updates = []
     for p, g in zip(params, grads):
-        print "grad: " + str(g)
-        print "p: " + str(p)
+        print ("grad: " + str(g))
+        print ("p: " + str(p))
         acc = theano.shared(p.get_value() * 0.0)
         acc_new = rho * acc + (1 - rho) * g ** 2
         gradient_scaling = T.sqrt(acc_new + epsilon)
         g = g / gradient_scaling
-        print acc
-        print acc_new
-        print g
-        print p
+        print (acc)
+        print (acc_new)
+        print (g)
+        print (p)
         updates.append((acc, acc_new))
         updates.append((p, p + (lr * delta * g)))
     return updates
@@ -109,7 +109,7 @@ class RLNeuralNetwork(object):
         self._w_o_old = init_tanh(hidden_size, n_out)
 
         
-        # print "Initial W " + str(self._w_o.get_value()) 
+        # print ("Initial W " + str(self._w_o.get_value()) )
         
         self._learning_rate = 0.00025
         self._discount_factor= 0.99
@@ -191,7 +191,7 @@ class RLNeuralNetwork(object):
         return q_val_x
     
     def updateTargetModel(self):
-        print "Updating target Model"
+        print ("Updating target Model")
         self._w_h_old = self._w_h 
         self._b_h_old = self._b_h 
         self._w_h2_old = self._w_h2

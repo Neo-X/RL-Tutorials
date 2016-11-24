@@ -63,7 +63,7 @@ class RLLogisticRegression(object):
         batch_size=32
         self._w = init_tanh(n_in, n_out, 1234)
         self._w_old = init_tanh(n_in, n_out, 2235)
-        print "Initial W " + str(self._w.get_value()) 
+        print ("Initial W " + str(self._w.get_value()) )
         # (n_out,) ,) used so that it can be added as row or column
         # 1x8
         self._b = init_b_weights((1,n_out))
@@ -123,8 +123,8 @@ class RLLogisticRegression(object):
             Performing gradient descent, want to add steps in the negative direction of 
             gradient.
         """
-        print "Delta shape: " + str(theano.tensor.shape(delta).shape)
-        print "gradient shape: " + str(theano.tensor.shape(gradient).shape[0])
+        print ("Delta shape: " + str(theano.tensor.shape(delta).shape))
+        print ("gradient shape: " + str(theano.tensor.shape(gradient).shape)[0])
         #update = [[self._w, self._w + (self._learning_rate * -gradient)],
         #          [self._b, self._b + (self._learning_rate * -gradient_b)]]
         
@@ -152,7 +152,7 @@ class RLLogisticRegression(object):
         # return (T.dot(State, self._w) + self._b.reshape((1, -1)))
         
     def updateTargetModel(self):
-        print "Updating target Model"
+        print ("Updating target Model")
         self._w_old = self._w 
         self._b_old = self._b
         
